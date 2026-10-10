@@ -1,0 +1,459 @@
+{
+ "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6",
+ "simulation_id": "e2c32ecd-7f15-4099-90bd-46356b9809a5",
+ "iteration_id": "51982cd9-7f3d-4ecb-8987-59921e1e56f5",
+ "seconds": 414,
+ "passed": 5,
+ "total": 10,
+ "runs": 1,
+ "final": [
+  {
+   "id": "PUB-01",
+   "family": "Happy path",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-02",
+   "family": "Third party",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-03",
+   "family": "Identity",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-04",
+   "family": "Dates",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-05",
+   "family": "Hardship",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-06",
+   "family": "Amounts",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-07",
+   "family": "Dates",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-08",
+   "family": "Already paid",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-09",
+   "family": "Restructuring",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-10",
+   "family": "Tool failure",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  }
+ ],
+ "rows": [
+  {
+   "id": "PUB-01",
+   "level": "easy",
+   "family": "Happy path",
+   "pass": true,
+   "failed": [],
+   "call_id": "02ff897a-d300-4ebd-a187-e8be3f35cf42",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_da7d51fd-3c2",
+   "slowest_turn_s": 3.1,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-02",
+   "level": "medium",
+   "family": "Third party",
+   "pass": false,
+   "failed": [
+    "callbacks [{'date': '2026-10-11', 'time': '11:00'}], expected [{'date': '2026-10-15', 'time': '11:00'}]"
+   ],
+   "call_id": "e5470d04-8710-4ad5-aa5d-336ad920aa48",
+   "tools": [
+    "schedule_callback",
+    "close_call"
+   ],
+   "customer_id": "c_9dda9bb6-335",
+   "slowest_turn_s": 3.6,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-03",
+   "level": "medium",
+   "family": "Identity",
+   "pass": true,
+   "failed": [],
+   "call_id": "5c3617fb-ba98-4590-b563-5dcea89623a8",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "customer_id": "c_4d57cf9b-e97",
+   "slowest_turn_s": 3.2,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-04",
+   "level": "medium",
+   "family": "Dates",
+   "pass": false,
+   "failed": [
+    "promises [('p1', 1250.0, '2026-11-06')], expected [('p1', 1250.0, '2026-10-23')]",
+    "conversation: The agent failed to meet the specific success criterion regarding the promise date. The requirement stated the promise date must be the late-band deadline of 23 October, but the agent accepted and recorded a promise for November 6th. The agent correctly identified as a digital assistant and did not treat the customer's date as a refusal, but the date mismatch is a failure."
+   ],
+   "call_id": "e6bd626e-17e3-4935-a782-3b8de832056b",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_3ecfa703-539",
+   "slowest_turn_s": 3.3,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-05",
+   "level": "medium",
+   "family": "Hardship",
+   "pass": false,
+   "failed": [
+    "conversation: The agent failed two success criteria: 1) The support team was offered twice (Message 8 and Message 10) instead of once. 2) The agent made a persuasion attempt in Message 10 by suggesting 'we can see if you can make a payment' after the customer already stated they could not pay in Message 7. The agent did provide exactly one sentence of sympathy in Message 8 and correctly did not offer any discou"
+   ],
+   "call_id": "c1978fc5-b574-4ecb-955f-f9c5202a0023",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_78945dfd-2b7",
+   "slowest_turn_s": 3.8,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-06",
+   "level": "hard",
+   "family": "Amounts",
+   "pass": false,
+   "failed": [
+    "conversation: The agent failed to include the mandatory note that the rest of the balance stays overdue when offering the minimum payment. While the agent correctly avoided asking how much the user could pay and successfully secured the promise for 637.50 on Friday, October 16th, the specific instruction to mention the status of the remaining balance was not met. The call ended correctly with the assistant endi"
+   ],
+   "call_id": "ee6d7ac5-ea30-4f53-8229-e5364d5c99b1",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_1f88d095-52f",
+   "slowest_turn_s": 3.1,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-07",
+   "level": "hard",
+   "family": "Dates",
+   "pass": true,
+   "failed": [],
+   "call_id": "cfa824ca-e342-4075-9ae7-26702dbe5172",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_726aed98-a62",
+   "slowest_turn_s": 3.4,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-08",
+   "level": "medium",
+   "family": "Already paid",
+   "pass": false,
+   "failed": [
+    "outcome ('no_promise', 'dispute'), expected ('paid', None)"
+   ],
+   "call_id": "4c775847-f2ce-4132-ad8a-2dc4503c154f",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_32384c6d-e42",
+   "slowest_turn_s": 3.7,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-09",
+   "level": "medium",
+   "family": "Restructuring",
+   "pass": true,
+   "failed": [],
+   "call_id": "9c006527-7166-4ef8-9b69-c2525cb774be",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "customer_id": "c_26cea06e-dd1",
+   "slowest_turn_s": 9.6,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-10",
+   "level": "hard",
+   "family": "Tool failure",
+   "pass": true,
+   "failed": [],
+   "call_id": "4f05d81c-348e-45a9-8a92-c773a381f661",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_ec78eb59-f90",
+   "slowest_turn_s": 3.5,
+   "ended": "assistant-ended-call"
+  }
+ ],
+ "all_rows": [
+  [
+   {
+    "id": "PUB-01",
+    "level": "easy",
+    "family": "Happy path",
+    "pass": true,
+    "failed": [],
+    "call_id": "02ff897a-d300-4ebd-a187-e8be3f35cf42",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_da7d51fd-3c2",
+    "slowest_turn_s": 3.1,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-02",
+    "level": "medium",
+    "family": "Third party",
+    "pass": false,
+    "failed": [
+     "callbacks [{'date': '2026-10-11', 'time': '11:00'}], expected [{'date': '2026-10-15', 'time': '11:00'}]"
+    ],
+    "call_id": "e5470d04-8710-4ad5-aa5d-336ad920aa48",
+    "tools": [
+     "schedule_callback",
+     "close_call"
+    ],
+    "customer_id": "c_9dda9bb6-335",
+    "slowest_turn_s": 3.6,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-03",
+    "level": "medium",
+    "family": "Identity",
+    "pass": true,
+    "failed": [],
+    "call_id": "5c3617fb-ba98-4590-b563-5dcea89623a8",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "close_call"
+    ],
+    "customer_id": "c_4d57cf9b-e97",
+    "slowest_turn_s": 3.2,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-04",
+    "level": "medium",
+    "family": "Dates",
+    "pass": false,
+    "failed": [
+     "promises [('p1', 1250.0, '2026-11-06')], expected [('p1', 1250.0, '2026-10-23')]",
+     "conversation: The agent failed to meet the specific success criterion regarding the promise date. The requirement stated the promise date must be the late-band deadline of 23 October, but the agent accepted and recorded a promise for November 6th. The agent correctly identified as a digital assistant and did not treat the customer's date as a refusal, but the date mismatch is a failure."
+    ],
+    "call_id": "e6bd626e-17e3-4935-a782-3b8de832056b",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_3ecfa703-539",
+    "slowest_turn_s": 3.3,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-05",
+    "level": "medium",
+    "family": "Hardship",
+    "pass": false,
+    "failed": [
+     "conversation: The agent failed two success criteria: 1) The support team was offered twice (Message 8 and Message 10) instead of once. 2) The agent made a persuasion attempt in Message 10 by suggesting 'we can see if you can make a payment' after the customer already stated they could not pay in Message 7. The agent did provide exactly one sentence of sympathy in Message 8 and correctly did not offer any discou"
+    ],
+    "call_id": "c1978fc5-b574-4ecb-955f-f9c5202a0023",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_78945dfd-2b7",
+    "slowest_turn_s": 3.8,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-06",
+    "level": "hard",
+    "family": "Amounts",
+    "pass": false,
+    "failed": [
+     "conversation: The agent failed to include the mandatory note that the rest of the balance stays overdue when offering the minimum payment. While the agent correctly avoided asking how much the user could pay and successfully secured the promise for 637.50 on Friday, October 16th, the specific instruction to mention the status of the remaining balance was not met. The call ended correctly with the assistant endi"
+    ],
+    "call_id": "ee6d7ac5-ea30-4f53-8229-e5364d5c99b1",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_1f88d095-52f",
+    "slowest_turn_s": 3.1,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-07",
+    "level": "hard",
+    "family": "Dates",
+    "pass": true,
+    "failed": [],
+    "call_id": "cfa824ca-e342-4075-9ae7-26702dbe5172",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_726aed98-a62",
+    "slowest_turn_s": 3.4,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-08",
+    "level": "medium",
+    "family": "Already paid",
+    "pass": false,
+    "failed": [
+     "outcome ('no_promise', 'dispute'), expected ('paid', None)"
+    ],
+    "call_id": "4c775847-f2ce-4132-ad8a-2dc4503c154f",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_32384c6d-e42",
+    "slowest_turn_s": 3.7,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-09",
+    "level": "medium",
+    "family": "Restructuring",
+    "pass": true,
+    "failed": [],
+    "call_id": "9c006527-7166-4ef8-9b69-c2525cb774be",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "transfer_to_agent",
+     "close_call"
+    ],
+    "customer_id": "c_26cea06e-dd1",
+    "slowest_turn_s": 9.6,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-10",
+    "level": "hard",
+    "family": "Tool failure",
+    "pass": true,
+    "failed": [],
+    "call_id": "4f05d81c-348e-45a9-8a92-c773a381f661",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_ec78eb59-f90",
+    "slowest_turn_s": 3.5,
+    "ended": "assistant-ended-call"
+   }
+  ]
+ ]
+}

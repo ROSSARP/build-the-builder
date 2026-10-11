@@ -858,3 +858,13 @@ Failures:
 - probes (single sequential stream, running): probe-cutday = R4b acceptance test (customer 97631186: totalDebt 860.4 TL vs statementDebt 0 — numerically decisive; expect "Hesap kesim tarihiniz bugün" + 860,40 TL; failure mode = agent reads statement fields -> says 0/no debt). probe-ncut = R3 check (pre-authored s8_no_cut script; expect "henüz kesilmiş bir ekstresi olmadığı" + first cut date 05.11.2026, no invented dates).
 - mock gaps (relayed @cloudflare-mock-deploy-skill 20bb170): deployed mock accepted same-week statement.week.change with NO token (contract says 401-once + already-has-week error); no practice/ledger read endpoint.
 - judgement: v5 = R3 FIXED (pending probe-ncut confirmation), R4b STILL BROKEN (structural evidence solid; behavioral probe pending). If v6 lands: re-run probe-cutday + probe-ncut + ex1 on the new export — that is the acceptance test.
+## 2026-10-11 22:32 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)

@@ -1,7 +1,7 @@
 {
  "workflow_id": "d659b17f-78c8-4fd1-8002-46755b07d54a",
  "agent_id": "34b38ddd-7429-4f04-aca2-4b5d8861c2e6",
- "updated_at": "2026-10-11T19:25:54.884Z",
+ "updated_at": "2026-10-11T19:32:44.963Z",
  "workflow": {
   "nodes": {
    "actions": {
@@ -756,59 +756,6 @@
        "maxRetries": 2
       },
       "function": {
-       "name": "cards_list",
-       "handler": "__function__:api_call",
-       "parameters": {
-        "type": "object",
-        "properties": {
-         "url": {
-          "type": "string",
-          "default": "https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1/cards.list"
-         },
-         "body": {
-          "type": "object",
-          "required": [
-           "customerNo",
-           "aiFlow"
-          ],
-          "properties": {
-           "aiFlow": {
-            "type": "string",
-            "default": "CardOps",
-            "description": "Hangi kullan\u0131m soruyor; bu ak\u0131\u015f i\u00e7in \"CardOps\"."
-           },
-           "customerNo": {
-            "type": "string",
-            "default": "{{customerNumber}}",
-            "description": "M\u00fc\u015fteri numaras\u0131 (8 hane; \u00f6rnek \"90000001\"; metin ya da say\u0131 olarak g\u00f6nderilebilir)."
-           }
-          }
-         },
-         "method": {
-          "type": "string",
-          "default": "POST"
-         },
-         "headers": {
-          "type": "object",
-          "properties": {
-           "Content-Type": {
-            "type": "string",
-            "default": "application/json"
-           }
-          }
-         }
-        }
-       },
-       "description": "M\u00fc\u015fterinin kartlar\u0131n\u0131 listeler. Ekstre borcundan \u00f6nce, hangi kartlar\u0131n oldu\u011funu bilmek i\u00e7in \u00e7a\u011fr\u0131l\u0131r. M\u00fc\u015fteri numaras\u0131 sizin i\u00e7in doldurulur."
-      }
-     },
-     {
-      "type": "function",
-      "config": {
-       "timeoutMs": 12000,
-       "maxRetries": 2
-      },
-      "function": {
        "name": "contact_email_get",
        "handler": "__function__:api_call",
        "parameters": {
@@ -862,25 +809,31 @@
        "maxRetries": 2
       },
       "function": {
-       "name": "cards_balance",
+       "name": "cards_list",
        "handler": "__function__:api_call",
        "parameters": {
         "type": "object",
         "properties": {
          "url": {
           "type": "string",
-          "default": "https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1/cards.balance"
+          "default": "https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1/cards.list"
          },
          "body": {
           "type": "object",
           "required": [
-           "cardNumber"
+           "customerNo",
+           "aiFlow"
           ],
           "properties": {
-           "cardNumber": {
+           "aiFlow": {
             "type": "string",
-            "default": "{{cardNumber}}",
-            "description": "Kart numaras\u0131; cards.list servisinin d\u00f6nd\u00fcrd\u00fc\u011f\u00fc haliyle aynen g\u00f6nderin, m\u00fc\u015fterinin s\u00f6yledi\u011fi rakamlardan yeniden kurmay\u0131n."
+            "default": "CardOps",
+            "description": "Hangi kullan\u0131m soruyor; bu ak\u0131\u015f i\u00e7in \"CardOps\"."
+           },
+           "customerNo": {
+            "type": "string",
+            "default": "{{customerNumber}}",
+            "description": "M\u00fc\u015fteri numaras\u0131 (8 hane; \u00f6rnek \"90000001\"; metin ya da say\u0131 olarak g\u00f6nderilebilir)."
            }
           }
          },
@@ -899,9 +852,8 @@
          }
         }
        },
-       "description": "M\u00fc\u015fterinin kredi kart\u0131 ekstre borcunu ve ekstre bilgilerini getirir. Her aramada bir kez, ekstre hakk\u0131nda konu\u015fmadan hemen \u00f6nce \u00e7a\u011fr\u0131l\u0131r. M\u00fc\u015fteri numaras\u0131 sizin i\u00e7in doldurulur."
-      },
-      "pre_process_code": "try:\n    _cards = None\n    _src = vars.get('voice_v1_cards_list_response') or vars.get('cards_list_response') or {}\n    if isinstance(_src, dict):\n        _d = _src.get('data') if isinstance(_src.get('data'), dict) else _src\n        _cards = _d.get('cards')\n    if not isinstance(_cards, list) or not _cards:\n        _cards = vars.get('statement_cards')\n    _cn = ''\n    if isinstance(_cards, list) and _cards and isinstance(_cards[0], dict) and _cards[0].get('cardNumber'):\n        _cn = str(_cards[0]['cardNumber'])\n    if _cn:\n        vars['cardNumber'] = _cn\n        _b = config.get('body')\n        if not isinstance(_b, dict):\n            _b = {}\n            config['body'] = _b\n        _b['cardNumber'] = _cn\nexcept Exception:\n    pass\n"
+       "description": "M\u00fc\u015fterinin kartlar\u0131n\u0131 listeler. Ekstre borcundan \u00f6nce, hangi kartlar\u0131n oldu\u011funu bilmek i\u00e7in \u00e7a\u011fr\u0131l\u0131r. M\u00fc\u015fteri numaras\u0131 sizin i\u00e7in doldurulur."
+      }
      }
     ],
     "transitions": [
@@ -911,7 +863,7 @@
        "operator": "always"
       },
       "description": "always",
-      "target_node": "statement_facts"
+      "target_node": "balance_fetch"
      }
     ],
     "role_message": "",
@@ -919,11 +871,6 @@
     "interruptible": true,
     "max_node_turns": null,
     "response_mapping": [
-     {
-      "path": "data",
-      "variable": "statement_data",
-      "description": ""
-     },
      {
       "path": "data.cards",
       "variable": "statement_cards",
@@ -937,7 +884,7 @@
     "truncation_window_size": 10,
     "on_enter_first_entry_only": false,
     "disable_inactivity_monitor": false,
-    "passthrough_default_transition": "statement_facts",
+    "passthrough_default_transition": "balance_fetch",
     "return_to_previous_on_interrupt": false
    },
    "statement": {
@@ -1270,6 +1217,96 @@
     "on_enter_first_entry_only": false,
     "disable_inactivity_monitor": false,
     "passthrough_default_transition": "statement",
+    "return_to_previous_on_interrupt": false
+   },
+   "balance_fetch": {
+    "name": "balance_fetch",
+    "tools": [],
+    "on_enter": {
+     "type": "silent"
+    },
+    "node_type": "api_request",
+    "assertions": [],
+    "passthrough": true,
+    "pre_actions": [
+     {
+      "type": "function",
+      "config": {
+       "timeoutMs": 12000,
+       "maxRetries": 2
+      },
+      "function": {
+       "name": "cards_balance",
+       "handler": "__function__:api_call",
+       "parameters": {
+        "type": "object",
+        "properties": {
+         "url": {
+          "type": "string",
+          "default": "https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1/cards.balance"
+         },
+         "body": {
+          "type": "object",
+          "required": [
+           "cardNumber"
+          ],
+          "properties": {
+           "cardNumber": {
+            "type": "string",
+            "default": "{{cardNumber}}",
+            "description": "Kart numaras\u0131; cards.list servisinin d\u00f6nd\u00fcrd\u00fc\u011f\u00fc haliyle aynen g\u00f6nderin, m\u00fc\u015fterinin s\u00f6yledi\u011fi rakamlardan yeniden kurmay\u0131n."
+           }
+          }
+         },
+         "method": {
+          "type": "string",
+          "default": "POST"
+         },
+         "headers": {
+          "type": "object",
+          "properties": {
+           "Content-Type": {
+            "type": "string",
+            "default": "application/json"
+           }
+          }
+         }
+        }
+       },
+       "description": "M\u00fc\u015fterinin kredi kart\u0131 ekstre borcunu ve ekstre bilgilerini getirir. Her aramada bir kez, ekstre hakk\u0131nda konu\u015fmadan hemen \u00f6nce \u00e7a\u011fr\u0131l\u0131r. M\u00fc\u015fteri numaras\u0131 sizin i\u00e7in doldurulur."
+      },
+      "pre_process_code": "try:\n    _cards = None\n    _src = vars.get('voice_v1_cards_list_response') or vars.get('cards_list_response') or {}\n    if isinstance(_src, dict):\n        _d = _src.get('data') if isinstance(_src.get('data'), dict) else _src\n        _cards = _d.get('cards')\n    if not isinstance(_cards, list) or not _cards:\n        _cards = vars.get('statement_cards')\n    _cn = ''\n    if isinstance(_cards, list) and _cards and isinstance(_cards[0], dict) and _cards[0].get('cardNumber'):\n        _cn = str(_cards[0]['cardNumber'])\n    if _cn:\n        vars['cardNumber'] = _cn\n        _b = config.get('body')\n        if not isinstance(_b, dict):\n            _b = {}\n            config['body'] = _b\n        _b['cardNumber'] = _cn\nexcept Exception:\n    pass\n"
+     }
+    ],
+    "transitions": [
+     {
+      "condition": {
+       "mode": "exact",
+       "operator": "always"
+      },
+      "description": "always",
+      "target_node": "statement_facts"
+     }
+    ],
+    "role_message": "",
+    "task_message": "",
+    "interruptible": true,
+    "max_node_turns": null,
+    "response_mapping": [
+     {
+      "path": "data",
+      "variable": "statement_data",
+      "description": ""
+     }
+    ],
+    "extraction_schema": [],
+    "max_turn_transition": null,
+    "truncation_strategy": "keep_all",
+    "suppress_tool_results": false,
+    "truncation_window_size": 10,
+    "on_enter_first_entry_only": false,
+    "disable_inactivity_monitor": false,
+    "passthrough_default_transition": "statement_facts",
     "return_to_previous_on_interrupt": false
    },
    "statement_facts": {

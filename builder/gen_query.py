@@ -2940,15 +2940,20 @@ def build_query_workflow(spec, api=None, mock_base=None):
     # ---- find_card (api_request) + facts/week code nodes
     statement_name = _tool_name(paths["statement"])
     find_card_pre = []
-    if cards_tool:
-        find_card_pre.append(cards_tool)
     if email_address_tool:
         find_card_pre.append(email_address_tool)
-    find_card = _api_node("find_card", statement_tool,
-                          [{"path": "data", "variable": "statement_data"},
-                           {"path": "data.cards", "variable": "statement_cards"}],
-                          "statement_facts",
+    # Two nodes, so the card list is MAPPED before the balance fetch runs:
+    # node-level response_mapping applies when a node's pre_actions finish, so a
+    # balance call in the SAME node can never see cards.list's result (its
+    # cardNumber body field stays unresolved and the call fails). Splitting the
+    # nodes lets the balance's pre_process_code read the mapped statement_cards.
+    find_card = _api_node("find_card", cards_tool if cards_tool else statement_tool,
+                          [{"path": "data.cards", "variable": "statement_cards"}],
+                          "balance_fetch",
                           extra_pre_actions=find_card_pre or None)
+    balance_fetch = _api_node("balance_fetch", statement_tool,
+                              [{"path": "data", "variable": "statement_data"}],
+                              "statement_facts")
     facts = _code_node("statement_facts",
                        _facts_code(spec, statement_name,
                                    _tool_name(paths["cards"]) if paths.get("cards") else "",
@@ -3337,7 +3342,7 @@ def build_query_workflow(spec, api=None, mock_base=None):
         actions["max_turn_transition"] = "transfer"
 
     nodes = {}
-    for node in (opening, find_card, facts, weeks, statement, actions, transfer):
+    for node in (opening, find_card, balance_fetch, facts, weeks, statement, actions, transfer):
         nodes[node["name"]] = node
 
     workflow = {
@@ -3352,7 +3357,7 @@ def build_query_workflow(spec, api=None, mock_base=None):
     return _localize_workflow(workflow, lang)
 
 
-NODE_NAMES = ("opening", "find_card", "statement_facts", "week_facts", "statement",
+NODE_NAMES = ("opening", "find_card", "balance_fetch", "statement_facts", "week_facts", "statement",
               "actions", "transfer")
 DOMAIN = "statement_query"
 

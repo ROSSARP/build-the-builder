@@ -442,6 +442,7 @@ def main():
                 if spec:
                     log("case: reusing the extracted spec (tests/final_spec.json)")
                     trace_line("case: spec reused from tests/final_spec.json")
+                    trace_line("model call: none — deterministic path (spec reused, gen_query, no LLM)")
         if spec is None:
             for attempt in range(2):
                 try:

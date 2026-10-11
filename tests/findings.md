@@ -662,3 +662,23 @@ Failures:
 
 - artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
 - judgement: (none noted)
+## 2026-10-11 17:01 — brief-a
+
+- command: python3 builder/build.py briefs/brief-a.md --no-fix
+- workflow 73a14df1-aec9-4c0d-a76a-50c703d08081, agent 8580c81d-938f-4854-9600-6901f5a1f4d6
+- score: 10 / 10 passed
+- duration: 260 s
+
+- PASS PUB-01 (easy, Happy path): ok
+- PASS PUB-02 (medium, Third party): ok
+- PASS PUB-03 (medium, Identity): ok
+- PASS PUB-04 (medium, Dates): ok
+- PASS PUB-05 (medium, Hardship): ok
+- FAIL PUB-06 (hard, Amounts): promises [], expected [('p1', 637.5, '2026-10-16')]
+- PASS PUB-07 (hard, Dates): ok
+- PASS PUB-08 (medium, Already paid): ok
+- PASS PUB-09 (medium, Restructuring): ok
+- PASS PUB-10 (hard, Tool failure): ok
+
+- artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
+- judgement: (none noted)

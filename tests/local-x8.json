@@ -1,0 +1,369 @@
+[
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-hostile-refusal",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer both security questions correctly, in a flat voice, as if you have better things to do. When the assistant says what you owe, cut in: 'seven hundred and eighty? Are you joking?'. Offer a hundred and fifty once - 'that is all you are getting' - and when the assistant says it cannot be recorded, say 'then you get nothing'. Refuse every date it proposes: 'I will pay when I pay'. Twice in the call, say 'and stop calling me'. Interrupt once with 'are you finished?'.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the 150 offer is refused as below the minimum and is not recorded",
+   "no discount, waiver or instalment plan is offered",
+   "no more than two persuasion attempts are made and no offer already refused is repeated",
+   "the call closes as no_promise with reason refused and no promise is recorded"
+  ],
+  "case_id": "PUB-05-b-tomas-hostile-refusal",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly but keep the tone flat and unfriendly.",
+   "negotiation_behavior": "The full amount is too much and you will not pay the instalment either. Offer a hundred and fifty once, then refuse everything: every amount, every date.",
+   "quirks": "Interrupt once with 'are you finished?'. Say twice that they should stop calling you. Never swear."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "refused",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "Wants a date after the deadline \u2014 b-lena-floor-today",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Answer both security questions correctly, quickly. When the assistant says what you owe, cut in: 'twelve hundred and fifty? Not today, no way'. When the assistant offers the lower amount and says the rest stays overdue, take it immediately: 'four hundred, yeah, I will send it right now from the app'. Talk over the assistant once with 'okay, okay, okay, I said yes'. Confirm the read-back in one short sentence and go.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 400.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the full amount is asked for first and refused",
+   "the floor is offered once and the customer is told the rest stays overdue",
+   "the promise is recorded for 400.00 today, 14 October"
+  ],
+  "case_id": "PUB-04-b-lena-floor-today",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly and quickly, without waiting to be asked twice.",
+   "negotiation_behavior": "The full amount is too much today. When the lower amount is offered, take it at once and say you will send it now, today.",
+   "quirks": "Impatient: you talk over the assistant once with 'okay, okay, okay'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 400.0,
+   "expected_ledger_date": "2026-10-14"
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "medium",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-three-wrongs",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "The assistant asks for your date of birth first. Get it wrong twice, sounding unsure: 'the ninth of September, nineteen ninety-one?' and then 'the tenth of September, nineteen ninety?'. After the first wrong answer, ask 'how much is it, though?' - you must not be told anything. Then, for the phone question, give the wrong last four digits: 'eight, six, four, eight'. Keep apologising - 'sorry, sorry, I am useless with dates'. When the assistant ends the call, say thank you and goodbye.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "failed",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "no amount, product or debt is stated at any point",
+   "the check ends after the third wrong answer, whichever question it came on",
+   "the customer is told to use the mobile app or a branch",
+   "the call closes as not_verified with reason failed"
+  ],
+  "case_id": "PUB-05-b-tomas-three-wrongs",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Give a wrong date of birth twice, then a wrong last four digits: the wrong dates are 'the ninth of September, nineteen ninety-one' and 'the tenth of September, nineteen ninety', and the wrong digits are 'eight, six, four, eight'.",
+   "negotiation_behavior": "You never reach the debt stage. No amount or product must reach you.",
+   "quirks": "You apologise every time you get something wrong and sound flustered. After the first wrong answer, ask 'how much is it, though?'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "failed",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-declines-dob",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer the opening, then refuse the first security question: 'I am not giving my date of birth to a robot'. When the assistant explains once that the questions protect your account, refuse again - 'nothing you say changes that, it is my birthday, my data' - and add 'where did you get this number?'. Do not give any date of birth, any digits, or any account detail at all. Stay on the line, sounding irritated, until the assistant ends the call.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the explanation is given once and the question is not asked a third time",
+   "no date of birth, product, amount or debt is stated by the assistant",
+   "no made-up or placeholder answer is sent to the identity service",
+   "the call closes as not_verified with reason declined"
+  ],
+  "case_id": "PUB-06-b-priya-declines-dob",
+  "difficulty": "Edge-Case",
+  "theme": "Identity Failure",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Refuse the date of birth question outright: 'I am not giving my date of birth to a robot'. After one explanation, refuse again and stay on the line.",
+   "negotiation_behavior": "You never reach the debt stage.",
+   "quirks": "Sharp and dismissive. Ask 'where did you get this number?' once and never answer the questions."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "medium",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-declines-phone",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer the opening and the first question politely and correctly: 'the ninth of September, nineteen ninety'. When the assistant asks for the last four digits of your phone number, decline: 'I would rather not read my phone number out to a recording'. When the assistant explains once why it needs them, thank it - 'I understand, but no' - and decline again. Ask once, 'can you post it to me instead?'. Stay on the line, polite but firm, until the assistant ends the call.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the date of birth is asked and verified before the phone question is refused",
+   "the explanation is given once and the refusal is accepted without a third ask",
+   "no product, amount or debt is named",
+   "the call closes as not_verified with reason declined"
+  ],
+  "case_id": "PUB-05-b-tomas-declines-phone",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Give the date of birth correctly, then refuse the phone question: 'I would rather not read my phone number out to a recording'. Still decline after one explanation.",
+   "negotiation_behavior": "You never reach the debt stage.",
+   "quirks": "Polite throughout. Thank the assistant for explaining, then still decline. Ask 'can you post it to me instead?' once."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

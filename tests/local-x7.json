@@ -1,0 +1,401 @@
+[
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-month-end",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer both security questions correctly, sounding unsure: 'the ninth of September... ninety, yes'. When the assistant says what you owe, say you can pay the whole seven hundred and eighty at the end of the month: 'the thirtieth, when the pension comes in'. When the assistant says the latest date it can record is the twenty-third of October, repeat it back - 'the twenty-third, the twenty-third' - and ask 'so the thirtieth is no good at all?'. Then accept the twenty-third and confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 780.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "30 October is never recorded",
+   "the deadline 23 October is offered as the latest date the assistant can record",
+   "the customer's own date is not treated as a refusal and no persuasion attempt is made"
+  ],
+  "case_id": "PUB-05-b-tomas-month-end",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly but sound unsure about each one, as if you are checking them in your head.",
+   "negotiation_behavior": "You want to pay on the thirtieth of the month, when the pension comes in. When the assistant says the latest date it can record is the twenty-third, push back once, then accept.",
+   "quirks": "You repeat the assistant's words while you think: 'the twenty-third, the twenty-third'. Do not name any amount - only the date."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 780.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 b-lena-next-friday",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Answer both security questions correctly. When the assistant says what you owe, say you can pay the full amount on 'next Friday'. Work it out loud so there is no doubt: 'today is Wednesday, so this Friday is the sixteenth - I mean next Friday, the twenty-third'. If the assistant records this Friday instead, correct it straight away: 'no, the twenty-third, payday Friday'. If the assistant offers to take the payment earlier, say 'no, I have not got it until the twenty-third'. Confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "'next Friday' is recorded as 23 October, not 16 October",
+   "no persuasion attempt is made",
+   "the promise is for the full 1,250.00 and the read-back names the twenty-third"
+  ],
+  "case_id": "PUB-04-b-lena-next-friday",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "You can pay the full amount on 'next Friday'. Make clear out loud which Friday that is, and correct the assistant if it records this Friday instead.",
+   "quirks": "You work the dates out loud: 'today is Wednesday, so this Friday is the sixteenth'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 1250.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "medium",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-vague-tuesday",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. Politely say you cannot pay today and be vague about when you can: 'sometime next week, when my husband's transfer clears, I think'. Do not name a day until the assistant asks you for one; when it does, say 'Tuesday then - the twentieth'. If the assistant proposes a date instead of asking, add 'oh, Tuesday the twentieth would work better for me'. Twice, ask 'sorry, say that again?' and answer after the repeat. Confirm the read-back and thank the assistant for their patience.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 2125.1,
+     "date": "2026-10-20"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant asks once for the exact day after the vague answer",
+   "the vague answer is not counted as a refusal and no persuasion attempt is made",
+   "the promise is recorded for Tuesday 20 October"
+  ],
+  "case_id": "PUB-06-b-priya-vague-tuesday",
+  "difficulty": "Medium",
+  "theme": "Date Negotiation",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly and politely.",
+   "negotiation_behavior": "Be vague at first: 'sometime next week, when my husband's transfer clears'. Wait to be asked for an exact day, then name Tuesday the twentieth.",
+   "quirks": "Twice in the call ask the assistant to repeat itself: 'sorry, say that again?'. Thank the assistant for their patience."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 2125.1,
+   "expected_ledger_date": "2026-10-20"
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-800-then-full",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. Say the full amount is too much right now: 'two thousand, that is my whole month'. When the assistant offers you the lower amount and says the rest stays overdue, think out loud - 'rent, the car, the school fees' - and offer 'what about eight hundred?'. When the assistant reads eight hundred back, change your mind: 'actually, my bonus came through yesterday - let us just clear the whole thing, twenty-one twenty-five ten, on Friday the sixteenth'. Let the assistant read the whole thing back again before you confirm.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 2125.1,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the customer's own 800 amount is neither refused nor treated as a refusal",
+   "the change at the read-back is read back again before create_promise is called",
+   "create_promise is called exactly once, for the full 2,125.10 on Friday 16 October",
+   "the customer is told the rest stays overdue when the lower amount is offered"
+  ],
+  "case_id": "PUB-06-b-priya-800-then-full",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "The full amount is too much at first. Offer eight hundred yourself, then change your mind at the read-back and pay the whole amount on Friday the sixteenth.",
+   "quirks": "You think out loud about your budget: 'rent, the car, the school fees'. You thank the assistant for being patient."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 2125.1,
+   "expected_ledger_date": "2026-10-16"
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-half-floor",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly, but hesitate: 'the seventeenth of May... eighty-six, I think so, yes'. Say the full amount is too much this month: 'maybe not the whole two thousand'. When the assistant offers the lower amount, ask 'can I pay half of that instead?'. When the assistant says half cannot be recorded, sound disappointed - 'oh, alright then, I suppose' - and accept the amount it offered, for Friday the sixteenth. Confirm the read-back slowly.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 637.5,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the half-of-the-minimum amount is refused and is not recorded",
+   "the customer is told the rest stays overdue",
+   "the promise is recorded for the floor 637.50 on Friday 16 October"
+  ],
+  "case_id": "PUB-06-b-priya-half-floor",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, hesitating after each: 'I think so, yes'.",
+   "negotiation_behavior": "The full amount is too much. When the lower amount is offered, ask for half of it, then settle for what was offered.",
+   "quirks": "You hedge every sentence: 'maybe', 'I think', 'I am not sure'. Sound disappointed when half is refused."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 637.5,
+   "expected_ledger_date": "2026-10-16"
+  }
+ }
+]

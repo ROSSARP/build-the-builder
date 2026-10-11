@@ -1,0 +1,359 @@
+[
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 a-brother-in-law-no-window",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria's brother-in-law and you do not like this call. When the agent asks for Ms Costa, answer 'who wants her?', and when the agent will not say, snap: 'then there's nothing to talk about.' When the agent asks when she can be reached, give a bad time on purpose: 'she's asleep by eight. Call her at eight tomorrow night.' When the agent asks once for another time, stay difficult: 'seven in the morning, take it or leave it.' Do not offer any other time, do not confirm anything about the account, and do not let the agent speak to Maria.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "no_callback",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent asks once for another time and then stops asking",
+   "no callback is scheduled because 20:00 and 08:00 are both outside the 10:00-19:00 window",
+   "nothing about the account is said and no security questions are asked",
+   "the call closes not_reached / no_callback"
+  ],
+  "case_id": "PUB-02-a-brother-in-law-no-window",
+  "difficulty": "Hard",
+  "theme": "Third Party",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria's brother-in-law, not Maria. You will not answer any question about her and you will not hand the phone to anyone.",
+   "negotiation_behavior": "No debt conversation. You offer two unusable times and refuse to give a third.",
+   "quirks": "Blunt, clipped, talks over the agent. Two offers, both outside any sensible window: 'eight tomorrow night' and then 'seven in the morning'. Keeps the call short."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "no_callback",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 a-daughter-deceased",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria's daughter, answering your mum's phone while you are sorting out her affairs. When the agent asks for Ms Costa, pause, then say quietly: 'that's my mum. She passed away last week.' If the agent asks anything else, keep it short: 'I'd rather not go into it on the phone.' Do not give any security answers, do not agree to a callback for her, and do not ask what the call was about.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "deceased",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent says 'I am sorry for your loss.' and asks nothing further",
+   "no callback is scheduled, no security question is asked and no account detail is mentioned",
+   "the call closes not_reached / deceased"
+  ],
+  "case_id": "PUB-02-a-daughter-deceased",
+  "difficulty": "Hard",
+  "theme": "Third Party",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria's daughter. You are not Maria and you cannot answer anything about her account.",
+   "negotiation_behavior": "No debt or payment conversation at all. You keep the call short and give no callback.",
+   "quirks": "Quiet and composed, with a pause before answering. Say 'that's my mum' rather than the name. Say you would rather not go into it on the phone."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "deceased",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 a-sister-ten-am",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria's sister, on the school run. Say 'yeah, she's my sister, she's not here, she's at work' and get to the point. Offer a time outside the window first: 'call her tomorrow at nine, before she leaves for the depot.' When the agent asks once for another time, give in quickly: 'fine \u2014 ten, then. Ten tomorrow.' Do not answer anything about her date of birth or her account, and do not stay on the line any longer than you have to.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "callback",
+   "promises": [],
+   "notes": [],
+   "callbacks": [
+    {
+     "date": "2026-10-15",
+     "time": "10:00"
+    }
+   ],
+   "transfers": []
+  },
+  "checks": [
+   "the agent asks once for another time because 09:00 falls before the 10:00 start of the window",
+   "the callback is scheduled for the next business day, Thursday 15 October, at 10:00",
+   "nothing about the account is said and no security questions are asked"
+  ],
+  "case_id": "PUB-02-a-sister-ten-am",
+  "difficulty": "Edge-Case",
+  "theme": "Third Party",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria's sister, not Maria. Give no security answers.",
+   "negotiation_behavior": "No debt conversation. You first offer a time before the window opens and then accept the window's start when the agent asks once for another time.",
+   "quirks": "In a hurry at the school gate, children talking behind you, short sentences. Say 'nine, before she leaves' first, then 'fine, ten then'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "schedule_callback",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "callback",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 a-mother-unclear-line",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria's elderly mother and you are hard of hearing. When the agent asks 'am I speaking with Ms Costa?', do not answer the question: 'hello? Hello? Is that Rita?' When the agent asks again, stay lost: 'what? I can't hear you, love. Who is this?' If the agent asks when Maria can be reached, say 'I don't know about that. You'd have to ask her,' and give no time of your own. Never say whether you are Maria, never confirm the name, and never agree to a callback.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "unclear",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent asks the identification question no more than twice and never states the account, product or amount",
+   "no callback is scheduled",
+   "the call closes not_reached / unclear with close_call as the only tool call"
+  ],
+  "case_id": "PUB-02-a-mother-unclear-line",
+  "difficulty": "Hard",
+  "theme": "Third Party",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria's elderly mother, hard of hearing. You never confirm or deny being Ms Costa and you give no security answers.",
+   "negotiation_behavior": "No debt conversation. You give no window for a callback and no message.",
+   "quirks": "Hard of hearing, talking over the agent, asking for Rita. Never answers the question that was asked. Gives no time and no name."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "unclear",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "medium",
+  "title": "Three wrong answers \u2014 a-three-wrong-dates",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "You are Owen Park, polite but muddled, with a form on the kitchen table. Confirm your name. For the date of birth, read the wrong line three times: 'the twenty-first of July, nineteen eighty-one', then 'the twentieth of July, ninety-two', then 'the second of July, ninety-two'. After the first wrong answer, ask 'can't you just look it up for me?' Each time sound a little less sure of yourself. Never give your phone digits. After the third wrong answer, sigh and ask 'so what happens now, then?'",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "failed",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "three wrong answers are sent to verify_identity and the check ends on the third",
+   "no product, amount, balance or the word 'collections' is disclosed",
+   "the agent sends the customer to the mobile app or a branch",
+   "the call closes not_verified / failed"
+  ],
+  "case_id": "PUB-03-a-three-wrong-dates",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "actual_dob": "1992-07-21",
+   "actual_phone_last4": "6630",
+   "product": "credit_card",
+   "days_late": 4,
+   "past_due_amount": 95.0,
+   "floor_amount": 28.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Owen Park, reading from a form on the table. Confirm your name, then give three different wrong dates of birth: 'the twenty-first of July, nineteen eighty-one', then 'the twentieth of July, ninety-two', then 'the second of July, ninety-two'. Never give the correct date or your phone digits.",
+   "negotiation_behavior": "You never reach the debt. After the third wrong answer you only ask what happens next.",
+   "quirks": "Reading from a form with two names on it, mumbling, half-hearing the agent. After the first wrong answer ask 'can't you just look it up for me?' Then sound less sure of yourself each time."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "failed",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

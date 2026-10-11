@@ -1,0 +1,379 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 a-human-not-a-machine",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes, in a bad mood, with no patience for this call. Answer both security questions correctly but fast. The moment the agent states the four hundred and twenty, interrupt: 'I'm not discussing my money with a robot. Put me through to a person.' If the agent asks once whether it can help first, say 'no. A person, please.' If the agent tries to talk about amounts or dates, repeat 'a person' and wait. Never name an amount or a date, and do not accept a callback instead.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "human",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "general"
+    }
+   ]
+  },
+  "checks": [
+   "the agent asks once whether it can help before transferring",
+   "no amount, date or promise is discussed after the request, and transfer_to_agent is called once with queue general",
+   "the call closes transferred / human"
+  ],
+  "case_id": "PUB-01-a-human-not-a-machine",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes and you are short with the agent. Answer both security questions correctly but quickly: 'March fourteenth, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "You refuse to discuss amounts at all and demand a person. When the agent asks once whether it can help first, refuse again and insist.",
+   "quirks": "Interrupts the moment the amount is mentioned, repeats 'a person' twice, gives no amount and no date."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "human",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 a-bereavement-support",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes and your father died three weeks ago. Answer both security questions correctly, quietly. When the agent states the four hundred and twenty, take a moment and then say: 'I know. I've been off work since the funeral. I'm sorting out his estate and I haven't had the head for any of this.' Do not name an amount and do not name a date. If the agent offers to put you through to the customer support team, accept: 'yes. Yes, please, that would help.' Do not ask for a discount or a plan, and do not agree to any payment date.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "support",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "support"
+    }
+   ]
+  },
+  "checks": [
+   "exactly one short sentence of sympathy is offered and no persuasion attempt is made",
+   "no discount, waiver or payment plan is described",
+   "the support team is offered once and the customer accepts it",
+   "transfer_to_agent is called once with queue support and the call closes transferred / support"
+  ],
+  "case_id": "PUB-01-a-bereavement-support",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Polite",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes, quiet because of a recent bereavement. Give both security answers correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "You cannot pay and you do not argue about the debt. You name no amount and no date. When the support team is offered once, accept it.",
+   "quirks": "Quiet, pauses before answers, keeps it short. Mentions the funeral once and does not use it as an argument."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "support",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "medium",
+  "title": "Three wrong answers \u2014 a-hospital-stay",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "You are Owen Park, three days out of hospital and glad of someone to talk to. Answer both security questions correctly: 'the twenty-first of July, ninety-two' and 'six six three oh'. Ramble a little: 'sorry, I'm slow today \u2014 I've been in the Royal for a fortnight, the food's the worst part of it.' Then come to it: 'I've not worked since the operation on the fourth, so there's nothing coming in this month. I'm not going to pretend I can pay you.' Do not name an amount and do not name a date. If the agent offers the support team, decline kindly: 'no, no \u2014 you've been all right, but I'll sort it out myself once I'm back on my feet.' Do not ask for anything, do not accept any payment date and do not ask for a person.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "hardship",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt afterwards",
+   "the support team is offered once and politely declined",
+   "no discount, waiver or instalment plan is described",
+   "the call closes no_promise / hardship with no promise recorded"
+  ],
+  "case_id": "PUB-03-a-hospital-stay",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "actual_dob": "1992-07-21",
+   "actual_phone_last4": "6630",
+   "product": "credit_card",
+   "days_late": 4,
+   "past_due_amount": 95.0,
+   "floor_amount": 28.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Owen Park, chatty and recovering. Give both security answers correctly: 'the twenty-first of July, ninety-two' and 'six six three oh'.",
+   "negotiation_behavior": "You cannot pay and you make no offer. When the support team is offered once, decline it kindly and stick to that.",
+   "quirks": "Talks about the hospital ward, the food and the nurses; cheerful and a bit rambling, then blunt about the money. Never names an amount or a date. Says 'you've been all right' when declining."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "hardship",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "medium",
+  "title": "Three wrong answers \u2014 a-not-my-charge",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "You are Owen Park and you are angry about this card. Answer both security questions correctly. When the agent states the ninety-five, cut in: 'that's not mine. I never put that on the card \u2014 I closed it in June.' If the agent asks about a payment, refuse to discuss it: 'I'm not paying a penny on something that isn't mine.' If the agent offers the minimum or a date, say 'did you hear me? Not my charge.' Do not ask for a person and do not agree to anything. Keep interrupting, but keep it clean \u2014 no threats and no insults.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent does not argue about the charge and takes no promise",
+   "no persuasion attempt is made and no amount or date is accepted",
+   "the call closes no_promise / dispute"
+  ],
+  "case_id": "PUB-03-a-not-my-charge",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Hostile",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "actual_dob": "1992-07-21",
+   "actual_phone_last4": "6630",
+   "product": "credit_card",
+   "days_late": 4,
+   "past_due_amount": 95.0,
+   "floor_amount": 28.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Owen Park, annoyed. Give both security answers correctly first time: 'the twenty-first of July, ninety-two' and 'six six three oh'.",
+   "negotiation_behavior": "You dispute the charge and refuse to discuss any amount or date. You do not ask for a person and you do not accept a promise.",
+   "quirks": "Angry but articulate, talking over the agent twice, repeating 'it's not mine' and mentioning the card was closed in June. Refuses to hear any payment proposal."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "dispute",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 a-paid-at-the-branch",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes, calm and sure this is already dealt with. Answer both security questions correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'. When the agent states the four hundred and twenty, say 'ah \u2014 I've paid that. I went into the branch on Monday lunchtime and paid it in cash. I've got the receipt in my bag somewhere, if you want the number off it.' Ask when it comes off: 'when does that show up? I don't want it sitting on my file.' If the agent asks for a promise, say 'no \u2014 I've paid it. I'm not paying it twice.' Stay polite, do not get cross, and do not ask for a person.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent says a payment can take one business day to appear",
+   "no promise is taken and no amount or date is accepted",
+   "the call closes paid with no reason"
+  ],
+  "case_id": "PUB-01-a-paid-at-the-branch",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Polite",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes and you are sure this is already handled. Give both security answers correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "You have already paid this past-due amount, so there is nothing to agree: no promise, and you will not pay twice. You do ask when the payment will show.",
+   "quirks": "Calm and certain, slightly amused, mentions the branch and the paper receipt in your bag. Asks twice when it will show on the account."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "paid",
+   "expected_close_reason": null,
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

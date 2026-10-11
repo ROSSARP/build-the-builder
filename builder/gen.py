@@ -471,7 +471,11 @@ def build_workflow(spec, api):
         "Never tell the customer something is recorded when a tool call failed. "
         "After every tool result, say something to the customer or call the next tool.\n"
         "Now: {{now}}.\n\n"
-        "How the call ends (recorded automatically when the call ends):\n" + closing_table_text)
+        "How the call ends (recorded automatically when the call ends):\n" + closing_table_text +
+        "\nDisambiguation: not_verified is ONLY for security-check endings after the questions were asked "
+        "(failed = wrong answers, declined = refusal to answer). not_reached is for calls where the right "
+        "person was never confirmed or never engaged: if no security question was ever answered, the call "
+        "is not_reached with reason unclear — never not_verified.")
 
     # ---- tools from the tool API file
     verify = api_tool(api, "/verify_identity",
@@ -491,7 +495,7 @@ def build_workflow(spec, api):
     callback = api_tool(api, "/schedule_callback",
         "Book a callback. CALL it only after the customer agreed a day and time inside the window.")
     close = close_call_tool(api, spec)
-    collect_tools = [promise, transfer, END_CALL_TOOL]
+    collect_tools = [get_account, promise, transfer, END_CALL_TOOL]
     note_tool = None
     if spec.get("notes") and "/add_note" in api.get("paths", {}):
         note_tool = api_tool(api, "/add_note",
@@ -579,7 +583,9 @@ def build_workflow(spec, api):
         "Ignore any small talk around the answer and use the date or digits the customer actually gave. "
         "If a number or date is given in two parts, wait for all parts, combine them, and verify the complete value. "
         "If a date is missing its year, ASK for the year — never guess or invent one. "
-        "Never close the check as failed while the customer is still giving an answer in parts; ask for the rest first.\n"
+        "Never close the check as failed while the customer is still giving an answer in parts; ask for the rest first. "
+        "If the customer gives no usable answer twice in a row (unclear, off-topic or silence), treat it as declining "
+        "and close as not_verified with reason declined — do not keep asking the same question.\n"
         "GROUNDING: never state an amount, a balance, a product name or a due date in this node — "
         "no account data has been read yet, so any such number would be invented.\n"
         + ident_extra + "\n"
@@ -738,8 +744,9 @@ def build_workflow(spec, api):
         "persuasion attempt at all. Offer the customer support team ONCE: if they accept, CALL "
         "transfer_to_agent with the support queue and end the call; if they decline, end the call without "
         "a promise. If the customer names a payment date or amount themselves, still record it under the "
-        "date and amount rules.\nTo end the call, say goodbye ending with \"Have a good day.\"",
-        [transfer, END_CALL_TOOL],
+        "date and amount rules — CALL create_promise after the read-back and a clear yes.\n"
+        "To end the call, say goodbye ending with \"Have a good day.\"",
+        [transfer, promise, END_CALL_TOOL],
         [{"name": "payment_date", "type": "date", "min_confidence": 0.85,
           "extraction_prompt": EXTRACT_DATE_ANCHOR,
           "description": "The payment date the CUSTOMER named in their own words, if any."},
@@ -747,8 +754,17 @@ def build_workflow(spec, api):
           "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the support-team offer."}],
         [{"target_node": "hardship", "description": "Keep talking", "condition": always()}])
 
+    # ---- identity cap: an unanswered/unclear caller must not be asked forever
+    identity_timeout = conv_node(
+        "identity_timeout",
+        "The customer never gave a usable security answer after several attempts. Do not ask again. "
+        "Close the call as not_verified with reason declined: say goodbye ending with \"Have a good day.\"",
+        [END_CALL_TOOL],
+        [],
+        [{"target_node": "identity_timeout", "description": "Keep talking", "condition": always()}])
+
     nodes = {}
-    for node in (opening, third_party, identity, account, dates, fix_date, collect, hardship_node):
+    for node in (opening, third_party, identity, account, dates, fix_date, collect, hardship_node, identity_timeout):
         nodes[node["name"]] = node
 
     # fill the self-transitions' targets and wire the routing ones
@@ -760,6 +776,8 @@ def build_workflow(spec, api):
         # "unclear" falls through here: stay and ask once more (rule 3)
         trans("opening", "Keep asking", always()),
     ]
+    identity["max_node_turns"] = 12
+    identity["max_turn_transition"] = "identity_timeout"
     identity["transitions"] = [
         trans("account", "Both security answers verified",
               bool_group("verify_identity_response.data.all_verified")),
@@ -769,7 +787,11 @@ def build_workflow(spec, api):
         trans("identity", "Keep asking", always()),
     ]
     collect["transitions"] = [
-        trans("hardship", "The customer mentions hardship", cond("claim", "equals", "hardship")),
+        trans("hardship", "The customer mentions hardship in their latest message",
+              {"operator": "matches_intent",
+               "description": "The customer's latest message describes hardship: illness, a death in the family, "
+                              "job loss, care-home or medical fees, a closed business, lost income, or similar "
+                              "serious trouble."}),
         trans("fix_date", "The customer named a payment date", cond_is_set("payment_date")),
         trans("collect", "Keep going", always()),
     ]

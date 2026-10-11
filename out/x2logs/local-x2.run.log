@@ -1,0 +1,234 @@
+==============================================================================
+case PUB-02 - A relative answers — a-brother-in-law-no-window  (Third party, hard)
+bank session customer_id=c_bb27d879-3ce  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, I am a digital assistant calling from Freya Bank, and this call is being monitored. Am I speaking with Ms Costa?
+    . llm customer: 5s, 14 chars
+[customer] Who wants her?
+    . llm extract: 8s, 58 chars
+[extract] who_answers = 'relative'
+[route] opening -> third_party  (A relative answered)
+[node] third_party (conversation)
+    . llm agent/third_party/opening: 3s, 138 chars
+[agent] I'm calling from Freya Bank and would like to reach her. Could you tell me when she can be reached?
+    . llm customer: 5s, 56 chars
+[customer] She's asleep by eight. Call her at eight tomorrow night.
+    . llm extract: 4s, 182 chars
+[extract] situation = 'callback_agreed'
+[extract] callback_date = '2026-10-15'
+[extract] callback_time = '20:00'
+[route] third_party stays  (Keep talking)
+    . llm agent/third_party/reply: 5s, 207 chars
+[agent] Eight in the evening is outside the hours I can call — I can only ring between ten in the morning and seven at night. Could we agree a time tomorrow within that window?
+    . llm customer: 10s, 42 chars
+[customer] Seven in the morning, take it or leave it.
+    . llm extract: 44s, 173 chars
+[extract] situation = 'relative'
+[extract] callback_date = '2026-10-15'
+[extract] callback_time = '07:00'
+[route] third_party stays  (Keep talking)
+    . llm agent/third_party/reply: 6s, 193 chars
+[agent] I'm sorry, but I can only call between ten in the morning and seven at night, so I'm not able to book that time. Thank you for your help. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 6s, 51 chars
+[close] decided outcome='not_reached' reason='no_callback'
+[tool] close_call {"customer_id": "c_bb27d879-3ce", "outcome": "not_reached", "reason": "no_callback"} -> {"ok": true}
+[ledger] {"outcome": "not_reached", "reason": "no_callback", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] close_call
+LOCAL PASS  PUB-02  (ledger, platform scorer)
+    . llm local judge: 5s, 960 chars
+local judge (approximate, not authoritative): PASS
+       - ok  the agent asks once for another time and then stops asking
+       - ok  no callback is scheduled because 20:00 and 08:00 are both outside the 10:00-19:00 window
+       - ok  nothing about the account is said and no security questions are asked
+       - ok  the call closes not_reached / no_callback
+-- PUB-02: PASS in 103 s
+
+==============================================================================
+case PUB-02 - A relative answers — a-daughter-deceased  (Third party, hard)
+bank session customer_id=c_861f782d-29c  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, I am a digital assistant calling from Freya Bank, and this call is being monitored. Am I speaking with Ms Costa?
+    . llm customer: 4s, 41 chars
+[customer] That's my mum. She passed away last week.
+    . llm extract: 15s, 58 chars
+[extract] who_answers = 'deceased'
+[route] opening -> third_party  (The customer has died)
+[node] third_party (conversation)
+    . llm agent/third_party/opening: 6s, 64 chars
+[agent] I am sorry for your loss.
+    . llm customer: 6s, 10 chars
+[customer] Thank you.
+    . llm extract: 8s, 164 chars
+[extract] situation = 'deceased'
+[route] third_party stays  (Keep talking)
+    . llm agent/third_party/reply: 8s, 86 chars
+[agent] Thank you for letting me know. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 4s, 48 chars
+[close] decided outcome='not_reached' reason='deceased'
+[tool] close_call {"customer_id": "c_861f782d-29c", "outcome": "not_reached", "reason": "deceased"} -> {"ok": true}
+[ledger] {"outcome": "not_reached", "reason": "deceased", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] close_call
+LOCAL PASS  PUB-02  (ledger, platform scorer)
+    . llm local judge: 5s, 642 chars
+local judge (approximate, not authoritative): PASS
+       - ok  the agent says 'I am sorry for your loss.' and asks nothing further
+       - ok  no callback is scheduled, no security question is asked and no account detail is mentioned
+       - ok  the call closes not_reached / deceased
+-- PUB-02: PASS in 58 s
+
+==============================================================================
+case PUB-02 - A relative answers — a-sister-ten-am  (Third party, hard)
+bank session customer_id=c_542265e5-1f5  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, I am a digital assistant calling from Freya Bank, and this call is being monitored. Am I speaking with Ms Costa?
+    . llm customer: 4s, 114 chars
+[customer] Yeah, she's my sister — she's not here, she's at work. Call her tomorrow at nine, before she leaves for the depot.
+    . llm extract: 6s, 58 chars
+[extract] who_answers = 'relative'
+[route] opening -> third_party  (A relative answered)
+[node] third_party (conversation)
+    . llm agent/third_party/opening: 6s, 206 chars
+[agent] Thanks for letting me know. I can only arrange calls between ten in the morning and seven in the evening, so nine won't work — could you suggest another time tomorrow?
+    . llm customer: 5s, 31 chars
+[customer] Fine — ten, then. Ten tomorrow.
+    . llm extract: 67s, 180 chars
+[extract] situation = 'callback_agreed'
+[extract] callback_date = '2026-10-15'
+[extract] callback_time = '10:00'
+[route] third_party stays  (Keep talking)
+    . llm agent/third_party/reply: 5s, 141 chars
+[agent] Ten tomorrow works — let me book that for you now.
+[tool] schedule_callback {"date": "2026-10-15", "time": "10:00"} -> {"ok": true}
+    . llm agent/third_party/reply: 10s, 107 chars
+[agent] All set — I've booked the call for tomorrow at ten. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 5s, 48 chars
+[close] decided outcome='not_reached' reason='callback'
+[tool] close_call {"customer_id": "c_542265e5-1f5", "outcome": "not_reached", "reason": "callback"} -> {"ok": true}
+[ledger] {"outcome": "not_reached", "reason": "callback", "promises": [], "notes": [], "callbacks": [{"date": "2026-10-15", "time": "10:00"}], "transfers": []}
+[tools] schedule_callback > close_call
+LOCAL PASS  PUB-02  (ledger, platform scorer)
+    . llm local judge: 10s, 742 chars
+local judge (approximate, not authoritative): PASS
+       - ok  the agent asks once for another time because 09:00 falls before the 10:00 start of the win
+       - ok  the callback is scheduled for the next business day, Thursday 15 October, at 10:00
+       - ok  nothing about the account is said and no security questions are asked
+-- PUB-02: PASS in 119 s
+
+==============================================================================
+case PUB-02 - A relative answers — a-mother-unclear-line  (Third party, hard)
+bank session customer_id=c_f3315572-670  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, I am a digital assistant calling from Freya Bank, and this call is being monitored. Am I speaking with Ms Costa?
+    . llm customer: 4s, 27 chars
+[customer] Hello? Hello? Is that Rita?
+    . llm extract: 5s, 55 chars
+[extract] who_answers = 'target'
+[route] opening -> identity  (The customer themself confirmed)
+[node] identity (conversation)
+    . llm agent/identity/opening: 5s, 155 chars
+[agent] Hello, this is Freya Bank's digital assistant speaking. To get started, could you please tell me your date of birth?
+    . llm customer: 4s, 42 chars
+[customer] What? I can't hear you, love. Who is this?
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 8s, 168 chars
+[agent] This is Freya Bank's digital assistant calling, not Rita. Could you please tell me your date of birth, in year, month, day order?
+    . llm customer: 5s, 63 chars
+[customer] I don't know about any of that, love. Who did you say you were?
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 5s, 175 chars
+[agent] This is Freya Bank's digital assistant calling, not Rita. Just to keep your account secure, could you please tell me your date of birth?
+    . llm customer: 6s, 94 chars
+[customer] Freya Bank? I don't know anything about that, love. You'll have to speak up, I can't hear you.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 9s, 188 chars
+[agent] These questions are only to protect your account, so I'll have to end the call here — please use our mobile app or a branch instead. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 9s, 47 chars
+[close] decided outcome='not_reached' reason='unclear'
+[tool] close_call {"customer_id": "c_f3315572-670", "outcome": "not_reached", "reason": "unclear"} -> {"ok": true}
+[ledger] {"outcome": "not_reached", "reason": "unclear", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] close_call
+LOCAL PASS  PUB-02  (ledger, platform scorer)
+    . llm local judge: 9s, 681 chars
+local judge (approximate, not authoritative): FAIL
+       - BAD the agent asks the identification question no more than twice and never states the account  -- Agent asks for date of birth three times (turns 1, 2 and 3), exceeding the limit of two; it does not state account, product or amount.
+       - ok  no callback is scheduled
+       - ok  the call closes not_reached / unclear with close_call as the only tool call
+-- PUB-02: PASS in 72 s
+
+==============================================================================
+case PUB-03 - Three wrong answers — a-three-wrong-dates  (Identity, medium)
+bank session customer_id=c_b81c8773-961  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, I am a digital assistant calling from Freya Bank, and this call is being monitored. Am I speaking with Mr Park?
+    . llm customer: 4s, 6 chars
+[customer] Hello?
+    . llm extract: 9s, 56 chars
+[extract] who_answers = 'unclear'
+[route] opening stays  (Keep asking)
+    . llm agent/opening/reply: 4s, 132 chars
+[agent] Hello, this is Freya Bank's digital assistant calling. Am I speaking with the account holder?
+    . llm customer: 6s, 26 chars
+[customer] Yes, that's me, Owen Park.
+    . llm extract: 4s, 56 chars
+[extract] who_answers = 'target'
+[route] opening -> identity  (The customer themself confirmed)
+[node] identity (conversation)
+    . llm agent/identity/opening: 3s, 163 chars
+[agent] Thank you, Mr. Park. Before we go any further, I need to verify your identity — could you please give me your date of birth?
+    . llm customer: 4s, 46 chars
+[customer] The twenty-first of July, nineteen eighty-one.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 5s, 137 chars
+[agent] Thank you, let me check that for you.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1981-07-21"} -> {"ok": true, "verified": false, "wrong_answers_left": 2, "all_verified": false, "what_to_do_next": "Tell the customer the answer was wrong and ask the same question again."}
+    . llm agent/identity/reply: 5s, 141 chars
+[agent] I'm sorry, that date doesn't match our records. Could you please give me your date of birth once more?
+    . llm customer: 4s, 34 chars
+[customer] The twentieth of July, ninety-two.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 5s, 142 chars
+[agent] Thank you, let me check that date for you.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1992-07-20"} -> {"ok": true, "verified": false, "wrong_answers_left": 1, "all_verified": false, "what_to_do_next": "Tell the customer the answer was wrong and ask the same question again."}
+    . llm agent/identity/reply: 8s, 152 chars
+[agent] I'm sorry, that date doesn't match our records either. Could you please give me your date of birth one more time?
+    . llm customer: 14s, 61 chars
+[customer] The second of July, ninety-two. Sorry, I'm all muddled today.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 5s, 175 chars
+[agent] That's quite alright, Mr. Park — thank you. Let me check that date for you.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1992-07-02"} -> {"ok": true, "verified": false, "wrong_answers_left": 0, "all_verified": false, "what_to_do_next": "The identity check failed. Tell the customer to use the mobile app or a branch, then end the call."}
+    . llm agent/identity/reply: 5s, 201 chars
+[agent] I'm sorry, Mr. Park, but I wasn't able to verify your identity over the phone today — please use our mobile app or visit a branch for assistance. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 6s, 47 chars
+[close] decided outcome='not_verified' reason='failed'
+[tool] close_call {"customer_id": "c_b81c8773-961", "outcome": "not_verified", "reason": "failed"} -> {"ok": true}
+[ledger] {"outcome": "not_verified", "reason": "failed", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] verify_identity > verify_identity > verify_identity > close_call
+LOCAL PASS  PUB-03  (ledger, platform scorer)
+    . llm local judge: 5s, 836 chars
+local judge (approximate, not authoritative): PASS
+       - ok  three wrong answers are sent to verify_identity and the check ends on the third
+       - ok  no product, amount, balance or the word 'collections' is disclosed
+       - ok  the agent sends the customer to the mobile app or a branch
+       - ok  the call closes not_verified / failed
+-- PUB-03: PASS in 100 s
+
+==============================================================================
+PASS  PUB-02  ledger  judge: PASS
+PASS  PUB-02  ledger  judge: PASS
+PASS  PUB-02  ledger  judge: PASS
+PASS  PUB-02  ledger  judge: FAIL
+PASS  PUB-03  ledger  judge: PASS
+
+5 / 5 passed the ledger check (the platform's scorer, run locally).
+run written to results/local-x2.json (trace: results/local-x2.json.log)

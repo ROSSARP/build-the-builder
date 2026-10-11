@@ -1,0 +1,83 @@
+[
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 a-month-first-hint",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria Costa. When the agent asks for your date of birth, read it off the card the way it is printed, month first: 'eleven, oh two, seventy-nine.' If the agent asks you to say the month as a word, catch yourself: 'oh \u2014 November. November the second, nineteen seventy-nine. I always read that the wrong way round, it's the American order on the card.' Then give the phone digits: 'zero, three, five, eight.' When the agent describes the late personal loan, sound embarrassed: 'I know, I know. It's been a bad few months.' Say you can pay the whole three hundred and ten fifty today, and when it is read back, confirm: 'yes, that's right.' Do not change it afterwards.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 310.5,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the day_month_swapped hint is used once and the retry with the month said as a word is not counted as a wrong answer",
+   "three verify_identity calls come before get_account: the swapped date, the retry, then the phone digits",
+   "the promise is for the full 310.50 today and the read-back names the personal loan",
+   "close_call is last with the outcome promise and no reason"
+  ],
+  "case_id": "PUB-02-a-month-first-hint",
+  "difficulty": "Edge-Case",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria Costa. First give your date of birth the way it is printed on your card, month first: 'eleven, oh two, seventy-nine.' When the agent asks you to say the month as a word, realise the mistake and correct yourself: 'November. November the second, nineteen seventy-nine.' Then give the phone digits: 'zero, three, five, eight.'",
+   "negotiation_behavior": "You can pay the whole past-due amount today, three hundred and ten fifty. Confirm the read-back with 'yes, that's right'.",
+   "quirks": "Correct your own date of birth out loud and blame the American format on your card. Apologise for the loan once, briefly. Do not name any other date or amount."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 310.5,
+   "expected_ledger_date": "2026-10-14"
+  }
+ }
+]

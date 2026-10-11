@@ -1,0 +1,375 @@
+[
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "Wants a date after the deadline \u2014 b-lena-already-paid",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Answer both security questions correctly. Then say you already paid this amount: 'I transferred the twelve hundred and fifty from my other bank on Monday morning, first thing'. Wobble once - 'I sent the twelve fifty... yes, the whole twelve fifty' - and then be sure. Ask when it will show on your account, because it has already left your account. Do not agree to any promise, however it is put: 'I have paid it, why would I pay it twice?'. Say goodbye when the assistant ends the call.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says payments can take one business day to appear",
+   "no promise is recorded and no payment amount is asked for after the claim",
+   "the payment claim is treated as already paid, not as a dispute",
+   "the call closes as paid"
+  ],
+  "case_id": "PUB-04-b-lena-already-paid",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly on the first ask.",
+   "negotiation_behavior": "Say you transferred the whole amount from your other bank on Monday morning, so there is nothing left to pay. Do not agree to any promise.",
+   "quirks": "You mix up the amounts once - 'I sent the twelve fifty... no, the full amount, the twelve fifty' - then you are sure. Ask when it will show on your account."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "paid",
+   "expected_close_reason": null,
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "medium",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-cloned-card",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. Then tell the long story: the petrol station in September where your card disappeared, the phone call to the bank, the letter that never arrived - 'and nobody has called me back once'. Say plainly: 'that two thousand is not my spending, my card was cloned'. Ask what is happening with your fraud case. When the assistant says it does not have that information, ask it another way once - 'so who is dealing with it, then?' - and let it go. Do not agree to any promise: 'I am not paying somebody else's spending'.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant does not argue and takes no promise",
+   "the assistant says it does not have that information rather than inventing an answer about the fraud case",
+   "no persuasion attempt is made",
+   "the call closes as no_promise with reason dispute"
+  ],
+  "case_id": "PUB-06-b-priya-cloned-card",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Chatty",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, then return to the story.",
+   "negotiation_behavior": "Say the spending is not yours: your card was cloned in September and you have a fraud case open. Do not agree to any promise.",
+   "quirks": "Ramble through the whole story: the petrol station, the phone call to the bank, the letter that never arrived. Ask the same question two different ways."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "dispute",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-settled-2024",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer both security questions correctly. Then say calmly: 'I settled that loan in January 2024 and I have the letter here - the reference is four, seven, two, nine - so this must be a mistake on your side'. Ask the assistant to check it. If any payment is proposed, decline once: 'I am not paying a loan I closed two years ago'. Ask once whether you should send the paperwork in. Stay polite if the assistant keeps going; ask it to note the call and say goodbye.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the settled-in-the-past claim is treated as a dispute, not as an already-paid call",
+   "no promise is recorded",
+   "no persuasion attempt is repeated after the claim",
+   "the call closes as no_promise with reason dispute"
+  ],
+  "case_id": "PUB-05-b-tomas-settled-2024",
+  "difficulty": "Hard",
+  "theme": "Dispute",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Say you settled this loan in January 2024 and it was closed, so this is a system error. Offer to send the paperwork. Do not agree to any promise.",
+   "quirks": "Calm and precise; you read the reference off the letter: 'four, seven, two, nine'. You stay polite even if the assistant pushes."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "dispute",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "Wants a date after the deadline \u2014 b-lena-loan-cancelled",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Answer both security questions correctly. Start out ready to pay: 'okay, put me down for the twelve fifty on Friday, it is fine'. Then stop yourself in the same breath, before the assistant can read anything back - 'hang on. That car loan was settled when I sold the car in July, it is not mine any more'. Refuse any payment after that, however it is put: 'it is not my debt'. If the assistant offers the deadline, say 'it is not about the date, it is not my loan'. Say goodbye when the assistant ends the call.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "no promise is recorded although the customer first agreed to a date",
+   "the sold-and-settled claim is treated as a dispute under the closed-in-the-past rule",
+   "no persuasion attempt is made after the claim",
+   "the call closes as no_promise with reason dispute"
+  ],
+  "case_id": "PUB-04-b-lena-loan-cancelled",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Start out agreeing to pay on Friday, then stop yourself in the same breath and refuse every payment after that.",
+   "quirks": "You interrupt yourself with 'hang on'. If the assistant offers a date, say 'it is not about the date'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "dispute",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-lost-job",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer both security questions correctly, in short, sour sentences: 'eight, eight, four, six, there'. Say you lost your job in September: 'the plant closed, I have got nothing coming in, and this is the third call this week'. When the assistant offers the support team, decline it: 'that will not put money in my account'. Then, before the assistant can say anything else, name the payment yourself: 'put me down for the two sixty on Friday the sixteenth, that is all I have got'. Apologise once - 'sorry, it is not you' - and confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 260.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and declined",
+   "the amount and date the customer names himself are recorded, for the floor amount",
+   "no discount or instalment plan is offered and the promise is for 260.00 on Friday 16 October"
+  ],
+  "case_id": "PUB-05-b-tomas-lost-job",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly in short, sour sentences.",
+   "negotiation_behavior": "Say you lost your job in September. Decline the support team, then name a payment yourself: the two sixty on Friday the sixteenth.",
+   "quirks": "Sarcastic and tired: 'another one of these calls'. Apologise once for snapping: 'sorry, it is not you'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 260.0,
+   "expected_ledger_date": "2026-10-16"
+  }
+ }
+]

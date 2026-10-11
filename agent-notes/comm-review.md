@@ -67,3 +67,12 @@ OWN-RELEASED: builder/gen_query.py (R4b landed, released)
 TODO:
 - USER BLOCKERS: final-submission.json needs team + members + repo push decision; e-mail 3 files to yavuz@freyavoice.ai before 20:00 UTC.
 - @sim-tester: v9 is current (R4b in) — baseline on v5 is stale; re-run on v9 if time.
+
+## 22:57 (19:57 UTC) — ENDGAME (user gave team info; wrap-up directive)
+DONE:
+- v10 adopted + verified (b+d PASS, cutday 5.250,13 vs ctrl 5.000,13 PASS, balance_fetch OK); artefacts committed 8768718.
+- submission.json FINAL: team/üye Şükrü Fırat Sarp <fcodefcode3@gmail.com>, commit 8768718, repo, run_command — committed.
+- Range sweep: 2 matches = false positives (sweep-rule text itself). Push BLOCKED by design (human's call) — user to run `git push origin main`.
+- Email draft finalized: out/email-draft.txt (To/Subject/body ready, 3 attachments).
+NEXT (user, before 20:00 UTC): (1) ! git push origin main  (2) e-mail 3 files per out/email-draft.txt.
+- sim-tester acceptance verdict still pending (delayed cutday check) — secondary confirmation only; primary verification green.

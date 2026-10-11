@@ -1,0 +1,21 @@
+To: yavuz@freyavoice.ai
+Subject: Build the Builder — Final Submission — Şükrü Fırat Sarp
+
+Merhaba,
+
+Final case (Card Statement Debt) gönderimiz ektedir; üç dosya:
+
+1. final-submission.json     (takım, üye, repo, commit, mock_url)
+2. finalcase.workflow.json   (telefon ajanı — freya.export_workflow çıktısı,
+                              workflow_id d659b17f-78c8-4fd1-8002-46755b07d54a, v10)
+3. finalcase.log             (ajanı üreten builder run'ının kaydı, 2026-10-11 22:32)
+
+Takım:   Şükrü Fırat Sarp
+Üye:     Şükrü Fırat Sarp <fcodefcode3@gmail.com>
+Repo:    https://github.com/ROSSARP/build-the-builder
+Commit:  8768718
+Mock:    https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 (sonuçlara kadar açık)
+Run:     python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1
+
+İyi çalışmalar,
+Şükrü Fırat Sarp

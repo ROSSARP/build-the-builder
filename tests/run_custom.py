@@ -7,9 +7,24 @@ at most one case per id. Prints a combined summary.
     python3 tests/run_custom.py [agent_id] [case_file]
     # defaults: the brief-a agent from .freya-agents.json, tests/custom-30.json
 """
-import json, pathlib, subprocess, sys
+import json, pathlib, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+
+def cancel_stuck_sims(max_minutes=12):
+    """A crashed batch leaves its simulation 'running' on Freya and the next
+    batch waits forever. Cancel sims that have run far longer than healthy ones."""
+    try:
+        import platform_check
+        for s in platform_check.stuck(max_minutes):
+            print(f"-- cancelling stuck simulation {s['id']} before continuing", flush=True)
+            try:
+                platform_check.cancel(s["id"])
+            except Exception as e:
+                print(f"-- cancel failed: {e}", flush=True)
+            time.sleep(5)
+    except Exception as e:
+        print(f"-- stuck-check failed: {e}", flush=True)
 
 def main():
     agent = sys.argv[1] if len(sys.argv) > 1 else None
@@ -42,6 +57,7 @@ def main():
         cmd = [sys.executable, str(ROOT / "tools" / "run_cases.py"), agent,
                "--cases", str(f), "--out", str(out)]
         for attempt in range(3):  # the platform 504s on personas/simulations under load
+            cancel_stuck_sims()
             print(f"== batch {bi}: {len(batch)} cases" + (f" (attempt {attempt + 1})" if attempt else ""), flush=True)
             print("$", " ".join(cmd[1:]), flush=True)
             r = subprocess.run(cmd, text=True)

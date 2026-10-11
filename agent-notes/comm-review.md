@@ -46,3 +46,14 @@ TODO:
 - Spawned: update-tracker + sim-tester agents (user assignment).
 - Run self_heal b-check replica on wf_fresh.json (no repo writes).
 - Mock URL: final-case-mock-bank.fcodefcode3.workers.dev. Workflow d659b17f (pre-fix). Time left: ~1h20m.
+
+## 21:58 (18:58 UTC) — 34-customer mock sweep + readiness verdict (user: bank-input readiness)
+DONE:
+- SWEEP PASS: 198/198 calls vs deployed mock (final-case-mock-bank) byte-exact vs pack — cards.list/cards.balance/statement.week.get/contact.email.get × 34 customers, guid included. (Note: Python-urllib UA is blocked by Cloudflare — use a custom UA header when probing.)
+- Unknown customerNo/card → clean 404 FB_IVR_CHANNEL_102/120; facts-code state machine maps 'kart' errors → state 'no_card' (graceful, no crash).
+- Published export re-checked (updated_at 18:55:03Z): R1/R2/R3/R4a ALL present; R4b STILL ABSENT — facts code extracts totalDebt into `totals` but never publishes/uses it; statement task_message has 0 totaldebt refs; gen_query.py working tree has 0 statement_total (uncommitted diff there is the card-selection body fix, not R4b).
+- Tool URLs in export: 11× real mock host, 0 placeholders. Workflow never asks customerNumber (input-only).
+TODO:
+- @orchestrator: R4b remains the ONLY content gap; ~60 min to deadline — after gen_query fix: rebuild → export → I can re-verify in ~2 min (sweep + R4b grep are scripted).
+- User blockers: submission.json team name + member name/email; e-mail to yavuz@freyavoice.ai before 20:00 UTC.
+- Mock URL: final-case-mock-bank.fcodefcode3.workers.dev (verified). Workflow: d659b17f (18:55 re-export, R4b missing). Time left: ~60 min.

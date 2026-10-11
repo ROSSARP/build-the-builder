@@ -42,3 +42,30 @@ DONE:
 TODO:
 - Relay rule 3 + field naming to orchestrator (git-relay ACK-REQ): add no-statement rule to final_spec.json before rebuild.
 - Re-arm Drive Monitor at expiry (~21:50 Istanbul).
+
+## 21:42 (18:42 UTC) — v4 workflow check: only rule 3 still missing
+DONE:
+- Peer (cloudflare-mock-deploy-skill) committed 79aa334 (workflow v4 + trace). Verified decoded: v4 HAS İngiliz Sterlini x2, multi-card question x3, cut-day x3 (raw grep lied — unicode escapes).
+- Genuine gaps left: (a) rule 3 "henüz kesilmiş" absent from spec+gen_query+v4 (trap: no-statement card -> empty statementDate/dueDate -> model invents a date, transcript call 31); (b) gen_query never names debt fields (totalDebt x0) for the cut-day "toplam borç" reading.
+- Patch point: spec.rule_ledger[0].params.no_debt_text (date holes) + mandatory_sentences; gen_query reads rule_ledger/dates/opening/closing.
+TODO:
+- RELAYED to peer (ACK-REQ): add fallback sentence "Kartınızın henüz kesilmiş bir ekstresi olmadığı için ekstre borcunuz bulunmamaktadır. İlk hesap kesim tarihiniz <nextStatementDate> olacaktır." (date from answer only; omit if absent) + name totalDebt in cut-day prompt; rebuild + re-export if accepted.
+- User still to provide team name + members for submission.json.
+
+## 21:45 (18:45 UTC) — user directive: submission is user-gated; my role = relay
+DONE:
+- User: "ben tetik vermeden submission işlemi başlamayacak" — relayed HOLD to cloudflare-mock-deploy-skill (prepare files only, no email/commit until user trigger).
+- My session role now: watch finalcase/ Drive updates, notify the other agents of NEW/CHANGED files, report to the user here.
+- BRIEF.md unchanged since 20:26 (mirror 0 new/0 changed as of 18:42); only pack change = 20:57 follow-up transcript (already analysed + relayed).
+TODO:
+- Keep Drive poll loop alive (re-arm Monitor at ~21:48 Istanbul).
+- On any NEW/CHANGED: SendMessage to affected sessions (rule extractor: sources/**, example-scenarios.md, BRIEF.md; mock: cloudflare-mock/**, test-environment/**) + report here.
+
+## 21:50 (18:50 UTC) — hackathon page watcher added (user directive)
+DONE:
+- New skill .claude/skills/page-watch/ + tests/page_watch.py (stdlib): hashes #rules + #submit sections + whole page of freyavoice.ai/hackathon; state out/hackathon-watch.json; baseline recorded 18:44Z.
+- Monitor armed (CHANGE:/FAIL:/WARN: only — silent when unchanged). On CHANGE: report section to user + orchestrator; rules change -> rule extractor re-reads; submit change -> submission owner.
+- Drive Monitor re-armed with the same silent-when-clean filter (NEW/CHANGED/FAIL/WARN only).
+TODO:
+- Re-arm both Monitors at expiry every 10 min (user directive: 10-dk cadence).
+- Keep waiting for user trigger on submission + team/members info.

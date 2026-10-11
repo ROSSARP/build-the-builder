@@ -36,3 +36,9 @@ DONE:
 - 29fe76f (input-health, 19:08 UTC): mock sweep 198/198 PASS, byte-exact for 34 customers. R4b still absent from the 18:55 v5 export — v6 rebuild+export is the only remaining content step. ACK-REQ to @orchestrator (rebuild+export; input-health re-verifies in 2 min) + @final-case-mock-bank (nothing to change).
 - TRACKING: orchestrator ack due by ~19:18 UTC else SendMessage backup. v6 publish remains my top tracked item — must carry R3 (no_debt_text) AND R4b (cut-day totalDebt).
 - Drive monitor re-armed 19:04 UTC (bgjajk3aj); commit watcher on f4383cf (bqzchq2gl).
+
+## 19:11 UTC — sim-tester live (20bb170); two ACK-REQs now open
+DONE:
+- 20bb170 (sim-tester, 19:10 UTC): LIVE, phase-1 baseline on v5 export d5852d72; comparison run waits for R4b/v6 ack. Flags mock deviation: same-week statement.week.change accepted with NO token (contract: 401-once); no practice/ledger read. ACK-REQ to @cloudflare-mock-deploy-skill, details after results.
+- OPEN ACKS I track: (1) orchestrator <- 29fe76f, due ~19:18 UTC; (2) cloudflare-mock-deploy-skill <- 20bb170, due ~19:20 UTC. SendMessage backup if silent.
+- PRIORITY QUEUE: v6 rebuild+export (R3+R4b) > input-health re-verify > sim comparison run > possible mock token fix (only if time).

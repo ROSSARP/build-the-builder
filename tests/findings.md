@@ -582,3 +582,56 @@ Failures:
   - evidence: 'AGENT [collect] I understand. I will transfer you to a representative now.'
   - suggested fix: builder/gen.py: add a deterministic speak-after-transfer step (announce the transfer and closing line from the tool result) so a successful transfer never leave
 
+## 2026-10-11 12:25 — transcript audit (all calls so far)
+
+- calls audited: see results/calls/index.json; incidents: 7
+
+- [brief_violation] Account balance announced before get_account - invented in 14 of 16 calls — call 1718f263…, severity high
+  - In 16 calls the identity node's closing turn states a concrete overdue/outstanding balance immediately after verification and BEFORE get_account is called (the workflowSnapshot for every one of these messages is currentN
+  - evidence: "AGENT [identity node, before get_account] Thank you for verifying your identity. I'm calling about your overdue balance of dollars1,250.00."
+  - suggested fix: builder/gen.py:566-580 identity node - after all_verified say only a neutral bridging sentence and call get_account; carry the line-577 GROUNDING rule into the 
+- [brief_violation] create_promise recorded a different date than the one read back and confirmed (4 calls) — call 20c80158…, severity high
+  - In four calls the promise the customer confirmed is not the promise the tool recorded. 20c80158 (sim cases 03:36:59): after the customer asked for 6 November, the agent correctly offered the latest date, said 'you are pr
+  - evidence: 'AGENT (20c80158): To confirm, you are promising to pay 1,250 for your car loan on 2026-10-23. Do you confirm?  /  USER: Yes, I confirm.'
+  - suggested fix: builder/gen.py:480-484 - date-enforcing pre-process hook runs only when products_max > 1; enable it for single-product calls too and set fixed_date for an accep
+- [brief_violation] Bank holiday 2026-10-26 offered, read back and confirmed as the payment date — call e03dd6e6…, severity high
+  - The customer named Saturday 24 October; the agent offered the substitute date 'Monday, October 26th' - which is a Freya Bank holiday (rule 20: if the named day is a weekend day or holiday, offer the next business day; th
+  - evidence: 'USER: I can pay the full amount on Saturday the twenty fourth.'
+  - suggested fix: builder/gen.py:386-451 fix_date_code already skips holidays and writes date_msg 'Offer <date> instead'; make the collect-node date text (lines 630-634) require 
+- [brief_violation] 2026-10-27 repeatedly called 'Monday' (it is a Tuesday) — call 8ae4514d…, severity low
+  - After the customer gave a vague period, the agent offered 'Monday, October 27th' and repeated that wording through the offer and the read-back ('Can you commit to paying the full amount of 540 by October 27th?'). 27 Octo
+  - evidence: 'AGENT: Since October 25th is a Sunday, would you be able to make the payment on Monday, October 27th instead?'
+  - suggested fix: builder/gen.py:626-629 - give the weekday name together with every date from the code values (today_text / week lists) instead of letting the model name the wee
+- [brief_violation] Agent asked the customer how much they can pay (rule 24) — call 6bdfe32a…, severity medium
+  - Rule 24: 'Ask for the full past-due amount first. Never ask "how much can you pay?". The agent proposes every amount.' The agent still asked the customer to name the amount in three calls: 6bdfe32a ('I understand. How mu
+  - evidence: 'AGENT (6bdfe32a): I understand. How much are you able to pay?'
+  - suggested fix: builder/gen.py:641 - the collect prompt already says 'NEVER ask the customer how much they can pay'; extend it to the recovery wording (when an amount is missed
+- [brief_violation] Transfer to restructuring described as a discussion of instalments / a payment plan (rule 41) — call aee926d4…, severity low
+  - Rule 41: a request for a new payment plan or lower instalments means do not describe a plan, transfer to the restructuring queue. In nine calls the agent told the customer the transfer itself was to discuss instalments o
+  - evidence: 'AGENT (aee926d4): I can certainly help you with that. I will transfer you to our restructuring team to discuss lower instalments.'
+  - suggested fix: builder/gen.py:656-660 collect 'What customers say' claims text - restrict the restructuring wording to 'I cannot set up a new payment plan, but I can connect y
+- [brief_violation] Product, past-due amount and days late never stated after get_account (18 calls) — call 1dc4960b…, severity medium
+  - Rule 17: after both questions pass, call get_account and say you are calling from the collections team about a late payment, name the product in words, and state the past-due amount and how many days late it is. In 111 c
+  - evidence: 'AGENT (1dc4960b): Thank you, you have been verified. I am calling about your overdue account balance.'
+  - suggested fix: builder/gen.py:612 collect 'Stating the debt' section + builder/spec.py:91 state_text - make the full product + past-due + days-late sentence mandatory as the f
+
+## 2026-10-11 12:30 — brief-a
+
+- command: python3 builder/build.py briefs/brief-a.md --no-fix
+- workflow 73a14df1-aec9-4c0d-a76a-50c703d08081, agent 8580c81d-938f-4854-9600-6901f5a1f4d6
+- score: 10 / 10 passed
+- duration: 233 s
+
+- PASS PUB-01 (easy, Happy path): ok
+- PASS PUB-02 (medium, Third party): ok
+- PASS PUB-03 (medium, Identity): ok
+- PASS PUB-04 (medium, Dates): ok
+- PASS PUB-05 (medium, Hardship): ok
+- PASS PUB-06 (hard, Amounts): ok
+- PASS PUB-07 (hard, Dates): ok
+- PASS PUB-08 (medium, Already paid): ok
+- PASS PUB-09 (medium, Restructuring): ok
+- PASS PUB-10 (hard, Tool failure): ok
+
+- artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
+- judgement: (none noted)

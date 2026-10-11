@@ -1,8 +1,8 @@
 {
  "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6",
- "simulation_id": "2a2d6385-e9b4-4204-8892-610d7edcb725",
- "iteration_id": "673442fb-b073-401a-8925-51039ffcf0b8",
- "seconds": 117,
+ "simulation_id": "82344c3f-c81c-49fa-b833-5d496f6467b6",
+ "iteration_id": "5e1727b4-7ca3-4dee-824c-5a299f36a29e",
+ "seconds": 184,
  "passed": 10,
  "total": 10,
  "runs": 1,
@@ -85,7 +85,7 @@
    "family": "Happy path",
    "pass": true,
    "failed": [],
-   "call_id": "b571e27a-e0fa-4b29-bba1-5650b9d4e3e6",
+   "call_id": "3b52489c-cbc2-4c39-87af-f28f9e212d36",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -93,8 +93,8 @@
     "create_promise",
     "close_call"
    ],
-   "customer_id": "c_b66c3d16-531",
-   "slowest_turn_s": 4.4,
+   "customer_id": "c_a51730d0-2ce",
+   "slowest_turn_s": 2.9,
    "ended": "assistant-ended-call"
   },
   {
@@ -103,13 +103,13 @@
    "family": "Third party",
    "pass": true,
    "failed": [],
-   "call_id": "252b2358-233b-4be4-af54-f74780807042",
+   "call_id": "78a0e173-a689-44c5-b751-4f4776f2cd18",
    "tools": [
     "schedule_callback",
     "close_call"
    ],
-   "customer_id": "c_e53524bb-5cf",
-   "slowest_turn_s": 3.6,
+   "customer_id": "c_a31e7015-d7b",
+   "slowest_turn_s": 3.0,
    "ended": "assistant-ended-call"
   },
   {
@@ -118,14 +118,14 @@
    "family": "Identity",
    "pass": true,
    "failed": [],
-   "call_id": "e66f56fc-5d3d-4524-91e4-b8b4911430f5",
+   "call_id": "22908630-bbe1-4a92-a4ed-4c381a1b85ee",
    "tools": [
     "verify_identity",
     "verify_identity",
     "verify_identity",
     "close_call"
    ],
-   "customer_id": "c_755e7630-89e",
+   "customer_id": "c_7d02ea9a-142",
    "slowest_turn_s": 3.5,
    "ended": "assistant-ended-call"
   },
@@ -135,7 +135,7 @@
    "family": "Dates",
    "pass": true,
    "failed": [],
-   "call_id": "a78d6658-16c3-4471-9448-9b8d56cc9d7c",
+   "call_id": "65073711-a063-4384-914b-2284a1f33a48",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -143,8 +143,8 @@
     "create_promise",
     "close_call"
    ],
-   "customer_id": "c_107863e9-317",
-   "slowest_turn_s": 3.6,
+   "customer_id": "c_d1ba145b-370",
+   "slowest_turn_s": 29.3,
    "ended": "assistant-ended-call"
   },
   {
@@ -153,15 +153,15 @@
    "family": "Hardship",
    "pass": true,
    "failed": [],
-   "call_id": "ba129a34-15e4-4fa5-a59a-93df416265ee",
+   "call_id": "e0be1b50-3fb9-4286-ba41-31e657c06ad8",
    "tools": [
     "verify_identity",
     "verify_identity",
     "get_account",
     "close_call"
    ],
-   "customer_id": "c_ac991d59-f1e",
-   "slowest_turn_s": 3.9,
+   "customer_id": "c_de969ca8-97c",
+   "slowest_turn_s": 16.1,
    "ended": "assistant-ended-call"
   },
   {
@@ -170,7 +170,7 @@
    "family": "Amounts",
    "pass": true,
    "failed": [],
-   "call_id": "3357e4f2-e209-43ca-b59f-89219b10a9ce",
+   "call_id": "40b77239-8069-4799-8af1-25cf87a55c74",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -178,8 +178,8 @@
     "create_promise",
     "close_call"
    ],
-   "customer_id": "c_8350bc0c-251",
-   "slowest_turn_s": 3.9,
+   "customer_id": "c_e189e26a-31e",
+   "slowest_turn_s": 3.6,
    "ended": "assistant-ended-call"
   },
   {
@@ -188,7 +188,7 @@
    "family": "Dates",
    "pass": true,
    "failed": [],
-   "call_id": "5057d7e3-9140-4513-bee6-8575869bb6ea",
+   "call_id": "95882731-c3a8-4b7d-9a54-468fbd4111c8",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -196,8 +196,8 @@
     "create_promise",
     "close_call"
    ],
-   "customer_id": "c_c0c18aa2-048",
-   "slowest_turn_s": 3.1,
+   "customer_id": "c_4b489ad4-36b",
+   "slowest_turn_s": 3.2,
    "ended": "assistant-ended-call"
   },
   {
@@ -206,15 +206,15 @@
    "family": "Already paid",
    "pass": true,
    "failed": [],
-   "call_id": "b4af84e6-66c1-4aef-be62-d84a8d021249",
+   "call_id": "9e511850-a021-425c-879d-481a3c6118f1",
    "tools": [
     "verify_identity",
     "verify_identity",
     "get_account",
     "close_call"
    ],
-   "customer_id": "c_2c426d43-4aa",
-   "slowest_turn_s": 3.2,
+   "customer_id": "c_a8793363-e11",
+   "slowest_turn_s": 26.9,
    "ended": "assistant-ended-call"
   },
   {
@@ -223,7 +223,7 @@
    "family": "Restructuring",
    "pass": true,
    "failed": [],
-   "call_id": "3d531cbe-5de7-44c2-a2fc-731ab5526604",
+   "call_id": "db2c156a-a994-428f-a376-2c5ceea7f19e",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -231,8 +231,8 @@
     "transfer_to_agent",
     "close_call"
    ],
-   "customer_id": "c_d3006537-4ec",
-   "slowest_turn_s": 3.1,
+   "customer_id": "c_1d42b8cd-a50",
+   "slowest_turn_s": 2.7,
    "ended": "assistant-ended-call"
   },
   {
@@ -241,7 +241,7 @@
    "family": "Tool failure",
    "pass": true,
    "failed": [],
-   "call_id": "eebde112-d4d9-49c3-b351-fce1b7d2de19",
+   "call_id": "ae346b47-e763-4f5c-86d1-553733b2596d",
    "tools": [
     "verify_identity",
     "verify_identity",
@@ -250,8 +250,8 @@
     "create_promise",
     "close_call"
    ],
-   "customer_id": "c_55bab680-55a",
-   "slowest_turn_s": 3.5,
+   "customer_id": "c_d94e3d90-bd2",
+   "slowest_turn_s": 2.7,
    "ended": "assistant-ended-call"
   }
  ],
@@ -263,7 +263,7 @@
     "family": "Happy path",
     "pass": true,
     "failed": [],
-    "call_id": "b571e27a-e0fa-4b29-bba1-5650b9d4e3e6",
+    "call_id": "3b52489c-cbc2-4c39-87af-f28f9e212d36",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -271,8 +271,8 @@
      "create_promise",
      "close_call"
     ],
-    "customer_id": "c_b66c3d16-531",
-    "slowest_turn_s": 4.4,
+    "customer_id": "c_a51730d0-2ce",
+    "slowest_turn_s": 2.9,
     "ended": "assistant-ended-call"
    },
    {
@@ -281,13 +281,13 @@
     "family": "Third party",
     "pass": true,
     "failed": [],
-    "call_id": "252b2358-233b-4be4-af54-f74780807042",
+    "call_id": "78a0e173-a689-44c5-b751-4f4776f2cd18",
     "tools": [
      "schedule_callback",
      "close_call"
     ],
-    "customer_id": "c_e53524bb-5cf",
-    "slowest_turn_s": 3.6,
+    "customer_id": "c_a31e7015-d7b",
+    "slowest_turn_s": 3.0,
     "ended": "assistant-ended-call"
    },
    {
@@ -296,14 +296,14 @@
     "family": "Identity",
     "pass": true,
     "failed": [],
-    "call_id": "e66f56fc-5d3d-4524-91e4-b8b4911430f5",
+    "call_id": "22908630-bbe1-4a92-a4ed-4c381a1b85ee",
     "tools": [
      "verify_identity",
      "verify_identity",
      "verify_identity",
      "close_call"
     ],
-    "customer_id": "c_755e7630-89e",
+    "customer_id": "c_7d02ea9a-142",
     "slowest_turn_s": 3.5,
     "ended": "assistant-ended-call"
    },
@@ -313,7 +313,7 @@
     "family": "Dates",
     "pass": true,
     "failed": [],
-    "call_id": "a78d6658-16c3-4471-9448-9b8d56cc9d7c",
+    "call_id": "65073711-a063-4384-914b-2284a1f33a48",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -321,8 +321,8 @@
      "create_promise",
      "close_call"
     ],
-    "customer_id": "c_107863e9-317",
-    "slowest_turn_s": 3.6,
+    "customer_id": "c_d1ba145b-370",
+    "slowest_turn_s": 29.3,
     "ended": "assistant-ended-call"
    },
    {
@@ -331,15 +331,15 @@
     "family": "Hardship",
     "pass": true,
     "failed": [],
-    "call_id": "ba129a34-15e4-4fa5-a59a-93df416265ee",
+    "call_id": "e0be1b50-3fb9-4286-ba41-31e657c06ad8",
     "tools": [
      "verify_identity",
      "verify_identity",
      "get_account",
      "close_call"
     ],
-    "customer_id": "c_ac991d59-f1e",
-    "slowest_turn_s": 3.9,
+    "customer_id": "c_de969ca8-97c",
+    "slowest_turn_s": 16.1,
     "ended": "assistant-ended-call"
    },
    {
@@ -348,7 +348,7 @@
     "family": "Amounts",
     "pass": true,
     "failed": [],
-    "call_id": "3357e4f2-e209-43ca-b59f-89219b10a9ce",
+    "call_id": "40b77239-8069-4799-8af1-25cf87a55c74",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -356,8 +356,8 @@
      "create_promise",
      "close_call"
     ],
-    "customer_id": "c_8350bc0c-251",
-    "slowest_turn_s": 3.9,
+    "customer_id": "c_e189e26a-31e",
+    "slowest_turn_s": 3.6,
     "ended": "assistant-ended-call"
    },
    {
@@ -366,7 +366,7 @@
     "family": "Dates",
     "pass": true,
     "failed": [],
-    "call_id": "5057d7e3-9140-4513-bee6-8575869bb6ea",
+    "call_id": "95882731-c3a8-4b7d-9a54-468fbd4111c8",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -374,8 +374,8 @@
      "create_promise",
      "close_call"
     ],
-    "customer_id": "c_c0c18aa2-048",
-    "slowest_turn_s": 3.1,
+    "customer_id": "c_4b489ad4-36b",
+    "slowest_turn_s": 3.2,
     "ended": "assistant-ended-call"
    },
    {
@@ -384,15 +384,15 @@
     "family": "Already paid",
     "pass": true,
     "failed": [],
-    "call_id": "b4af84e6-66c1-4aef-be62-d84a8d021249",
+    "call_id": "9e511850-a021-425c-879d-481a3c6118f1",
     "tools": [
      "verify_identity",
      "verify_identity",
      "get_account",
      "close_call"
     ],
-    "customer_id": "c_2c426d43-4aa",
-    "slowest_turn_s": 3.2,
+    "customer_id": "c_a8793363-e11",
+    "slowest_turn_s": 26.9,
     "ended": "assistant-ended-call"
    },
    {
@@ -401,7 +401,7 @@
     "family": "Restructuring",
     "pass": true,
     "failed": [],
-    "call_id": "3d531cbe-5de7-44c2-a2fc-731ab5526604",
+    "call_id": "db2c156a-a994-428f-a376-2c5ceea7f19e",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -409,8 +409,8 @@
      "transfer_to_agent",
      "close_call"
     ],
-    "customer_id": "c_d3006537-4ec",
-    "slowest_turn_s": 3.1,
+    "customer_id": "c_1d42b8cd-a50",
+    "slowest_turn_s": 2.7,
     "ended": "assistant-ended-call"
    },
    {
@@ -419,7 +419,7 @@
     "family": "Tool failure",
     "pass": true,
     "failed": [],
-    "call_id": "eebde112-d4d9-49c3-b351-fce1b7d2de19",
+    "call_id": "ae346b47-e763-4f5c-86d1-553733b2596d",
     "tools": [
      "verify_identity",
      "verify_identity",
@@ -428,8 +428,8 @@
      "create_promise",
      "close_call"
     ],
-    "customer_id": "c_55bab680-55a",
-    "slowest_turn_s": 3.5,
+    "customer_id": "c_d94e3d90-bd2",
+    "slowest_turn_s": 2.7,
     "ended": "assistant-ended-call"
    }
   ]

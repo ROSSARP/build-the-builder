@@ -444,7 +444,10 @@ try:
                                     + ', '.join(moved) + ' on their own deadlines and say so in the read-back.')
         elif deadlines and d.isoformat() > max(deadlines):
             vars['date_ok'] = 'false'
-            vars['date_msg'] = 'The date the customer named is after the latest date. Do NOT call create_promise with it. Say the latest date you can record is ' + max(deadlines) + ' and offer it.'
+            # the only recordable date is the deadline the model is about to offer;
+            # bake it so a spoken acceptance cannot record the rejected date
+            vars['fixed_date'] = max(deadlines)
+            vars['date_msg'] = 'The date the customer named is after the latest date. Do NOT call create_promise with the named date. Say the latest date you can record is ' + max(deadlines) + ' and offer it.'
 except Exception:
     vars.pop('payment_date', None)
     vars['date_ok'] = 'true'
@@ -609,7 +612,9 @@ def build_workflow(spec, api):
                     "Today: {{today_text}}. Bank holidays: {{holiday_text}}. Now: {{now}}.")
     if products_max > 1:
         sections.append("Several products: " + first_line(prod.get("state_all_text", "")))
-    sections.append("Stating the debt: " + first_line(prod.get("state_text", "")))
+    sections.append("Stating the debt: " + first_line(prod.get("state_text", "")) +
+                    "\nYour first sentence about the debt MUST name the product, the past-due amount and the "
+                    "number of days late, all from {{products_text}} — never skip any of the three.")
     if products_max > 1:
         sections.append("Going through the products: " + " ".join(filter(None, [
             first_line(prod.get("today_ask_text")), first_line(prod.get("order_text")),
@@ -663,7 +668,10 @@ def build_workflow(spec, api):
                         "\nA claim that THIS past-due amount was already paid — however the customer says it "
                         "(in the app, by card, online, yesterday) — means close paid, no promise, even when the "
                         "customer asks when the payment shows up. "
-                        "A claim that the product is not theirs or was closed long ago means dispute.")
+                        "A claim that the product is not theirs or was closed long ago means dispute. "
+                        "When transferring for restructuring, say only that you will connect them with the "
+                        "restructuring team — never describe or promise an instalment plan, lower instalments "
+                        "or any new terms.")
     sections.append("Recording a promise: " + " ".join(filter(None, [
         first_line(pr.get("read_back_text")), first_line(pr.get("confirm_text")),
         first_line(pr.get("retry_text")), first_line(pr.get("sms_text")),

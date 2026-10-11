@@ -37,19 +37,30 @@ def main():
         f = ROOT / "tests" / f"{stem}-batch{bi}.json"
         f.write_text(json.dumps(batch, indent=1))
         out = ROOT / "results" / f"{stem}-b{bi}.json"
+        if out.exists():
+            out.unlink()
         cmd = [sys.executable, str(ROOT / "tools" / "run_cases.py"), agent,
                "--cases", str(f), "--out", str(out)]
-        print(f"== batch {bi}: {len(batch)} cases ==", flush=True)
-        print("$", " ".join(cmd[1:]), flush=True)
-        r = subprocess.run(cmd, text=True)
-        print(r.stdout, flush=True)
-        if r.stderr:
-            print(r.stderr[-500:], flush=True)
+        for attempt in range(3):  # the platform 504s on personas/simulations under load
+            print(f"== batch {bi}: {len(batch)} cases" + (f" (attempt {attempt + 1})" if attempt else ""), flush=True)
+            print("$", " ".join(cmd[1:]), flush=True)
+            r = subprocess.run(cmd, text=True)
+            print(r.stdout, flush=True)
+            if r.stderr:
+                print(r.stderr[-500:], flush=True)
+            if out.exists():
+                break
+            if attempt < 2:
+                print(f"-- batch {bi} produced no result, retrying after 60 s", flush=True)
+                import time as _t
+                _t.sleep(60)
         if out.exists():
             data = json.loads(out.read_text())
             for c, row in zip(batch, data.get("rows", [])):
                 row["title"] = c["title"]
                 combined.append(row)
+        else:
+            print(f"-- batch {bi} failed after 3 attempts", flush=True)
     passed = sum(1 for r in combined if r.get("pass"))
     print(f"\n== {stem} total: {passed} / {len(combined)} passed ==")
     for r in combined:

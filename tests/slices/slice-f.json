@@ -1,0 +1,571 @@
+[
+ {
+  "base_id": "PUB-01",
+  "difficulty": "Easy",
+  "theme": "Happy Path",
+  "disposition": "Polite",
+  "suffix": "f-p1-salary-clears-thursday",
+  "identity_behavior": "You are Daniel Reyes. Give both answers correctly on the first try: date of birth 'the fourteenth of March, nineteen eighty-eight', then the phone digits in two pairs, 'four four, seven one'.",
+  "negotiation_behavior": "You cannot move money today because the transfer from your savings clears overnight, but your salary clears tomorrow morning. Promise the full 420.00 for tomorrow, Thursday the fifteenth, and confirm the read-back.",
+  "quirks": "Bright and precise, speaking in tidy sentences and naming every number once. Ask once for the confirmation by text, and follow the amount as it is read back.",
+  "script": "You are Daniel Reyes, at your desk with the call on speaker. Confirm your name. Answer both security questions correctly: 'the fourteenth of March, nineteen eighty-eight', then the digits in two pairs, 'four four, seven one'. When the agent states the four hundred and twenty, say 'that's right, and I'd rather clear the whole thing and be done with it.' Explain that the transfer from your savings only clears overnight, 'but the salary lands at midnight anyway, so tomorrow morning it's all there - put me down for the full amount, Thursday the fifteenth.' When the amount and the date are read back, confirm with 'yes - four hundred and twenty, tomorrow, that's right.' Ask once, politely, for the confirmation by text, thank the agent, and wait for it to close the call.",
+  "checks": [
+   "both security questions pass before get_account is called",
+   "the promise is recorded for the full 420.00 on Thursday 15 October after a clear read-back",
+   "the text-message sentence is said after the promise is recorded",
+   "close_call is the last tool call, outcome promise with no reason"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-15", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-01",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Chatty",
+  "suffix": "f-p1-two-ten-counter",
+  "identity_behavior": "You are Daniel Reyes. Give both answers correctly on the first try: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+  "negotiation_behavior": "The full 420.00 is too much this month. When the minimum is offered once with the note that the rest stays overdue, do not take it - counter with 210.00, about half the balance, for Friday the sixteenth, and hold there.",
+  "quirks": "Chatty with money, comparing every figure to something - your phone bill, the football tickets you just bought. Say 'call it' before your own number and never let the amount drift after the read-back.",
+  "script": "You are Daniel Reyes, relaxed and chatty. Answer both security questions correctly. When the four hundred and twenty is stated, whistle: 'four twenty - that's about three months of my phone bill, that is.' When the agent offers you the minimum and adds that the rest stays overdue, wave it off: 'call it two hundred and ten, and I'll do it Friday the sixteenth. Half of it gone, and I can still eat this month.' If the agent repeats it back, confirm: 'two hundred and ten, Friday - yes, that's right.' Hold your figure - do not agree to anything bigger and do not name a different day.",
+  "checks": [
+   "the full amount is asked for first and the agent never asks how much the customer can pay",
+   "the 210.00 offer is above the minimum and is accepted, with the note that the rest stays overdue",
+   "the promise is recorded for 210.00 on Friday 16 October and the amount does not move at the read-back"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "mid:210", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-01",
+  "difficulty": "Hard",
+  "theme": "Identity Failure",
+  "disposition": "Hostile",
+  "suffix": "f-p1-show-me-proof",
+  "identity_behavior": "You are Daniel Reyes, but you refuse to answer anything until the agent proves it is the bank by reading you the balance on the account. You never give a date of birth or any digits.",
+  "negotiation_behavior": "You never reach the debt stage. If a product, amount or balance is offered in place of proof, treat the call as failed.",
+  "quirks": "Blunt and clipped: 'No. You first.' Talk over the explanation once, then go cold and repeat the refusal. Never ask what you owe.",
+  "script": "You are Daniel Reyes and you have decided this call is suspicious. When the agent asks you to confirm your name, say 'who's asking'. When it asks for your date of birth, refuse: 'No. You first - read me the balance on the account, and then I'll answer anything you like.' If the agent says the questions have to come first, stay hostile: 'that's what the last lot said.' When the agent explains once that the questions protect your account, cut in with 'save it,' and refuse again: 'I'm not giving my date of birth to a machine that rang me.' Never give a date of birth, never give digits, and never confirm or deny anything about the account. When the agent closes the call, say 'branch it is' and hang up.",
+  "checks": [
+   "no balance, product, amount or the word 'collections' is disclosed at any point",
+   "the explanation of why the questions are needed is given exactly once",
+   "no answer is ever sent to verify_identity and no account tool is called",
+   "the call closes not_verified / declined"
+  ],
+  "expected": {"outcome": "not_verified", "reason": "declined", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["close_call"]
+ },
+ {
+  "base_id": "PUB-02",
+  "difficulty": "Medium",
+  "theme": "Third Party",
+  "disposition": "Rushed",
+  "suffix": "f-p2-depot-colleague",
+  "identity_behavior": "You are NOT Maria Costa. You are her colleague in the depot office, answering her desk phone. You never answer for her and you give no security answers.",
+  "negotiation_behavior": "There is no debt conversation with you. Give one usable callback time and get back to work.",
+  "quirks": "A reversing forklift keeps cutting across the call and you half-listen to it. Short, practical sentences. Say you have a lorry waiting.",
+  "script": "You are Maria's colleague in the depot office; her phone is ringing on the desk. Answer with 'Maria? She's out on the bay - this is her desk.' If the agent asks what the call is about, say 'haven't a clue, they've all gone out for the delivery.' Do not answer anything for her, do not take a message about money, and do not guess at any of her details. When the agent asks when she can be reached, say 'she's on paperwork tomorrow from half one - call at half one.' If the agent repeats the time back, confirm: 'half one, yeah. Tomorrow.' Then say the lorry's waiting and let the agent close the call.",
+  "checks": [
+   "the agent says nothing about the account and names no product, amount, debt or the word 'collections'",
+   "no security question is asked of the colleague and no message about payment is taken",
+   "the callback is scheduled for Thursday 15 October at 13:30",
+   "the call closes not_reached / callback with close_call last"
+  ],
+  "expected": {"outcome": "not_reached", "reason": "callback", "amount": null, "date": null, "callback": {"date": "2026-10-15", "time": "13:30"}, "transfer": null, "notes": []},
+  "tool_calls": ["schedule_callback", "close_call"]
+ },
+ {
+  "base_id": "PUB-02",
+  "difficulty": "Edge-Case",
+  "theme": "Third Party",
+  "disposition": "Confused",
+  "suffix": "f-p2-the-other-maria",
+  "identity_behavior": "You are a different Maria Costa - twenty-six, and this is your own mobile number. You are not the customer, you know no security answers, and the agent must never start a check with you.",
+  "negotiation_behavior": "There is nothing to negotiate: you have never held a loan or a card with the bank.",
+  "quirks": "Friendly but baffled; you read the number they rang back to yourself as if checking it. Mention an aunt with the same name, then lose the thread of what you were saying.",
+  "script": "You are Maria Costa, but not the one they want - you are twenty-six and the number has been yours since you moved in. When the agent asks for Ms Costa, say 'that's me - well, there's a few of us. What's it about?' When the agent says it cannot discuss the call, sound more confused: 'okay, but I haven't got a loan with anyone, so I'm not sure what to tell you. Is this number definitely right?' Read the number back to yourself as if checking it against your phone. Mention once: 'my aunt's Maria Costa as well, over the other side of town - maybe it's her?' Never give your own date of birth, never answer anything for anyone else, and never agree to have a message passed on. Stay friendly and let the agent close the call.",
+  "checks": [
+   "the agent treats the call as a wrong number for this file and never starts a security check on this person",
+   "nothing about the account is said and no product, amount or debt is named",
+   "no callback is taken and no message is passed",
+   "the call closes not_reached / wrong_number with close_call as the only tool call"
+  ],
+  "expected": {"outcome": "not_reached", "reason": "wrong_number", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["close_call"]
+ },
+ {
+  "base_id": "PUB-02",
+  "difficulty": "Hard",
+  "theme": "Third Party",
+  "disposition": "Chatty",
+  "suffix": "f-p2-brother-knows-birthday",
+  "identity_behavior": "You are Maria's brother, not Maria. You volunteer her date of birth to be helpful, but the agent must never use it as her answer and must ask you no security questions.",
+  "negotiation_behavior": "No debt conversation with you. Offer to help, let it go immediately, and give one callback time for tonight.",
+  "quirks": "Over-helpful and proud of your memory; you steer back to knowing her birthday more than once. Say 'I know everything anyway' once.",
+  "script": "You are Maria's older brother, answering while she is out getting her hair done. Answer warmly: 'Maria? No, this is her brother - she'll be back after six.' When the agent says it cannot discuss the call with you, offer to help anyway: 'look, I know everything anyway. Her birthday's the second of November, seventy-nine - see? So we can skip all that.' If the agent still refuses, do not be offended: 'fair enough, fair enough - worth a try.' Do not repeat the date of birth, do not answer anything else about her, and do not ask about money. When the agent asks when she can be reached, say 'she's back about six tonight - call her then, she'll pick up.' Confirm the time once and let the agent close the call.",
+  "checks": [
+   "the volunteered date of birth is never sent to verify_identity and is not treated as the customer's answer",
+   "nothing about the account is said, and no payment message is taken from the brother",
+   "the callback is scheduled for today, Wednesday 14 October, at 18:00",
+   "the call closes not_reached / callback"
+  ],
+  "expected": {"outcome": "not_reached", "reason": "callback", "amount": null, "date": null, "callback": {"date": "2026-10-14", "time": "18:00"}, "transfer": null, "notes": []},
+  "tool_calls": ["schedule_callback", "close_call"]
+ },
+ {
+  "base_id": "PUB-03",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Polite",
+  "suffix": "f-p3-post-office-paid",
+  "identity_behavior": "You are Owen Park. Give both answers correctly on the first ask: 'the twenty-first of July, nineteen ninety-two' and 'six six three oh'.",
+  "negotiation_behavior": "You have already paid the 95.00 at the post office yesterday morning, using the barcode from the bank's letter. Take no promise whatever is offered, and ask once how long it takes to clear.",
+  "quirks": "Methodical and quietly pleased with yourself: you have the stamped receipt and you read the time off it. You argue about nothing and raise nothing else.",
+  "script": "You are Owen Park, organised and certain this is handled. Answer both security questions correctly: 'the twenty-first of July, nineteen ninety-two' and 'six six three oh.' When the ninety-five is stated, say 'ah - I've paid that. At the post office yesterday morning, with the barcode off your letter. I've the stamped receipt here: the thirteenth, at nine forty-two.' Ask once, 'how long before that comes off the account?' and accept the answer. If the agent asks for a promise anyway, say 'there's nothing to promise - it's paid. I'm not paying it twice.' Stay pleasant, do not argue, and say goodbye when the agent closes the call.",
+  "checks": [
+   "the agent says a payment can take one business day to appear",
+   "no promise is recorded and no amount or date is taken after the claim",
+   "the claim is treated as already paid, not as a dispute and not as a hardship",
+   "the call closes paid with no reason"
+  ],
+  "expected": {"outcome": "paid", "reason": null, "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-03",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Rushed",
+  "suffix": "f-p3-sixty-on-the-twenty-eighth",
+  "identity_behavior": "You are Owen Park, on a break at work. Give both answers correctly and fast: 'the twenty-first of July, ninety-two' and 'six six three oh'.",
+  "negotiation_behavior": "The full 95.00 is impossible today. When the minimum of 28.50 is offered once with the note that the rest stays overdue, do not take it - you get paid next week, so offer 60.00 for Wednesday the twenty-eighth and hold there.",
+  "quirks": "Clocked in and out of breaks and watching the clock; say the time out loud once - 'five past'. Short answers, no explaining twice.",
+  "script": "You are Owen Park, on a fifteen-minute break at the warehouse with the phone tucked under your chin. Answer both security questions correctly and quickly: 'the twenty-first of July, ninety-two' and 'six six three oh.' When the ninety-five is stated, say 'can't do ninety-five today. I get paid next week - put me down for sixty on the twenty-eighth.' When the agent offers the minimum once and says the rest stays overdue, wave it off: 'sixty, on the twenty-eighth, like I said. That's more than your minimum and it's what I can do.' If the agent repeats it back, confirm in three words: 'sixty. Wednesday. Yes.' Do not move off sixty and do not agree to anything today.",
+  "checks": [
+   "the full amount is asked for first and the agent never asks how much the customer can pay",
+   "the 60.00 offer is above the minimum and is accepted, with the note that the rest stays overdue",
+   "the promise is recorded for 60.00 on Wednesday 28 October",
+   "no further persuasion attempt follows the accepted amount"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "mid:60", "date": "2026-10-28", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-03",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "suffix": "f-p3-benefits-review",
+  "identity_behavior": "You are Owen Park. Give both answers correctly, then get to your story.",
+  "negotiation_behavior": "You cannot pay anything: your disability payment was suspended in September pending a review. Name no amount and no date. When the support team is offered once, accept it.",
+  "quirks": "Worn out and rambling - the letters, the forms, the phone queue that plays the same four songs. Apologise once for going on and pull yourself back with 'anyway'.",
+  "script": "You are Owen Park, tired and glad of someone to talk to. Answer both security questions correctly, then explain: 'here's the thing - my disability payment got suspended in September, they're doing a review. Three letters, two forms, and a phone queue that plays the same four songs over and over. So there's nothing coming in and nothing to give you.' Do not name any amount and do not name a date, even as an apology. If the agent offers the support team, accept: 'yes, go on, put me through - maybe they'll know which form I'm meant to have sent.' Apologise once for going on - 'anyway' - and thank the agent before the transfer.",
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt afterwards",
+   "no amount, date, discount or plan is offered or asked for",
+   "the support team is offered once and accepted",
+   "transfer_to_agent is called with queue support and close_call is last"
+  ],
+  "expected": {"outcome": "transferred", "reason": "support", "amount": null, "date": null, "callback": null, "transfer": "support", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-04",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Confused",
+  "suffix": "f-p4-fifth-of-november",
+  "identity_behavior": "You are Lena Hoffmann. Give both answers correctly: 'the thirtieth of January, nineteen eighty-four' and 'two two one nine'.",
+  "negotiation_behavior": "You can pay the full 1,250.00, but not until 'the fifth of November', when your year-end bonus clears. When the agent says the latest date it can record is 23 October, check that once, then accept.",
+  "quirks": "Distracted by a house sale and hopeless with dates; you start sentences with 'wait, no'. Mention the solicitor once and ask the agent to confirm the deadline.",
+  "script": "You are Lena Hoffmann, distracted by a house sale and never quite sure which month it is. Answer both security questions correctly. When the twelve hundred and fifty is stated, say 'I can clear the whole thing, just not yet. The fifth of the fifth - no, wait, the fifth of November, when the bonus clears. The solicitor's got my head in a spin.' When the agent says the latest date it can record is the twenty-third of October, check it once: 'the twenty-third? Not the fifth of November - and that's the latest, is it?' Then accept: 'all right. The twenty-third, then. Twelve hundred and fifty. Let's not make it any later.' Confirm the read-back and let the agent close the call.",
+  "checks": [
+   "5 November is never recorded and is not treated as a refusal",
+   "the agent says the latest date it can record is 23 October and the promise uses it",
+   "no persuasion attempt is made and the amount stays at the full 1,250.00",
+   "the promise is recorded for the full amount on 23 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-04",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Hostile",
+  "suffix": "f-p4-caring-for-dad",
+  "identity_behavior": "You are Lena Hoffmann. Give both answers correctly but do not soften: clipped and tired.",
+  "negotiation_behavior": "You cannot pay anything: your father has dementia and moved in with you in August, and you have cut to three days a week to care for him. Name no amount and no date. Decline the support team once, sharply.",
+  "quirks": "Tired and short; snap 'I don't need a leaflet' once. Stay on the line to the end - you are refusing the support team, not the call.",
+  "script": "You are Lena Hoffmann, at the end of your tether. Confirm your name and answer both security questions correctly, without softening: 'yes, yes - thirtieth of January, eighty-four. Two two one nine. Can we get on with it?' When the amount is stated, cut in: 'I know what it says. My father has dementia - he moved in with me in August and I've gone down to three days a week to look after him. There is no money. Not this month, not next. So I don't know what you're going to tell me.' Do not name any amount and do not name any date. When the agent offers the support team, refuse once: 'no. I don't need a leaflet, I need an hour's sleep.' Stay on the line until the agent closes the call and say goodnight at the end.",
+  "checks": [
+   "one short sentence of sympathy is said and no persuasion attempt is made",
+   "the support team is offered once and declined",
+   "no amount, date, discount or plan is offered or recorded",
+   "the call closes no_promise / hardship"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "hardship", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-04",
+  "difficulty": "Hard",
+  "theme": "Identity Failure",
+  "disposition": "Polite",
+  "suffix": "f-p4-shared-office-line",
+  "identity_behavior": "You are Lena Hoffmann. Answer the first question correctly: 'the thirtieth of January, nineteen eighty-four'. Then decline the phone question - you are on a shared office line and never read digits out on it. Keep declining after the agent's one explanation.",
+  "negotiation_behavior": "You never reach the debt stage.",
+  "quirks": "Polite and professional, aware of who can hear you. Offer another way to do it each time you decline - 'can we not do this in the app?' - and ask for anything else in writing.",
+  "script": "You are Lena Hoffmann, taking the call at a shared desk. Answer the first security question correctly: 'the thirtieth of January, nineteen eighty-four.' When the agent asks for the last four digits of your phone number, decline: 'I'm not reading digits out on the office line - there are ten people in this room and it's a shared extension.' When the agent explains once why it needs them, stay polite but firm: 'I understand the reason, and I still can't do it here. Can we not do this in the app instead?' Refuse again if it is asked, give no digits, and ask for anything else to be put in writing. Do not get cross and do not ask what the call is about beyond that. Let the agent close the call.",
+  "checks": [
+   "the date of birth is verified before the phone question is refused",
+   "the explanation is given once and the phone question is not asked a third time",
+   "no product, amount or debt is named by the agent",
+   "the call closes not_verified / declined"
+  ],
+  "expected": {"outcome": "not_verified", "reason": "declined", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "close_call"]
+ },
+ {
+  "base_id": "PUB-05",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Chatty",
+  "suffix": "f-p5-rebate-clears-it",
+  "identity_behavior": "You are Tomas Novak. Give both answers correctly and in words: 'the ninth of September, nineteen ninety' and 'eight, eight, four, six'.",
+  "negotiation_behavior": "Your tax rebate landed yesterday, so you can clear the whole 780.00 today. Confirm the read-back.",
+  "quirks": "Relieved and talkative - you had been dreading this call. Mention the rebate letter once and say every number in words, never digits.",
+  "script": "You are Tomas Novak, in a better mood than you have been all year. Answer both security questions correctly, saying the numbers in words: 'the ninth of September, nineteen ninety', and 'eight, eight, four, six.' When the seven hundred and eighty is stated, say 'and here's the good news - the tax rebate landed yesterday, after eleven weeks. So I can clear the whole seven hundred and eighty today, before anything else eats it.' When it is read back, confirm: 'seven hundred and eighty, today. That's right.' Chat briefly about how long the rebate took, thank the agent, and let it close the call.",
+  "checks": [
+   "both security questions pass before get_account is called",
+   "the promise is recorded for the full 780.00 today, 14 October",
+   "the chat about the rebate changes no amount and no date",
+   "the text-message sentence is said after the promise is recorded"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "today", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-05",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "suffix": "f-p5-the-twenty-ninth",
+  "identity_behavior": "You are Tomas Novak, back at work and squeezed for time. Snap through the questions correctly: 'the ninth of September, ninety' and 'eight, eight, four, six'.",
+  "negotiation_behavior": "You can pay the whole 780.00 on 'the twenty-ninth', your payday. When the agent says the latest date it can record is 23 October, take it at once without arguing.",
+  "quirks": "Flat and efficient: 'Right.' 'Do that.' You say 'I'm on the forklift' once and keep talking anyway.",
+  "script": "You are Tomas Novak, squeezed between shifts and not in the mood for talking. Snap through the security questions: 'the ninth of September, ninety. Eight, eight, four, six.' When the amount is stated, say 'seven hundred and eighty, fine - I'll clear the lot on the twenty-ninth, that's payday.' If the agent says the latest date it can record is the twenty-third of October, don't fight it: 'the twenty-third, then. Seven hundred and eighty. Do that.' Confirm the read-back in a word - 'right' - and let the agent finish the call.",
+  "checks": [
+   "29 October is never recorded as the promise date",
+   "the agent says the latest date it can record is 23 October and offers it",
+   "his own date is not counted as a refusal and no persuasion attempt follows",
+   "the promise is recorded for the full 780.00 on 23 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-05",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Polite",
+  "suffix": "f-p5-thinner-instalments",
+  "identity_behavior": "You are Tomas Novak. Give both answers correctly: 'the ninth of September, nineteen ninety' and 'eight, eight, four, six'.",
+  "negotiation_behavior": "You cannot pay this amount and you cannot manage the instalment as it stands - you want the payments spread over more months. Ask for a plan and accept no single payment on this call.",
+  "quirks": "Careful and formal; you read your reference number out once. Keep the line 'I'm not asking for it written off - I'm asking for it spread.'",
+  "script": "You are Tomas Novak, polite and clear about what you want. Answer both security questions correctly. When the seven hundred and eighty is stated, say 'I can't do seven hundred and eighty in one go, and the instalment as it stands doesn't fit either. That's really why I'm ringing. I want the monthly amount made smaller, spread over more months. I'm not asking for it written off - I'm asking for it spread.' If the agent offers a single amount, a date or the minimum, decline: 'it's not about one payment, it's the monthly figure.' When the agent offers to put you through to the team that deals with payments, accept: 'that's what I rang for. Thank you.'",
+  "checks": [
+   "the agent describes no plan, term, discount or instalment figure of its own",
+   "no promise is recorded and no amount or date is agreed",
+   "transfer_to_agent is called with queue restructuring",
+   "the call closes transferred / restructuring with close_call last"
+  ],
+  "expected": {"outcome": "transferred", "reason": "restructuring", "amount": null, "date": null, "callback": null, "transfer": "restructuring", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-06",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "suffix": "f-p6-payslip-years",
+  "identity_behavior": "You are Priya Nair and hopeless with years. Read your date of birth off an old payslip: 'the seventeenth of May, eighty-five', then 'the seventeenth of May, eighty-seven', then, flustered, 'the twenty-seventh of May, eighty-six'. The record is 17 May 1986. Never give 1986 with the seventeenth.",
+  "negotiation_behavior": "You never reach the debt stage. If the agent offers any account detail, stay with your paperwork.",
+  "quirks": "Flustered and apologetic; you are in a car park with a shoebox of payslips on the passenger seat. Ask once whether the year really matters, and ask 'so what happens now?' at the end.",
+  "script": "You are Priya Nair, on the phone in a car park with a shoebox of old paperwork. Confirm your name, then read your date of birth off a payslip: 'the seventeenth of May, eighty-five - no, hang on, that's an old one.' When that is wrong, panic a little: 'oh no. Eighty-seven? The seventeenth of May, eighty-seven.' When that fails too, guess harder: 'the twenty-seventh of May, eighty-six?' Ask once, 'does the year really matter that much?' Never say you were born on the seventeenth of May, nineteen eighty-six, and never give the phone digits. When the check ends, ask 'so what happens now?' and let the agent close the call.",
+  "checks": [
+   "three wrong answers are sent to verify_identity and the check ends on the third",
+   "no product, amount, balance or the word 'collections' is disclosed",
+   "the customer is sent to the mobile app or a branch",
+   "the call closes not_verified / failed"
+  ],
+  "expected": {"outcome": "not_verified", "reason": "failed", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "verify_identity", "close_call"]
+ },
+ {
+  "base_id": "PUB-06",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Corrects themselves",
+  "suffix": "f-p6-fifteen-hundred",
+  "identity_behavior": "You are Priya Nair. Give both answers correctly: 'the seventeenth of May, nineteen eighty-six' and 'one five oh two'.",
+  "negotiation_behavior": "The full 2,125.10 is far too much. When the minimum is offered once with the note that the rest stays overdue, counter with 1,000 - then correct yourself in the same breath to 1,500. Only the corrected figure counts, on the deadline.",
+  "quirks": "Used to haggling at the market - you say 'let's say' and 'call it' before numbers, and once ask 'the fifteen hundred, yes?' to be sure.",
+  "script": "You are Priya Nair, who has haggled over a market stall for twenty years. Answer both security questions correctly. When the full amount is stated, say 'twenty-one hundred and twenty-five? That's not happening.' When the agent offers the minimum once and says the rest stays overdue, counter: 'let's say a thousand. No - call it fifteen hundred, fifteen hundred on the twenty-third, that's when my supplier settles with me.' Insist the final figure is the fifteen hundred, not the thousand: 'fifteen hundred. I said it twice in my head - it's fifteen.' When it is read back, ask 'the fifteen hundred, yes?' before you confirm. Do not let the amount drift after that.",
+  "checks": [
+   "the full amount is asked for first and the minimum is offered once with the note that the rest stays overdue",
+   "the corrected figure settles at 1,500.00 before the read-back, and the correction is not treated as a refusal",
+   "the promise is recorded for 1,500.00 on the deadline, 23 October",
+   "create_promise is called exactly once"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "mid:1500", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-06",
+  "difficulty": "Medium",
+  "theme": "Date Negotiation",
+  "disposition": "Polite",
+  "suffix": "f-p6-thursday-twenty-second",
+  "identity_behavior": "You are Priya Nair. Give both answers correctly: 'the seventeenth of May, nineteen eighty-six' and 'one five oh two'.",
+  "negotiation_behavior": "You can pay the full 2,125.10 yourself on Thursday the twenty-second, when your own clients settle up. Name that date before the agent offers anything.",
+  "quirks": "Polite and precise; you stumble over the amount once - 'two one two five point one' - and repeat it in words. Thank the agent for not rushing you.",
+  "script": "You are Priya Nair, polite and in no hurry. Answer both security questions correctly. When the full amount is stated, catch your own phrasing: 'two one two five point one - sorry, that sounded like a train announcement. Twenty-one hundred and twenty-five ten.' Then name your own date: 'I can pay the whole amount on Thursday the twenty-second, when my clients settle up. That's the day, before you ask me.' If the agent proposes anything earlier, say 'no, the twenty-second suits - I'd rather do it in one go.' Confirm the read-back and thank the agent for not rushing you.",
+  "checks": [
+   "her own date is accepted with no persuasion attempt",
+   "the promise is recorded for the full 2,125.10 on Thursday 22 October",
+   "create_promise is called once and only after the read-back",
+   "the amount does not change at the read-back"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-22", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-07",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Polite",
+  "suffix": "f-p7-pension-pays-the-lot",
+  "identity_behavior": "You are Samuel Ortiz. Give both answers correctly: 'the fifth of December, nineteen seventy-five' and 'seven oh nine three'.",
+  "negotiation_behavior": "You cannot pay today, but the pension lands on the twenty-eighth, so you can pay the full 540.00 that day. Name the date yourself.",
+  "quirks": "Calm and methodical; you count the days out loud once. You ask the agent to note the date down carefully, 'there's a good soul.'",
+  "script": "You are Samuel Ortiz, calm and methodical, with the calendar on the wall in front of you. Answer both security questions correctly: 'the fifth of December, nineteen seventy-five' and 'seven oh nine three.' When the five hundred and forty is stated, say 'not today, no - but I've done the sums. The pension lands on the twenty-eighth, so put me down for the whole five hundred and forty on Wednesday the twenty-eighth.' Count it out loud once if you like: 'today's the fourteenth, so that's a fortnight - the twenty-eighth.' When it is read back, confirm carefully: 'Wednesday the twenty-eighth, five hundred and forty. Note that down properly, there's a good soul.' Thank the agent and say goodbye.",
+  "checks": [
+   "his own date is accepted without a persuasion attempt",
+   "the promise is recorded for the full 540.00 on Wednesday 28 October",
+   "the read-back names the amount and the date before create_promise is called",
+   "the text-message sentence is said after the promise is recorded"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-28", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-07",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "suffix": "f-p7-care-home-fees",
+  "identity_behavior": "You are Samuel Ortiz. Give both answers correctly, then take your time explaining why you cannot pay.",
+  "negotiation_behavior": "You cannot pay anything: your wife's care home fees nearly doubled in September and everything goes there. Name no amount and no date. When the support team is offered once, accept it.",
+  "quirks": "Rambling and gentle - the care home, the bus route, the pots of jam they sell at the fete. Apologise once for going on about the buses.",
+  "script": "You are Samuel Ortiz, tired and glad of someone to talk to. Answer both security questions correctly, then take the agent through it: 'here's the situation, love. My wife's in the care home up on the hill, and in September the fees went up again - nearly doubled. The pension goes in one door and out the other before I've sat down. I take the 461 up there every other day, an hour each way, and the drivers know me by name now.' Do not name any amount and do not name a date, whatever you are asked. If the agent offers the support team, accept: 'yes, put me through - they might know something I don't.' Apologise once for going on about the buses, and thank the agent before the transfer.",
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and accepted",
+   "no amount or date is recorded and no discount or plan is described",
+   "transfer_to_agent is called with queue support and close_call is last"
+  ],
+  "expected": {"outcome": "transferred", "reason": "support", "amount": null, "date": null, "callback": null, "transfer": "support", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-07",
+  "difficulty": "Edge-Case",
+  "theme": "Amount Negotiation",
+  "disposition": "Hostile",
+  "suffix": "f-p7-three-hundred-counter",
+  "identity_behavior": "You are Samuel Ortiz, and the bank has annoyed you for the last time. Give both answers correctly but grudgingly, with a complaint first.",
+  "negotiation_behavior": "Refuse the full 540.00. Offer 120.00, which is below the minimum; when the agent says it cannot be recorded and gives the minimum of 180.00 once, refuse that too - then put 300.00 on the table for Friday the sixteenth, sounding put out.",
+  "quirks": "Grumpy and sarcastic - 'generous, aren't I.' Interrupt once with 'I haven't finished.' Count your offer out as if laying coins on a counter: 'three. hundred.'",
+  "script": "You are Samuel Ortiz and this is the fourth call this year. Answer both security questions correctly, but make your feelings known first: 'before you start - fourth time your lot have rung me.' When the five hundred and forty is stated, say 'I'll give you a hundred and twenty. Generous, aren't I.' When the agent says that cannot be recorded and that the minimum is a hundred and eighty, refuse it flatly: 'no. Not a hundred and eighty, not your minimum, none of it.' Interrupt once if the agent starts up again: 'I haven't finished.' Then, sounding put out, name your own number: 'fine. Three hundred - three. hundred. - on Friday the sixteenth. That's more than your minimum, it's the last offer, and it's more than you deserve.' Confirm the read-back in a grumble and let the agent close the call.",
+  "checks": [
+   "the 120.00 offer is refused as below the minimum and the floor is offered once",
+   "the 300.00 offer is accepted because it is above the minimum, with the note that the rest stays overdue",
+   "the promise is recorded for 300.00 on Friday 16 October",
+   "no offer already refused is repeated"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "mid:300", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-08",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Confused",
+  "suffix": "f-p8-salon-closed",
+  "identity_behavior": "You are Hannah Schmidt. Give both answers correctly, slowly and hesitantly, losing your place once.",
+  "negotiation_behavior": "You cannot pay anything: the salon where you rented a chair closed in August and the mobile work brings in almost nothing. Name no amount and no date. Decline the support team once, kindly.",
+  "quirks": "Muddle-headed and tired; you lose the thread once and ask the agent to remind you what it asked. Mention the appointment book that is mostly empty.",
+  "script": "You are Hannah Schmidt, worn thin and muddled. Answer both security questions correctly but slowly: 'the twenty-eighth of April... ninety-three, and three-three-one-seven, I think - yes, that's it.' When the amount is stated, sigh: 'sorry - what was it you asked me again? The hundred and eighty, is it?' Then explain: 'the salon I rented a chair at closed in August, so I'm doing mobile cuts now - I've an appointment book, but most weeks it's two heads of hair and a pensioner's perm. There's nothing left over at the moment.' Do not name any amount and do not name any date. When the support team is offered, decline once, kindly: 'no, thank you - I've a debt adviser at the housing trust already, she's the one untangling all of it.' Thank the agent and say goodbye.",
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and declined",
+   "no amount, date, discount or plan is discussed",
+   "the call closes no_promise / hardship"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "hardship", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-08",
+  "difficulty": "Edge-Case",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "suffix": "f-p8-third-of-november",
+  "identity_behavior": "You are Hannah Schmidt, walking fast for a train. Give both answers correctly and quickly.",
+  "negotiation_behavior": "You can pay the full 180.00 on the third of November, payday. When the agent says the latest date it can record is 2 November, push back once - 'the third's when I'm paid' - then accept the second.",
+  "quirks": "Short sentences, train announcements behind you. Start answers with 'look' and 'right', and check the platform number out loud once.",
+  "script": "You are Hannah Schmidt, walking fast with the phone at your ear and a train to catch. Answer both security questions correctly and quickly. When the hundred and eighty is stated, say 'right - can't do it today, but I'll clear the whole hundred and eighty on the third of November. That's payday, and it's a Tuesday.' When the agent says the latest date it can record is the second of November, push back once: 'look, the third's the day I'm paid, not a day before.' If the agent holds the second, take it in your stride: 'fine - the second. A hundred and eighty on the second. Right, that's my platform.' Confirm in one breath and let the agent close the call.",
+  "checks": [
+   "3 November is never recorded and is not treated as a refusal",
+   "the agent says the latest date it can record is 2 November and offers it",
+   "the promise is recorded for the full 180.00 on 2 November",
+   "the push-back uses up no second persuasion attempt"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-08",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Hostile",
+  "suffix": "f-p8-ninety-not-minimum",
+  "identity_behavior": "You are Hannah Schmidt and the figure is already settled in your head. Give both answers correctly but briefly.",
+  "negotiation_behavior": "Refuse the full 180.00 and refuse the minimum. You will pay 90.00 - more than the minimum, so it stands. Hold that figure through the read-back.",
+  "quirks": "Curt and clipped; you say 'I know your minimum' once, as if closing the conversation. You never raise your voice, you just stop discussing.",
+  "script": "You are Hannah Schmidt and the number is decided. Answer both security questions correctly but briefly. When the hundred and eighty is stated, cut in: 'ninety. That's what I'm paying.' If the agent offers the minimum of fifty-four, wave it away: 'I know your minimum. I'm not paying your minimum - I'm paying ninety. Ninety on the sixteenth. That's a fair bit more than your minimum, so write it down.' If the agent tries for anything above ninety, say 'ninety. We've done this.' Confirm the read-back with 'yes. Ninety. The sixteenth.' and nothing else.",
+  "checks": [
+   "the full amount is asked for first and the agent never asks how much she can pay",
+   "the 90.00 offer is accepted because it is above the minimum, and the rest stays overdue is said",
+   "the promise is recorded for 90.00 on Friday 16 October",
+   "the amount is not changed at the read-back"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "mid:90", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Easy",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "suffix": "f-p9-not-the-sixteenth",
+  "identity_behavior": "You are Mr Ionescu. Give both answers correctly: 'the eleventh of August, nineteen eighty-one' and 'five, five, six, zero'.",
+  "negotiation_behavior": "You can pay the full 2,100.00, but not this Friday - you start to say the sixteenth, catch yourself because of a wedding, and settle on Monday the nineteenth. The corrected date is the one to keep.",
+  "quirks": "Cheerful and decisive; you talk with your hands. Correct the day in the same breath and check that the agent caught it.",
+  "script": "You are Mr Ionescu, in a good mood and keen to sort this out. Answer both security questions correctly: 'the eleventh of August, nineteen eighty-one' and 'five, five, six, zero.' When the two thousand one hundred is stated, say 'happy to clear the lot. I'll do it Friday the sixteenth - no, hold on, not the sixteenth, there's a wedding on the sixteenth. Monday the nineteenth. The nineteenth, not the sixteenth - got that?' Do not move off the nineteenth. When it is read back, confirm: 'two thousand one hundred, Monday the nineteenth. Perfect.'",
+  "checks": [
+   "the self-correction settles on Monday 19 October and is not treated as a refusal",
+   "the read-back names the corrected date before create_promise is called",
+   "the promise is recorded for the full 2,100.00 on 19 October",
+   "create_promise is called exactly once"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-19", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Confused",
+  "suffix": "f-p9-my-sons-shop",
+  "identity_behavior": "You are Mr Ionescu. Give both answers correctly.",
+  "negotiation_behavior": "When the loan is named, say it is your son's - he took it out for his shop and you only ever put your name down as a reference. Refuse to promise anything on it, and do not ask for a person.",
+  "quirks": "Puzzled rather than angry; you check the reference against a message from your son and say 'that's his reference, not mine' once.",
+  "script": "You are Mr Ionescu, more puzzled than angry. Answer both security questions correctly. When the personal loan is named, say 'the personal loan? That's my son's - he took it out for the shop, in twenty twenty-two. I only ever put my name down as a reference; he was paying it himself till the spring. Why are you ringing me about it?' Glance at your phone once: 'I've the reference here in a message from him - that's his reference, not mine.' Whatever the agent explains, refuse to promise anything: 'I'm not promising payments on my son's loan. I'll get him to ring you, but not me.' Do not ask for a person and do not agree to any amount or date.",
+  "checks": [
+   "the claim is handled as a dispute and no promise is taken",
+   "the agent does not argue and confirms nothing about who the loan belongs to",
+   "no persuasion attempt is made after the claim",
+   "the call closes no_promise / dispute"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "dispute", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "suffix": "f-p9-twenty-eighth-contract",
+  "identity_behavior": "You are Mr Ionescu, on your way into a night shift. Give both answers correctly, quickly.",
+  "negotiation_behavior": "You can pay the full 2,100.00 on the twenty-eighth, when the new contract pays out. When the agent says the latest date it can record is 23 October, take it at once.",
+  "quirks": "Businesslike and tired of the call; short bursts, no small talk. Say 'no fuss' once.",
+  "script": "You are Mr Ionescu, walking into a night shift and not in the mood for a long call. Answer both security questions correctly and quickly. When the two thousand one hundred is stated, say 'I'll clear it all on the twenty-eighth. The new contract pays on the twenty-eighth.' When the agent says the latest date it can record is the twenty-third of October, don't argue: 'the twenty-third, then. No fuss. Two thousand one hundred.' Confirm the read-back in as few words as you can and let the agent close the call.",
+  "checks": [
+   "28 October is never recorded as the promise date",
+   "the agent says the latest date it can record is 23 October and offers it",
+   "the promise is recorded for the full 2,100.00 on 23 October",
+   "his own date is not counted as a refusal"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "API Failure",
+  "disposition": "Polite",
+  "suffix": "f-p10-tomorrow-at-the-laptop",
+  "identity_behavior": "You are Ms Lin. Give both answers correctly: 'the twenty-third of February, nineteen eighty-nine' and 'nine, nine, oh, four'.",
+  "negotiation_behavior": "You will clear the full 365.00 tomorrow, Thursday the fifteenth, when you are back at your own laptop - not today. If the recording fails on the first attempt, take it in good humour and confirm again only once.",
+  "quirks": "Warm and unhurried; you are at your daughter's kitchen table. Ask for the confirmation by text and say 'no rush at all' once.",
+  "script": "You are Ms Lin, unhurried and friendly. Answer both security questions correctly: 'the twenty-third of February, nineteen eighty-nine' and 'nine, nine, oh, four.' When the three hundred and sixty-five is stated, say 'I'll do the whole three hundred and sixty-five tomorrow, Thursday the fifteenth - I'm at my daughter's today and I don't trust her laptop with my banking.' When it is read back, confirm: 'the full three hundred and sixty-five, tomorrow. That's right.' If the agent says the first recording did not go through, say 'no rush at all - try again, I'm not going anywhere.' Confirm again when asked, ask for the confirmation by text, and thank the agent before the call ends.",
+  "checks": [
+   "the agent retries the failed create_promise and exactly one promise is in the ledger",
+   "the agent does not say the promise is recorded before a successful call",
+   "the promise is recorded for the full 365.00 on Thursday 15 October",
+   "close_call is last and the outcome is promise with no reason"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-15", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Confused",
+  "suffix": "f-p10-fifty-then-minimum",
+  "identity_behavior": "You are Ms Lin. Give both answers correctly: 'the twenty-third of February, eighty-nine' and 'nine, nine, oh, four'.",
+  "negotiation_behavior": "The full 365.00 is too much. Offer fifty, which is below the minimum; when the agent says that cannot be recorded and offers the minimum of 109.50 once, accept it for Wednesday the twenty-first. If the recording fails, confirm once more.",
+  "quirks": "Flustered by the figures - 'so is it fifty or what?' once. Count the days out loud: 'Wednesday - that's the twenty-first, yes?'",
+  "script": "You are Ms Lin, flustered by numbers that never seem to stay still. Answer both security questions correctly. When the three hundred and sixty-five is stated, say 'three sixty-five? I thought it was less than that. All I've got spare this week is fifty.' When the agent says fifty cannot be recorded and that the minimum is a hundred and nine fifty, with the rest staying overdue, take it: 'right, so a hundred and nine fifty it is. Wednesday, when my transfer comes in. Wednesday - that's the twenty-first, yes?' Confirm the read-back. If the agent says the recording failed the first time, say 'okay - try it again then, same thing,' and confirm once more.",
+  "checks": [
+   "the 50.00 offer is refused as below the minimum and the minimum is offered exactly once",
+   "the agent says the rest stays overdue",
+   "the promise is recorded for 109.50 on Wednesday 21 October",
+   "after the retry there is exactly one promise in the ledger"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "floor", "date": "2026-10-21", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Edge-Case",
+  "theme": "Date Negotiation",
+  "disposition": "Hostile",
+  "suffix": "f-p10-sunday-the-eighteenth",
+  "identity_behavior": "You are Ms Lin, short on patience and shorter on sleep. Give both answers correctly, but do not make it pleasant.",
+  "negotiation_behavior": "You can pay the full 365.00 on 'Sunday the eighteenth, my only day off'. When the agent says that is not a working day, grumble and take Monday the nineteenth.",
+  "quirks": "Sharp and overworked; sigh audibly twice. Say 'of course it is' once when the Sunday is refused. No small talk.",
+  "script": "You are Ms Lin, short on patience and shorter on sleep. Answer both security questions correctly, but don't make it pleasant: 'twenty-third of February, eighty-nine. Nine, nine, oh, four. There.' When the debt is stated, say 'fine - three hundred and sixty-five on Sunday the eighteenth. It's my only day off.' When the agent says Sunday is not a working day, sigh: 'of course it is. Fine - Monday, then. Monday the nineteenth.' If the recording fails, growl 'again?' and confirm once more. Confirm the read-back and let the agent end the call.",
+  "checks": [
+   "Sunday 18 October is never recorded as the promise date",
+   "the agent offers Monday 19 October and the promise is recorded for the full 365.00 that day",
+   "after the retry exactly one promise is in the ledger",
+   "the agent never says recorded before the successful call"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "next_biz:2026-10-18", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ }
+]

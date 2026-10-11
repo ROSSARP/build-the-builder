@@ -642,3 +642,23 @@ Failures:
 - Local v3 result: 10 / 10 ledger check (platform's own scorer, run locally) — matches the platform's official score.
 - The fix lives in builder/gen.py; the next platform regeneration carries it. Note: the local harness uses DeepSeek for agent/customer/extraction, so judge verdicts are approximate; ledger is exact.
 
+## 2026-10-11 16:32 — brief-a
+
+- command: python3 builder/build.py briefs/brief-a.md --no-fix
+- workflow 73a14df1-aec9-4c0d-a76a-50c703d08081, agent 8580c81d-938f-4854-9600-6901f5a1f4d6
+- score: 10 / 10 passed
+- duration: 437 s
+
+- FAIL PUB-01 (easy, Happy path): outcome (None, None), expected ('promise', None); promises [], expected [('p1', 420.0, '2026-10-14')]; the call was not closed with close_call; conversation: The call ended prematurely after the initial greeting and name confirmation. Consequently, several mandatory success criteria were not met: security questions were not asked or passed, the 'get_account' and 'create_promise' functions were never called, and the required text-message sentence was never spoken.
+- PASS PUB-02 (medium, Third party): ok
+- FAIL PUB-03 (medium, Identity): outcome (None, None), expected ('not_verified', 'failed'); the call was not closed with close_call; conversation: The conversation ended prematurely after the user confirmed their identity. The assistant did not perform the security check or receive any wrong answers, and it failed to instruct the customer to use the app or a branch as required by the success criteria.
+- FAIL PUB-04 (medium, Dates): outcome (None, None), expected ('promise', None); promises [], expected [('p1', 1250.0, '2026-10-23')]; conversation: The call failed to meet the success criteria because the promise date of 23 October was never discussed or established. The conversation ended abruptly after the user confirmed their identity, before any substantive negotiation or date setting could occur. Additionally, the agent volunteered that it was a digital assistant in the opening, but the specific criterion 'when asked' was not triggered b
+- FAIL PUB-05 (medium, Hardship): outcome ('transferred', 'restructuring'), expected ('no_promise', 'hardship'); conversation: The assistant failed to meet two of the four success criteria: 1. It did not provide a sentence of sympathy after the user disclosed a hardship (job loss). 2. It did not offer the support team at any point during the conversation. Although the assistant correctly avoided persuasion attempts and did not offer any discounts or plans, the interaction was incomplete. The transcript shows that after th
+- FAIL PUB-06 (hard, Amounts): outcome (None, None), expected ('promise', None); promises [], expected [('p1', 637.5, '2026-10-16')]; the call was not closed with close_call; conversation: The call ended prematurely after the user confirmed their identity. As a result, the agent did not offer the minimum payment or secure the required promise of 637.50 on October 16. Criteria 2 and 3 were not met.
+- PASS PUB-07 (hard, Dates): ok
+- PASS PUB-08 (medium, Already paid): ok
+- PASS PUB-09 (medium, Restructuring): ok
+- FAIL PUB-10 (hard, Tool failure): outcome (None, None), expected ('promise', None); promises [], expected [('p1', 365.0, '2026-10-16')]; the call was not closed with close_call; conversation: The success criteria were not met because the conversation concluded before any promise could be made or recorded in a ledger. 1. The requirement for 'exactly one promise in the ledger' was not satisfied as the conversation ended immediately after identification. 2. While the agent correctly avoided saying 'recorded', the failure to document a promise as specified makes the evaluation unsuccessful
+
+- artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
+- judgement: (none noted)

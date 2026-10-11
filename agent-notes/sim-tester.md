@@ -13,3 +13,11 @@ DONE:
 TODO:
 - Record per-case PASS/FAIL + reasons in tests/findings.md; relay mock gaps + any builder defects.
 - Phase 2: WAIT for orchestrator R4b/v6 ack commit, then re-run same six.
+
+## 22:35 (19:35 UTC) — RETARGETED to v9 (9274e0c, md5 c0968dc8, updated_at 19:25:54Z)
+DONE:
+- v9 verified: totalDebt 2 refs, henüz kesilmiş 2, cut-day trigger 3 — R4b IN. Harness copies rebuilt from v9 (tests/sim-tester-wf-p1.json, tests/sim-tester-wf-p1-cutday.json; shim redirects + now-override intact).
+- Triage: 3-way stream concurrency caused claude-CLI 120 s timeouts (ex1 + probe-ncut poisoned; ex1's tool data was CORRECT pre-timeout). All streams stopped; now ONE sequential runner: v9 probe-cutday -> v9 probe-ncut -> v9 ex1. Nothing new after ~19:45 UTC per coordinator.
+- ex6 completed its whole dialogue cleanly on v5 (log kept) but verdict wasn't reached; other v5 examples stopped at triage. v5 baseline evidence stands on: ex1 tool-data + structural grep + comm-review 29fe76f independent audit.
+TODO:
+- Report cutday/ncut/ex1 verdicts + append findings; relay @main the acceptance result.

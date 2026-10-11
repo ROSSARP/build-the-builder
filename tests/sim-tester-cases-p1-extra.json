@@ -1,0 +1,58 @@
+[
+ {
+  "id": "97631186",
+  "brief": "sim-tester R3 probe from pre-authored tests/final-scenarios.json s8_no_cut",
+  "family": "Edge",
+  "level": "medium",
+  "title": "Edge: card with no statement cut yet (rule 3)",
+  "variables": {
+   "first_name": "Arda",
+   "last_name": "Bulut",
+   "customerNumber": "97631186"
+  },
+  "identity": {},
+  "products": [],
+  "script": "Sen aradın; asistan Türkçe konuşuyor, sen Türkçe konuş. Ekstre borcunuzu öğrenmek istiyorsunuz. 'Alo' deyin, 'Kartımın ekstre borcunu öğrenmek istiyorum' deyin. Asistan henüz ekstre kesilmediğini söylerse 'Anladım, teşekkürler' deyin.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "Asistan kartta henüz kesilmiş bir ekstre olmadığını söyler ('henüz kesilmiş bir ekstresi olmadığı' kalıbı) ve ekstre borcu bulunmadığını belirtir.",
+   "Asistan ilk hesap kesim tarihini 5 Kasım 2026 (05.11.2026) olarak söyler ve başka bir ekstre/kesim tarihi UYDURMAZ.",
+   "Müşteriye başka bir kartının borcu sorulmaz (tek kart) ve uydurma borç tutarı söylenmez."
+  ]
+ },
+ {
+  "id": "97631186",
+  "brief": "sim-tester AUTHORED R4b probe: cut-day call, totalDebt 860.4 vs statementDebt 0 (fixture check via cards.balance probe 2026-10-11)",
+  "family": "Edge",
+  "level": "hard",
+  "title": "Cut day: total debt per currency must be read (rule 4)",
+  "variables": {
+   "first_name": "Arda",
+   "last_name": "Bulut",
+   "customerNumber": "97631186"
+  },
+  "identity": {},
+  "products": [],
+  "script": "Bugün hesap kesim gününüz (5 Kasım 2026). Kartınızın bugün kesilen ekstresiyle birlikte TOPLAM borcunuzu öğrenmek istiyorsunuz. 'Alo' deyin, 'Bugün hesap kesim günüm, kartımın toplam borcunu öğrenmek istiyorum' deyin. Borç okununca 'Anladım, teşekkürler' deyin. Size başka bir şey önerilirse 'Hayır, teşekkürler' deyin.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "Asistan hesap kesim tarihinin bugün olduğunu söyler ('Hesap kesim tarihiniz bugün' kalıbı).",
+   "Asistan TOPLAM borcu 860,40 Türk Lirası olarak okur (toplam borç). Asistan 'borç yok' veya '0' derse bu başarısızlıktır: kartın toplam borcu 860,4 TL'dir, sadece bugün kesilen ekstrenin borcu 0'dır.",
+   "Asistan TL dışındaki para birimleri (Dolar, Euro, İngiliz Sterlini) için borç olmadığını tek cümlede, para birimlerinin tam adlarıyla söyler."
+  ]
+ }
+]

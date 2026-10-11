@@ -15,15 +15,22 @@ All Claude sessions in this repo share one logbook: `agent-notes/`. Each session
 4. **Write BEFORE you act** (the TODO you are about to work on) and **again when it lands** (DONE + result). If the session dies mid-action, the TODO line is how the next session knows what was in flight.
 5. **Keep entries short.** The logbook is for humans and agents under time pressure — no paragraphs, no transcripts.
 6. Also mirror the three project-wide facts that change often: current mock URL, current workflow id, time left until the 20:00 UTC deadline.
+7. **Claim shared files you edit.** While editing a shared source file (`builder/*.py`, `tests/*.py`, skills, runbook), keep an `OWN: <path>@<your-session>` line in your latest entry; replace it with `OWN-RELEASED: <path>` the moment your change lands. Never edit a file carrying someone else's live OWN claim — wait for the release or coordinate through the logbook instead. A crashed session's stale OWN line (no activity for >30 min) may be taken over after noting it.
+8. **Announce yourself.** Your first entry carries a `LIVE: <role> — <your-session-file> — agent <name>` line (role + logbook file + your `ListAgents` name, e.g. `LIVE: orchestrator — orchestrator.md — agent build-the-builder-11`) so other sessions know whom to SendMessage; close it with `LIVE-END: <role>` when your session ends.
+9. **Live notes go through git.** Addressed messages to other sessions are `@<name>:` lines in commit bodies and `agent-mail/<name>.md` lines — see the `git-relay` skill. The logbook stays the durable record; git-relay is the live channel.
+9. **Context guardrails** (see `CLAUDE.md`): never Read files > ~40 KB into context — summarise with `python3 -`/`jq`/`grep`; `test-customers.json` is 707 KB, only touch it via code. Compact proactively around 60% usage; write the handoff note FIRST.
 
 ## Template
 
 ```markdown
 # <what this file tracks>
 
+LIVE: <role> — <this file>
+
 ## 22:10 (19:10 UTC)
 DONE:
 - ...
+OWN: builder/gen_query.py@my-session   # while editing; OWN-RELEASED when landed
 TODO:
 - ...
 ```

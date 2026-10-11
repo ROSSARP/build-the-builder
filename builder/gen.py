@@ -1318,7 +1318,8 @@ except Exception:
     for i in range(1, 4):
         for s in ('text', 'deadline', 'floor', 'attempts'):
             vars.setdefault('p' + str(i) + '_' + s, '')
-""".replace("__HOL__", holidays).replace("__BANDS__", bands)
+"""
+    code = code.replace("__HOL__", holidays).replace("__BANDS__", bands)
     for _token, _fragment in _date_fragments(lang).items():
         code = code.replace("__" + _token + "__", _fragment)
     return code

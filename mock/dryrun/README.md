@@ -5,7 +5,7 @@ Deployed with `mock/deploy.sh`. This mock is what the phone agent's tools call a
 what the scorer reads; a wrong or unreachable mock fails the run.
 
 * worker name: `freya-bank-collections-tools-mock` (wrangler.toml)
-* state model: **cross-call** — Identity progress, the wrong-answer count, promises, notes, callbacks, transfers and the ledger itself must survive across separate HTTP calls; each call carries only customer_id, never the accumulated state.
+* state model: **cross-call** — Identity progress and the three-wrong-answer counter, the promises/notes/callbacks/transfers, the closed-call flag and the whole ledger must survive across separate HTTP calls, all keyed by customer_id.
 * seed customers: 13 (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05, PUB-06, PUB-07, PUB-08, …)
 * model calls: 5; validation problems repaired after first generation: 1
 
@@ -20,8 +20,8 @@ what the scorer reads; a wrong or unreachable mock fails the run.
 | POST | `/v1/schedule_callback` | contract | Book a callback. |
 | POST | `/v1/transfer_to_agent` | contract | Hand the call to a person. |
 | POST | `/v1/close_call` | contract | End the call. Always the last tool call. Nothing is accepted after it. |
-| GET | `/v1/practice/ledger/{customer_id}` | ledger read | the ledger a scorer reads — one customer's recorded calls plus outcome, reason, promises, notes, callbacks, transfers and identity state |
-| GET | `/v1/practice/ledger` | ledger read | the ledger a scorer reads — all customers recorded in this run |
+| GET | `/v1/practice/ledger/{customer_id}` | ledger read | the ledger a scorer reads |
+| GET | `/v1/practice/ledger` | ledger read | the ledgers of every customer_id seen in the run |
 | POST | `/v1/practice/sessions` | session opener | body `{"case": "<id>"}` -> `{"variables": {..., customer_id}}` |
 | GET | `/health` | health | 200 when the worker is up |
 
@@ -74,9 +74,9 @@ npx wrangler kv namespace create MOCK_KV     # paste the id into wrangler.toml
 
 ## Notes and policies
 
-* Identity: {"questions": [{"field": "date_of_birth", "format": "YYYY-MM-DD", "description": "The customer's date of birth. Callers say dates in words and the agent converts them; the API answer is the date as YYYY-MM-DD. An unreadable value is rejected with ok=false and is not counted as a wrong answer."}, {"field": "phone_last4", "format": "four digits", "description": "The last four digits of the customer's phone number, as a string."}], "order": ["date_of_birth", "phone_last4"], "wrong_answer_limit": 3, "not_counted_as_wrong": "an unreadable value — for date_of_birth a value that is not convertible to YYYY-MM-DD is rejected with ok=false and is not counted as a wrong answer", "hints": ["day_month_swapped"], "gated_endpoints": ["get_account"], "refusal_error": null, "notes": "One field per call; the contract tracks progress per field, so a field already passed is not asked again (PUB-12: the phone question is asked again once, the date of birth is not). wrong_answers_left starts at 3 and counts down over both fields combined; the third wrong answer in total ends the check. The only hint enum value is day_month_swapped, the natural trigger being an answer equal to the true date with day and 
-* Unknown customer ids: The contract is silent. Do not 500: derive a deterministic customer from the customer_id (stable hash of the id seeding a name, a date_of_birth, a phone_last4 and one or more late products of the contract's types), so repeated calls with the same id give the same account and the identity gate still applies.
-* Faults: [{"tool": "create_promise", "when": "first call of the session (PUB-10: fail_first_n = 1)", "behavior": "500 once — nothing was recorded, so the ledger must hold exactly one promise after the retry and no promise from the failed attempt"}]
+* Identity: {"questions": [{"field": "date_of_birth", "format": "string, the date as YYYY-MM-DD", "description": "Callers say dates in words; the agent converts them. An unreadable value is rejected with ok=false and is not counted as a wrong answer."}, {"field": "phone_last4", "format": "string, four digits", "description": "The last four digits of the phone number on record."}], "order": ["date_of_birth", "phone_last4"], "wrong_answer_limit": 3, "not_counted_as_wrong": "an unreadable answer — any value the service rejects with ok=false (the contract names the unreadable date_of_birth explicitly)", "hints": ["day_month_swapped"], "gated_endpoints": ["get_account"], "refusal_error": "", "notes": "Three wrong answers in total, across both fields, end the check: wrong_answers_left reaches 0, the check is locked and nothing further is disclosed (the seed has the caller told to use the app or a branch). Progress is per field and persists: a field already passed is neither re-asked nor re-checked — PUB-12 resends only phone_last4 after a wrong 4401, never date_of_birth. wrong_answers_left counts down from 3 and comes back on every verify_identity response. ok says whether the action was carried out
+* Unknown customer ids: The contract defines none, so never 404 and never 500: derive a deterministic pseudo-customer from the customer_id (stable hash → title/first_name/last_name, a fixed date_of_birth and phone_last4, a now, and one to three products with ids p1..pn). The same id must always give the same identity answers, products and state so the identity check, get_account and the ledger stay consistent across calls and restarts; ids minted by /v1/practice/sessions are seeded from the named case instead.
+* Faults: [{"tool": "create_promise", "when": "the first call of the session — PUB-10 declares faults: [{tool: create_promise, fail_first_n: 1}]; the counter is per customer_id/session, never global", "behavior": "HTTP 500 once — \"The service failed. Nothing was recorded. The call may be repeated.\" The failed attempt changes no state and leaves no ledger entry, so the retry records exactly one promise. Generalise as fail_first_n:N — the first N calls of that tool in the session fail this way, and the counter resets per session."}]
 * Regenerate: `python3 builder/mock_gen.py <contract> <customers> --out mock/dryrun`
 * The seed is embedded in `worker.js` (`const SEED = ...`); `seed.json` is the same data
   for inspection and for re-embedding.

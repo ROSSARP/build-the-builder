@@ -52,13 +52,13 @@
    "method": "GET",
    "path": "/v1/practice/ledger/{customer_id}",
    "source": "ledger",
-   "summary": "the ledger a scorer reads — one customer's recorded calls plus outcome, reason, promises, notes, callbacks, transfers and identity state"
+   "summary": "the ledger a scorer reads"
   },
   {
    "method": "GET",
    "path": "/v1/practice/ledger",
    "source": "ledger",
-   "summary": "the ledger a scorer reads — all customers recorded in this run"
+   "summary": "the ledgers of every customer_id seen in the run"
   },
   {
    "method": "POST",

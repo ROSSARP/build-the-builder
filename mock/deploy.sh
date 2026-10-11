@@ -427,16 +427,24 @@ except Exception:
     print("")
 PY
 )"
+    # --url may hand in the URL with the base path already (--health-only accepts both
+    # forms): never append it twice.
+    MOCK_URL="$URL"
+    if [ -n "$BASE_PATH" ]; then
+      case "$URL" in
+        *"$BASE_PATH") : ;;
+        *) MOCK_URL="$URL$BASE_PATH" ;;
+      esac
+    fi
     echo "   deployed: $URL"
     if [ -n "$BASE_PATH" ]; then
-      echo "   mock url: $URL$BASE_PATH"
+      echo "   mock url: $MOCK_URL"
     fi
-    python3 - "$DIR" "$NAME" "$URL" "$BASE_PATH" "$MODE" <<'PY'
+    python3 - "$DIR" "$NAME" "$URL" "$BASE_PATH" "$MOCK_URL" "$MODE" <<'PY'
 import json, sys, time
-outdir, name, url, base, mode = sys.argv[1:6]
+outdir, name, url, base, mock_url, mode = sys.argv[1:7]
 with open(outdir + "/deployed.json", "w") as f:
-    json.dump({"url": url, "base_path": base,
-               "mock_url": (url + base) if base else url,
+    json.dump({"url": url, "base_path": base, "mock_url": mock_url,
                "worker_name": name,
                "deployed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                "path": mode}, f, indent=1)

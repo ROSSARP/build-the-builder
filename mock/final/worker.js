@@ -101,6 +101,17 @@ function logCall(path, request, status) {
     try {
       const key = "call:" + Date.now() + ":" + Math.random().toString(36).slice(2, 8);
       CTX.waitUntil(ENV.MOCK_KV.put(key, JSON.stringify(entry)));
+      // merged recent log (read-merge-write) so __log never freezes at the
+      // per-key list limit
+      CTX.waitUntil((async () => {
+        try {
+          const raw = await ENV.MOCK_KV.get("call-log");
+          let arr = raw ? JSON.parse(raw) : [];
+          arr.push(entry);
+          if (arr.length > 300) arr = arr.slice(-300);
+          await ENV.MOCK_KV.put("call-log", JSON.stringify(arr));
+        } catch (e) { /* best effort */ }
+      })());
     } catch (e) { /* best effort */ }
   }
 }
@@ -259,7 +270,12 @@ export default {
     }
     if (request.method === "GET" && path === "/__log") {
       const all = CALL_LOG.slice();
+      let merged = null;
       if (env && env.MOCK_KV) {
+        try {
+          const raw = await env.MOCK_KV.get("call-log");
+          if (raw) merged = JSON.parse(raw);
+        } catch (e) { /* memory log still serves */ }
         try {
           const listed = await env.MOCK_KV.list({ prefix: "call:", limit: 500 });
           for (const k of listed.keys) {
@@ -269,6 +285,9 @@ export default {
             } catch (e) { /* skip */ }
           }
         } catch (e) { /* memory log still serves */ }
+      }
+      if (Array.isArray(merged)) {
+        for (const e of merged) all.push(e);
       }
       all.sort(function (a, b) { return a.at < b.at ? -1 : 1; });
       return json({ ok: true, calls: all.slice(-200), total: all.length });

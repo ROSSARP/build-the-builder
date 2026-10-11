@@ -869,3 +869,13 @@ Failures:
 - artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
 - judgement: (none noted)
 - FINAL (22:45, stop order): v9 cutday run incomplete (CLI instability; no verdict). ncut (v9): ledger PASS, judge FAIL — call stalled at "kartın seçilmesi gerekiyor" with a single-card customer; agent never called cards_balance; workflow has NO single-card auto-proceed instruction (0 hits 'tek kart') — regression risk for ALL single-card customers (ex1 v5 showed the same stall, recovered only by customer improvisation). v9 R4b/R3 STRUCTURALLY FIXED (prompt + facts code verified). Local behavioral validation blocked by claude-CLI 120 s timeouts (GLM backend under load).
+## 2026-10-11 22:42 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)

@@ -13,3 +13,4 @@ results/
 hidden-demo/
 tests/custom-batch*.json
 tests/archive/
+.submission-frozen

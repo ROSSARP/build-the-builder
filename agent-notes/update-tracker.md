@@ -65,3 +65,19 @@ DONE:
 - 3dd9ae8 (22:31 local): sim-tester v9 acceptance live — probe-cutday (R4b behavioral: totalDebt 860.4 vs statementDebt 0), probe-ncut (R3 regression), ex1 (ordinary). Results ~19:56 UTC (4 min before deadline — tight). ACK-REQ to @main, due ~19:41 UTC; harness tests/sim-tester-build.py + tests/sim-tester-practice-shim.py committed.
 TODO:
 - If main silent on 3dd9ae8 by 19:41 → nudge. Track acceptance results + submission email. Cutoff 19:45 UTC — expect to hand off the last stretch.
+
+## 19:38 UTC — HANDOFF (session ends ~19:45 UTC per assignment)
+DONE (final sweep at 19:35):
+- No @update-tracker notes, no mailbox. agent-notes current (sim-tester 22:31, comm-review 22:27 local). Freshness: only case file newer than final_contract.json = the known 20:57 transcript (handled); spec 21:32 newer than ALL case files → extraction CURRENT, no re-extract.
+- eef8f0a: main acked 3dd9ae8 + prefilled Team ROSSARP / fcodefcode3@gmail.com (user confirmation pending).
+LIVE-END: update-tracker — update-tracker.md — agent update-tracker (monitors die with this session)
+HANDOFF — open items for the next session (in deadline order):
+1. ~19:56 UTC: sim-tester v9 acceptance results (probe-cutday R4b behavioral / probe-ncut R3 / ex1). If FAIL → escalate to main IMMEDIATELY (rebuild decision, ~4 min to deadline).
+2. ≤20:00 UTC: submission email (3 files) to yavuz@freyavoice.ai — gated on user confirming Team ROSSARP / member. If user silent, main decides with prefilled values.
+3. Drive: my monitor dies with me. Pack stable since 20:57 local (0 new/0 changed all session). If you want coverage to 20:00, re-arm: python3 tests/drive_watch.py sync 2>&1 | grep --line-buffered -E 'NEW:|CHANGED:|FAIL:|sync done:|WARN:' (30 min). On any NEW/CHANGED: mtime vs tests/final_spec.json + tests/final_contract.json; newer → relay @live-sessions re-extract yes/no (git-relay) + log here.
+LESSONS (for the fleet):
+- Watcher bug: `git rev-parse HEAD` returns FULL hash — compare full, never short (first watcher fired instantly, false positive).
+- Commit watcher fires on your OWN commits — expected; re-arm with new hash each time.
+- Unicode-escape grep trap (2nd hit today): escaped JSON shows 0 hits for Turkish phrases; grep an ASCII-stable stem (e.g. 'kesilmi') before declaring a gap.
+- ACK-REQ to a session that then ENDS = silent slip-through (orchestrator + cloudflare-mock-deploy-skill both unreachable 19:17). Probe reachability with SendMessage early; reroute to LIVE sessions; build-the-builder-87 = main conversation of this process (address as "main", not the name).
+- Session clocks skew (logbook timestamps ahead of file mtimes). Trust mtimes + your own clock.

@@ -1,0 +1,91 @@
+{
+ "service": "freyabank-final-tool-api",
+ "worker_name": "freya-final-mock",
+ "base_path": "/voice/v1",
+ "health_path": "/health",
+ "state_model": "cross-call",
+ "kv_optional": true,
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/voice/v1/cards.list",
+   "source": "contract",
+   "summary": "Returns the customer's cards the assistant may talk about (only status \"A\" cards come back)."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/cards.balance",
+   "source": "contract",
+   "summary": "Returns statement and due dates and debt per currency for one card; the cards.list mask must be sent verbatim."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.get",
+   "source": "contract",
+   "summary": "Returns the card's current statement week and day and any joint (shared) statement info."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.decide",
+   "source": "contract",
+   "summary": "Preview only: what the statement and due dates WOULD be under the requested week — changes nothing."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.change",
+   "source": "contract",
+   "summary": "Changes the card's statement week — the only mutating endpoint; the dates to tell the caller are the ones from statement.week.decide."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/contact.email.get",
+   "source": "contract",
+   "summary": "Returns the customer's registered e-mail / phone; the test environment gives the same answer whatever type is asked for."
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.pdf.send",
+   "source": "contract",
+   "summary": "Sends the statement PDF by e-mail to the address given in the request."
+  },
+  {
+   "method": "GET",
+   "path": "/voice/v1/practice/ledger/{customer_id}",
+   "source": "ledger",
+   "summary": "the ledger a scorer reads for one customer (customer_id = customerNo): every tool call in order with its request and result"
+  },
+  {
+   "method": "GET",
+   "path": "/voice/v1/practice/ledger",
+   "source": "ledger",
+   "summary": "all customers' ledgers, for whole-run scoring"
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/practice/sessions",
+   "source": "sessions",
+   "summary": "open a fresh session for a seed case"
+  },
+  {
+   "method": "GET",
+   "path": "/health",
+   "source": "health",
+   "summary": "liveness; must return 200"
+  }
+ ],
+ "get_probes": [
+  {
+   "path": "/health"
+  },
+  {
+   "path": "/voice/v1/practice/ledger/case-1",
+   "probe_of": "/voice/v1/practice/ledger/{customer_id}",
+   "source": "ledger"
+  },
+  {
+   "path": "/voice/v1/practice/ledger",
+   "probe_of": "/voice/v1/practice/ledger",
+   "source": "ledger"
+  }
+ ]
+}

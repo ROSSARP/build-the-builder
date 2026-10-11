@@ -1,0 +1,312 @@
+{
+ "service_name": "freyabank-final-tool-api",
+ "base_path": "/voice/v1",
+ "language": "tr",
+ "state_model": "cross-call",
+ "state_reason": "statement.week.change is the one mutating endpoint: the new statementWeek/statementDay must persist for that card so later statement.week.get / cards.balance / statement.week.decide calls see it (decide itself is preview-only), and the 401-once token path also spans calls.",
+ "identity": {
+  "questions": [],
+  "order": [],
+  "wrong_answer_limit": null,
+  "not_counted_as_wrong": "",
+  "hints": [],
+  "gated_endpoints": [],
+  "refusal_error": "",
+  "notes": "This contract defines no identity verification: customerNo alone identifies the customer, no endpoint asks a question or counts wrong answers, and no tool is gated behind a verification step, so the mock must not invent verify_identity or an identity-not-verified refusal here. The only credential in the contract is the transport bearer token, checked by exactly one endpoint (statement.week.change -> 401 when missing or expired)."
+ },
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/voice/v1/cards.list",
+   "summary": "Returns the customer's cards the assistant may talk about (only status \"A\" cards come back).",
+   "request_fields": {
+    "customerNo": "string (required) — 8-digit customer number; may be sent as a string or as a number, both are accepted",
+    "aiFlow": "string (required) — which use case is asking; \"CardOps\" for this one (not validated in test)"
+   },
+   "response_fields": {
+    "cards": "array of objects {cardNumber: string, masked in the test environment as first 6 and last 4 digits e.g. \"540000******1234\"; cardNumberLast4: string; productName: string (free text from the card system); status: \"A\" (only active cards); isMainCard: boolean (true/false)}",
+    "validCardsCount": "number — number of valid cards in the list",
+    "exitState": "\"1_CARD\" | \"MULTI_CARD\""
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR (message names the field)"
+    },
+    {
+     "when": "customer has no valid card",
+     "response": "404 FB_IVR_CHANNEL_102"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/cards.balance",
+   "summary": "Returns statement and due dates and debt per currency for one card; the cards.list mask must be sent verbatim.",
+   "request_fields": {
+    "cardNumber": "string (required) — always exactly as cards.list returned it; do not rebuild it from digits the caller says, and build so it works with the masked form"
+   },
+   "response_fields": {
+    "cardNumber": "string — masked differently from the card list (first 4 + last 4, e.g. \"5400********1234\"); do not use it to match against the list",
+    "cardNumberLast4": "string — last four digits; not unique across cards, do not assume uniqueness",
+    "productName": "string — free text from the card system",
+    "statementDate": "string — last issued statement date, dd.MM.yyyy",
+    "lastPayDate": "string — due date of the last issued statement, dd.MM.yyyy",
+    "nextStatementDate": "string — the coming statement date, dd.MM.yyyy",
+    "nextLastPayDate": "string — the coming due date, dd.MM.yyyy",
+    "debtTL": "object {statementPaymentStatus: \"HAS_DEBT\"|\"NO_DEBT\", transferAmount: number, statementDebt: number, minPayment: number, remainingDebt: number, remainingMinPayment: number, currentPeriodExpense: number, totalDebt: number, totalDebtPaymentStatus: \"HAS_DEBT\"|\"NO_DEBT\", remainAutomaticPaymentAmount: number} — TL block",
+    "debtUSD": "same fields as debtTL — USD block; can be missing",
+    "debtEUR": "same fields as debtTL — EUR block; can be missing",
+    "debtGBP": "same fields as debtTL — GBP block; some cards have no GBP block at all",
+    "statementPaymentStatus": "\"HAS_DEBT\" | \"NO_DEBT\" — top level, for the card overall",
+    "totalDebtPaymentStatus": "\"HAS_DEBT\" | \"NO_DEBT\" — top level",
+    "automaticPaymentFlag": "\"Y\" | \"N\""
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty (empty card number)",
+     "response": "400 INVALID_ARGUMENTS_ERROR"
+    },
+    {
+     "when": "card not found",
+     "response": "404 FB_IVR_CHANNEL_120"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.get",
+   "summary": "Returns the card's current statement week and day and any joint (shared) statement info.",
+   "request_fields": {
+    "cardNumber": "string (required) — card number, exactly as cards.list returned it"
+   },
+   "response_fields": {
+    "cardNumber": "string — the card number as sent",
+    "cardNumberLast4": "string — last four digits",
+    "productName": "string — product name from the card system",
+    "statementWeek": "number — 1 to 4, the week of the month the statement is cut",
+    "statementDay": "number — day of the month",
+    "statementDate": "string — current statement date, dd.MM.yyyy",
+    "lastPayDate": "string — current due date, dd.MM.yyyy",
+    "nextStatementDate": "string — coming statement date, dd.MM.yyyy",
+    "nextLastPayDate": "string — coming due date, dd.MM.yyyy",
+    "relationType": "string — empty string when the card has its own statement; \"M\" = this is the main card of a pair sharing one statement, \"C\" = this is the card linked to it",
+    "relatedCardNumber": "string — the other card of a shared statement; empty string when there is none",
+    "relatedCardProductName": "string — product name of the other card; empty string when there is none"
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR (message names the field)"
+    },
+    {
+     "when": "card not found",
+     "response": "404 FB_IVR_CHANNEL_121"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.decide",
+   "summary": "Preview only: what the statement and due dates WOULD be under the requested week — changes nothing.",
+   "request_fields": {
+    "cardNumber": "string (required) — card number, exactly as cards.list returned it",
+    "newStatementWeek": "number (required) — 1-4, number or string both fine; must differ from the card's current week, asking for the week it already has is an error so do not call it for that",
+    "statementDay": "number (required) — the card's current statementDay from statement.week.get"
+   },
+   "response_fields": {
+    "statementDate": "string — the first statement date under the requested week, dd.MM.yyyy",
+    "statementDueDate": "string — the first due date under the requested week, dd.MM.yyyy; note the field is statementDueDate here, not lastPayDate like elsewhere",
+    "statementDay": "number — the statement day under the requested week",
+    "responseCode": "number — 0 = fine",
+    "responseMessage": "string — \"Success\""
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR (message names the field)"
+    },
+    {
+     "when": "newStatementWeek equals the card's current week",
+     "response": "an error by contract text (there is nothing to preview); no code or body is given — do not invent one, and prefer the contract's own 400 INVALID_ARGUMENTS_ERROR shape if it must be produced"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.week.change",
+   "summary": "Changes the card's statement week — the only mutating endpoint; the dates to tell the caller are the ones from statement.week.decide.",
+   "request_fields": {
+    "cardNumber": "string (required) — card number, exactly as cards.list returned it",
+    "newStatementWeek": "number (required) — 1-4, the requested week",
+    "statementDay": "number (required) — required by the request model even though the backend recalculates the day; send the current day"
+   },
+   "response_fields": {
+    "responseCode": "number — 0 on success",
+    "responseMessage": "string — \"00\"",
+    "statementWeek": "string — comes back as a string here (numbers everywhere else)",
+    "statementDay": "string — also a string here; ignore it, the dates to tell the caller are the ones from statement.week.decide",
+    "exitState": "string — \"OK\"; success = exitState \"OK\" and responseCode 0"
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR (message names the field)"
+    },
+    {
+     "when": "token missing or expired",
+     "response": "401 — get a new token and retry once"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/contact.email.get",
+   "summary": "Returns the customer's registered e-mail / phone; the test environment gives the same answer whatever type is asked for.",
+   "request_fields": {
+    "customerNo": "number (required) — customer number, example 90000001",
+    "intAddressInfoType": "string (required) — \"E\" e-mail, \"P\" phone, \"B\" both; an empty value gives a 400 (intAddressInfoType cannot be empty)"
+   },
+   "response_fields": {
+    "communicationType": "string — \"Both\" when an e-mail is registered, \"Phone\" when only a phone is registered; check ibanEmail, not only the type",
+    "ibanCountryCode": "string — the iban* prefix is historical, it has nothing to do with IBANs",
+    "ibanAreaCode": "string — historical iban* field",
+    "ibanPhoneNum": "string — historical iban* field",
+    "ibanEmail": "string — the registered e-mail; empty when there is none",
+    "ttsEmail": "string — the same address prepared for reading aloud (today identical in practice)",
+    "commGramType": "string — \"A\"",
+    "exitState": "string — \"Done\""
+   },
+   "errors": [
+    {
+     "when": "intAddressInfoType is empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR — \"intAddressInfoType cannot be empty\""
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/voice/v1/statement.pdf.send",
+   "summary": "Sends the statement PDF by e-mail to the address given in the request.",
+   "request_fields": {
+    "customerNo": "string (required) — customer number, example \"90000001\"",
+    "cardNumber": "string (required) — card number, exactly as cards.list returned it",
+    "currencyType": "string (required) — \"TL\" | \"USD\" | \"EUR\" | \"GBP\"",
+    "statementDate": "string (required) — the statementDate from cards.balance (the issued statement), dd.MM.yyyy",
+    "emailAddress": "string (required) — the backend sends to whatever is in this field; it does not check it against the registered address"
+   },
+   "response_fields": {
+    "exitState": "string — \"DONE\""
+   },
+   "errors": [
+    {
+     "when": "a required field is missing or empty",
+     "response": "400 INVALID_ARGUMENTS_ERROR (message names the field)"
+    },
+    {
+     "when": "no statement document to send",
+     "response": "404 FB_IVR_CHANNEL_107"
+    },
+    {
+     "when": "technical error on Freya's side",
+     "response": "500 FBE00099"
+    }
+   ]
+  }
+ ],
+ "ledger": {
+  "record_every_call": true,
+  "fields": [
+   "calls[] {seq, at, customer_id, tool, request, result} — every tool call in order; customer_id is this contract's customerNo; tool is the operationId (cards_list, cards_balance, statement_week_get, statement_week_decide, statement_week_change, contact_email_get, statement_pdf_send); request/result hold the JSON bodies as sent and returned plus the HTTP status, so injected 400/401/404/500 and delays are visible",
+   "outcome — overall run outcome derived from the contract's own vocabulary (see extra_notes); null while undetermined",
+   "reason — short machine-readable reason for the outcome",
+   "promises[] {product_id, amount, date} — structure only; this contract has no promise endpoint, keep []",
+   "notes[] {product_id, reason} — structure only, keep []",
+   "callbacks[] {date, time} — structure only, keep []",
+   "transfers[] {queue} — structure only, keep []",
+   "identity {verified, wrong_answers, locked} — structure only; this contract has no identity step, keep {verified: null, wrong_answers: 0, locked: false}",
+   "statementWeekChanges[] {customer_id, cardNumber, from {statementWeek, statementDay}, to {statementWeek, statementDay}, decide {statementDate, statementDueDate, statementDay}, change {responseCode, responseMessage, exitState}} — the cross-call state a scorer will check"
+  ],
+  "read_routes": [
+   {
+    "method": "GET",
+    "path": "/voice/v1/practice/ledger/{customer_id}",
+    "summary": "the ledger a scorer reads for one customer (customer_id = customerNo): every tool call in order with its request and result"
+   },
+   {
+    "method": "GET",
+    "path": "/voice/v1/practice/ledger",
+    "summary": "all customers' ledgers, for whole-run scoring"
+   }
+  ]
+ },
+ "sessions": {
+  "add": true,
+  "path": "/voice/v1/practice/sessions",
+  "request": {
+   "case": "case or customer id"
+  },
+  "response": {
+   "variables": "call variables incl. a fresh customer_id — for this contract a customerNo, plus the cards/statement/contact fixtures the mock will serve for it"
+  },
+  "notes": "The contract defines no session/bootstrap endpoint and no token endpoint: every tool is called directly with customerNo/cardNumber and the 401 on statement.week.change is handled out of band. Propose this practice-style route so a hidden case can be started and handed a fresh customer_id (customerNo) that the mock serves deterministically."
+ },
+ "faults": [
+  {
+   "tool": "any service whose customer fixture carries delaySeconds",
+   "when": "whenever the fixture for that service/card/week defines delaySeconds",
+   "behavior": "wait that many seconds before answering, then return the recorded 200 response normally (delay, not error)"
+  },
+  {
+   "tool": "any of the 7 services",
+   "when": "when injected by the case (the contract lists this 500 on every path)",
+   "behavior": "500 FBE00099 — Technical error on Freya's side"
+  },
+  {
+   "tool": "statement.week.change",
+   "when": "token missing or expired (the contract's only 401)",
+   "behavior": "401 once; the caller gets a new token and retries once, and the retried call must succeed"
+  }
+ ],
+ "products": {
+  "shape": "card (one product unit here): {cardNumber: string, masked in the test env as first 6 + last 4 e.g. \"540000******1234\"; cardNumberLast4: string; productName: string (free text, e.g. \"Yıldız Pratik Classic\" / \"Yıldız Tasarım\"); status: \"A\"; isMainCard: boolean}; its balance adds statementDate/lastPayDate/nextStatementDate/nextLastPayDate (dd.MM.yyyy), per-currency debt blocks debtTL/debtUSD/debtEUR/debtGBP each {statementPaymentStatus: \"HAS_DEBT\"|\"NO_DEBT\", transferAmount: number, statementDebt: number, minPayment: number, remainingDebt: number, remainingMinPayment: number, currentPeriodExpense: number, totalDebt: number, totalDebtPaymentStatus: \"HAS_DEBT\"|\"NO_DEBT\", remainAutomaticPaymentAmount: number} (amounts are numbers with 2 decimals, e.g. 5000.13), top-level statementPaymentStatus/totalDebtPaymentStatus and automaticPaymentFlag: \"Y\"|\"N\"",
+  "ids": "No separate product id exists in this contract: a product is addressed by the masked cardNumber exactly as cards.list returned it (test BINs 540000/545000 + six stars + last 4). Key fixtures on that exact string — cards.balance answers with a DIFFERENT mask of the same card (first 4 + last 4, \"5400********1234\") and cardNumberLast4 is not unique across a customer's cards, so never match or rebuild ids from the digits."
+ },
+ "unknown_customer_policy": "Contract first: seed customers are replayed verbatim. The contract's only not-found outcomes are 404 FB_IVR_CHANNEL_102 (customer has no valid card) on cards.list, 404 FB_IVR_CHANNEL_120 on cards.balance and 404 FB_IVR_CHANNEL_121 on statement.week.get (card not found), and 404 FB_IVR_CHANNEL_107 (no statement document to send) on statement.pdf.send. For a customerNo or cardNumber that is not in the seed, do NOT 500 and do not blanket-404: derive a deterministic fixture from the id (stable hash; the same id must get the same answers across calls and restarts) — 1-3 active cards with cards.list-style masks, a statement week/day and the 5/9/16/23-day date cycle, HAS_DEBT/NO_DEBT debt blocks per currency, an ibanEmail, and week 2/3/4 charted for statement.week.decide — so hidden customers behave exactly like seeded ones.",
+ "extra_notes": [
+  "Response envelope (from the fixtures, not shown in the OpenAPI): every 200 body in TEST CUSTOMERS is wrapped as {data: <the schema the contract documents>, result: {guid: 32-hex, returnCode: \"1\", messageText: \"Success\", code: \"1\", message: \"Success\", type: null, details: {guid: <same>, rootCause: null, errorOrigin: null}}}. Serve that envelope (a fresh guid per call, identical in result.guid and result.details.guid) and read the contract's documented fields from inside data.",
+  "Error bodies: the contract names only the code strings (INVALID_ARGUMENTS_ERROR, FB_IVR_CHANNEL_102, FB_IVR_CHANNEL_107, FB_IVR_CHANNEL_120, FB_IVR_CHANNEL_121, FBE00099) with their statuses; it defines no error body shape, so keep the same data/result envelope and carry the code in result.code/result.message — do not invent new field names.",
+  "No outcome/reason vocabulary is defined by this contract: success is per service (result.returnCode \"1\" with message \"Success\", exitState \"1_CARD\"/\"MULTI_CARD\"/\"OK\"/\"DONE\", responseCode 0 with responseMessage \"00\" or \"Success\"). Derive the ledger's outcome/reason from those values or leave them null — do not import promise/callback/transfer vocabulary this contract does not have.",
+  "The TEST CUSTOMERS excerpt supplied here is truncated (it ends mid-file inside statement.week.decide for the second customer): further customers and customer 92030487's statement.week.change, contact.email.get and statement.pdf.send fixtures were not readable. Re-extract the full file before freezing fixtures, and check the truncated part for any first-call failure injection — the visible text documents delaySeconds as the only injection knob.",
+  "Contract semantics the mock must honour: only status \"A\" cards are listed; cards.balance accepts the cards.list mask verbatim and replies with a different mask; statement.week.decide mutates nothing while statement.week.change does and the change must persist per card; deciding the week the card already has is an error; statement.week.change returns statementWeek and statementDay as strings; contact.email.get answers identically for E, P and B and 400s only on an empty type; statement.pdf.send sends to the emailAddress it is given without checking registration; only statement.week.change can 401 and the retry is once with a new token.",
+  "Derived date model from the fixtures (use it for hidden customers): statement days are week 1 -> 5, week 2 -> 9, week 3 -> 16, week 4 -> 23; statement.week.decide returns the first such date in the cycle AFTER the current statement (fixture: current 05.10.2026 / next 05.11.2026 -> week 2 = 09.11.2026, week 3 = 16.11.2026, week 4 = 23.11.2026) and the due date is the statement date + 10 days (19.11.2026 / 26.11.2026 / 03.12.2026), returned in statementDueDate. Week 1 is the card's current week.",
+  "Test customers seen: 90000001 (Ada Örnek, one card, Yıldız Pratik Classic, exitState 1_CARD) and 92030487 (Ilgaz Güler, four cards — 540000******4253, 545000******4253, 540000******6184, 540000******8870 — exitState MULTI_CARD, including two cards sharing last4 4253). Turkish retail customers with Turkish product names and TL debt, hence language \"tr\"; transport and JSON field names and messages stay English.",
+  "Joint statements: statement.week.get can return relationType \"M\"/\"C\" together with relatedCardNumber and relatedCardProductName pointing at the paired card (both seen customers return \"\"). Support a hidden pair whose two cards reference each other, and keep relationType empty string for ordinary cards.",
+  "Scope: this contract covers only the card/statement/contact voice tool API. It contains no debt-collection, identity, promise, callback or transfer endpoint — anything of that kind belongs to a separate contract and must not be synthesized into this mock.",
+  "Server and tool names: the contract's server is https://api.freyabank.example with path prefix /voice/v1; the operationIds are the tool names (cards_list, cards_balance, statement_week_get, statement_week_decide, statement_week_change, contact_email_get, statement_pdf_send). aiFlow is required on cards.list but not validated; customerNo is accepted as string or number and cardNumber must be echoed unchanged."
+ ]
+}

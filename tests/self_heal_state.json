@@ -1,17 +1,65 @@
 {
  "created_utc": "2026-10-11T17:20:00Z",
  "last_cycle": 0,
- "last_scan_utc": "2026-10-11T17:20:19Z",
+ "last_scan_utc": "2026-10-11T17:53:14Z",
  "case_sources": [
   "finalcase",
   "case-download"
  ],
  "manifest": {
   "finalcase/BRIEF.md": {
-   "size": 4683
+   "size": 4568
+  },
+  "finalcase/cloudflare-mock/example/example-response.json": {
+   "size": 87
+  },
+  "finalcase/cloudflare-mock/example/worker.js": {
+   "size": 1791
+  },
+  "finalcase/cloudflare-mock/example/wrangler.toml": {
+   "size": 75
+  },
+  "finalcase/cloudflare-mock/README.md": {
+   "size": 3204
+  },
+  "finalcase/example-scenarios.md": {
+   "size": 7005
+  },
+  "finalcase/README.md": {
+   "size": 1300
+  },
+  "finalcase/sources/documents/2025-08-14-cards-faq.md": {
+   "size": 4843
+  },
+  "finalcase/sources/documents/2026-09-10-ivr-prompt-sheet.md": {
+   "size": 8060
+  },
+  "finalcase/sources/documents/2026-10-01-service-contract.md": {
+   "size": 19610
+  },
+  "finalcase/sources/emails/2026-09-24-kickoff-questions.txt": {
+   "size": 8102
+  },
+  "finalcase/sources/emails/2026-10-09-decisions-recap.txt": {
+   "size": 4012
+  },
+  "finalcase/sources/emails/attachments/2026-09-02-statement-debt-analysis.md": {
+   "size": 16393
+  },
+  "finalcase/sources/emails/attachments/2026-10-08-statement-debt-analysis.md": {
+   "size": 28973
+  },
+  "finalcase/sources/meetings/2026-10-07-analysis-session-transcript.txt": {
+   "size": 31908
   },
   "finalcase/statement-debt-call-flow.pdf": {
    "size": 49629
+  },
+  "finalcase/test-environment/test-customers.json": {
+   "size": 707267
+  },
+  "finalcase/test-environment/test-customers.md": {
+   "size": 7691
   },
   "case-download/BRIEF.md": {
    "size": 4683

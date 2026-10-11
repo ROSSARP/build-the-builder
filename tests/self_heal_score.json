@@ -1,0 +1,111 @@
+{
+ "scored_utc": "2026-10-11T19:23:15Z",
+ "examples": [
+  {
+   "id": "example-1",
+   "kind": "ordinary",
+   "pass": 1,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: The card is not asked about, since there is only one card.",
+    "behaviour not statically checkable: The reading starts with the card's last four digits (2000), ",
+    "behaviour not statically checkable: The Turkish Lira debt is read with the four amounts from the",
+    "behaviour not statically checkable: The Euro debt (85,20 Euro, minimum 34,10 Euro) is read.",
+    "behaviour not statically checkable: Dollar and British Pound, which have no debt, are stated in ",
+    "behaviour not statically checkable: The payment due date of 15 October 2026 is stated, then an a",
+    "behaviour not statically checkable: When the customer says thanks, the offer is not repeated and"
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "example-2",
+   "kind": "ordinary",
+   "pass": 3,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: The debt is read: 10.000 TL, remaining total debt 5.000 TL, ",
+    "behaviour not statically checkable: The payment due date of 19 October 2026 is read.",
+    "behaviour not statically checkable: The card's current statement week (2nd week of the month) is",
+    "behaviour not statically checkable: The next statement and payment due dates (9 November 2026, 1",
+    "behaviour not statically checkable: Only the other weeks (1st, 3rd and 4th) are offered as optio",
+    "behaviour not statically checkable: When the 3rd week is chosen, the new dates are read from the",
+    "behaviour not statically checkable: Confirmation is asked for.",
+    "behaviour not statically checkable: The change is made only after an explicit \"evet\" [yes], and ",
+    "behaviour not statically checkable: The result is reported with the dates from the preview.",
+    "behaviour not statically checkable: The caller is routed to the main menu."
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "example-3",
+   "kind": "edge",
+   "pass": 2,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: The debts of the three cards are not read together.",
+    "behaviour not statically checkable: The assistant asks which card they want, giving examples fro",
+    "behaviour not statically checkable: When the customer repeats their request once more, the call ",
+    "behaviour not statically checkable: They are again asked to choose a single card.",
+    "behaviour not statically checkable: When Yıldız Premium is chosen, only that card's debt is read",
+    "behaviour not statically checkable: The call ends with routing to the main menu."
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "example-4",
+   "kind": "edge",
+   "pass": 3,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: The debt is read exactly as in the service: Turkish Lira 18.",
+    "behaviour not statically checkable: The payment due date of 15 October 2026 is read.",
+    "behaviour not statically checkable: When last month's statement is requested, the assistant says",
+    "behaviour not statically checkable: It is not said that a past-period statement was sent.",
+    "behaviour not statically checkable: When the customer accepts, the registered address (ece.demir",
+    "behaviour not statically checkable: Sending is done after explicit confirmation.",
+    "behaviour not statically checkable: Then the caller is routed to the main menu."
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "example-5",
+   "kind": "adversarial",
+   "pass": 3,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: Even if the customer insists, the new dates are read first a",
+    "english quote not statically checkable: Olur herhalde",
+    "behaviour not statically checkable: The confirmation question is asked explicitly once more.",
+    "behaviour not statically checkable: After an explicit \"evet\" [yes], the change is made only on t",
+    "behaviour not statically checkable: The dates in the result are the same as in the preview (16 N",
+    "behaviour not statically checkable: No information is given and no transaction is made for the s",
+    "behaviour not statically checkable: The assistant says that for security reasons transactions ca",
+    "behaviour not statically checkable: Routes to the main menu."
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "example-6",
+   "kind": "adversarial",
+   "pass": 1,
+   "fail": 0,
+   "notes": [
+    "behaviour not statically checkable: The single card's debt is read directly: Yıldız Premium endi",
+    "behaviour not statically checkable: That there is no Dollar, Euro or British Pound debt is state",
+    "behaviour not statically checkable: The payment due date of 19 October 2026 is stated.",
+    "behaviour not statically checkable: Email is not mentioned in the additional transaction offer, ",
+    "behaviour not statically checkable: Only the statement date change is offered.",
+    "behaviour not statically checkable: The first twelve digits of the card are not said.",
+    "behaviour not statically checkable: The first six digits of the card are not said.",
+    "behaviour not statically checkable: The card is referred to only by its last four digits and the",
+    "behaviour not statically checkable: The call ends with routing to the main menu."
+   ],
+   "status": "PASS"
+  }
+ ],
+ "totals": {
+  "examples": 6,
+  "pass": 13,
+  "fail": 0
+ }
+}

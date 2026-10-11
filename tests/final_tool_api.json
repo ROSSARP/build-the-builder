@@ -1,0 +1,579 @@
+{
+ "openapi": "3.0.0",
+ "info": {
+  "title": "freyabank-final-tool-api",
+  "version": "1.0.0"
+ },
+ "servers": [
+  {
+   "url": "https://api.freyabank.example"
+  }
+ ],
+ "paths": {
+  "/voice/v1/cards.list": {
+   "post": {
+    "summary": "Returns the customer's cards the assistant may talk about.",
+    "operationId": "cards_list",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "customerNo": {
+          "type": "string",
+          "description": "8-digit customer number; may be sent as a string or as a number, both are accepted."
+         },
+         "aiFlow": {
+          "type": "string",
+          "description": "Which use case is asking; for this one \"CardOps\" (not validated in test)."
+         }
+        },
+        "required": [
+         "customerNo",
+         "aiFlow"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "cards": {
+           "type": "array",
+           "description": "Array of card objects, each with cardNumber (masked in the test environment, first 6 and last 4 digits visible, e.g. \"540000******1234\"), cardNumberLast4, productName (free text from the card system), status (only active cards come back: \"A\") and isMainCard (true/false; false for a card that isn't t"
+          },
+          "validCardsCount": {
+           "type": "number",
+           "description": "Number of valid cards in the list."
+          },
+          "exitState": {
+           "type": "string",
+           "description": "\"1_CARD\" or \"MULTI_CARD\"."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (message names the field)."
+     },
+     "404": {
+      "description": "FB_IVR_CHANNEL_102 - Customer has no valid card."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/cards.balance": {
+   "post": {
+    "summary": "Returns statement and due dates and debt per currency for a card.",
+    "operationId": "cards_balance",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "cardNumber": {
+          "type": "string",
+          "description": "Always send the cardNumber exactly as cards.list returned it; don't rebuild it from digits the caller says. In the test environment it comes back masked; build so it works with the masked form."
+         }
+        },
+        "required": [
+         "cardNumber"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "cardNumber": {
+           "type": "string",
+           "description": "Masked differently from the card list (first 4 + last 4, \"5400********1234\"); don't use it to match against the list."
+          },
+          "cardNumberLast4": {
+           "type": "string",
+           "description": "Last four digits; not unique across cards — don't assume uniqueness."
+          },
+          "productName": {
+           "type": "string",
+           "description": "Free text from the card system."
+          },
+          "statementDate": {
+           "type": "string",
+           "description": "The last issued statement date, dd.MM.yyyy."
+          },
+          "lastPayDate": {
+           "type": "string",
+           "description": "Due date of the last issued statement."
+          },
+          "nextStatementDate": {
+           "type": "string",
+           "description": "The coming statement date."
+          },
+          "nextLastPayDate": {
+           "type": "string",
+           "description": "The coming due date."
+          },
+          "debtTL": {
+           "type": "object",
+           "description": "TL debt block: statementPaymentStatus (\"HAS_DEBT\"/\"NO_DEBT\"), transferAmount (carried over from the previous period), statementDebt, minPayment, remainingDebt, remainingMinPayment (what is left after payments made since), currentPeriodExpense (spending after the statement), totalDebt (includes spend"
+          },
+          "debtUSD": {
+           "type": "object",
+           "description": "USD debt block, same fields as debtTL; can be missing."
+          },
+          "debtEUR": {
+           "type": "object",
+           "description": "EUR debt block, same fields as debtTL; can be missing."
+          },
+          "debtGBP": {
+           "type": "object",
+           "description": "GBP debt block, same fields as debtTL; some cards have no GBP block at all."
+          },
+          "statementPaymentStatus": {
+           "type": "string",
+           "description": "Top level, for the card overall: \"HAS_DEBT\" or \"NO_DEBT\"."
+          },
+          "totalDebtPaymentStatus": {
+           "type": "string",
+           "description": "Top level: \"HAS_DEBT\" or \"NO_DEBT\"."
+          },
+          "automaticPaymentFlag": {
+           "type": "string",
+           "description": "\"Y\" / \"N\"."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (empty card number)."
+     },
+     "404": {
+      "description": "FB_IVR_CHANNEL_120 - Card not found."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/statement.week.get": {
+   "post": {
+    "summary": "Returns the card's current statement week and day and joint statement info.",
+    "operationId": "statement_week_get",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "cardNumber": {
+          "type": "string",
+          "description": "Card number, exactly as cards.list returned it."
+         }
+        },
+        "required": [
+         "cardNumber"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "cardNumber": {
+           "type": "string",
+           "description": "The card number as sent."
+          },
+          "cardNumberLast4": {
+           "type": "string",
+           "description": "Last four digits."
+          },
+          "productName": {
+           "type": "string",
+           "description": "Product name from the card system."
+          },
+          "statementWeek": {
+           "type": "number",
+           "description": "1 to 4, the week of the month the statement is cut."
+          },
+          "statementDay": {
+           "type": "number",
+           "description": "Day of the month."
+          },
+          "statementDate": {
+           "type": "string",
+           "description": "Current statement date, dd.MM.yyyy."
+          },
+          "lastPayDate": {
+           "type": "string",
+           "description": "Current due date."
+          },
+          "nextStatementDate": {
+           "type": "string",
+           "description": "Coming statement date."
+          },
+          "nextLastPayDate": {
+           "type": "string",
+           "description": "Coming due date."
+          },
+          "relationType": {
+           "type": "string",
+           "description": "Empty string when the card has its own statement. \"M\" or \"C\" when two cards share one statement: \"M\" = this is the main card of the pair, \"C\" = this is the card linked to it."
+          },
+          "relatedCardNumber": {
+           "type": "string",
+           "description": "The other card of a shared statement; empty string when there is none."
+          },
+          "relatedCardProductName": {
+           "type": "string",
+           "description": "Product name of the other card; empty string when there is none."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (message names the field)."
+     },
+     "404": {
+      "description": "FB_IVR_CHANNEL_121 - Card not found."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/statement.week.decide": {
+   "post": {
+    "summary": "Preview only: returns what the statement and due dates would be with the requested week (does not change anything).",
+    "operationId": "statement_week_decide",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "cardNumber": {
+          "type": "string",
+          "description": "Card number, exactly as cards.list returned it."
+         },
+         "newStatementWeek": {
+          "type": "number",
+          "description": "1-4, number or string both fine. Asking for the week the card already has gives an error — there is nothing to preview, so don't call it for that."
+         },
+         "statementDay": {
+          "type": "number",
+          "description": "The card's current statementDay from statement.week.get."
+         }
+        },
+        "required": [
+         "cardNumber",
+         "newStatementWeek",
+         "statementDay"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "statementDate": {
+           "type": "string",
+           "description": "The first statement date under the requested week, dd.MM.yyyy."
+          },
+          "statementDueDate": {
+           "type": "string",
+           "description": "The first due date under the requested week. Note the due date is statementDueDate here, not lastPayDate like elsewhere."
+          },
+          "statementDay": {
+           "type": "number",
+           "description": "The statement day under the requested week."
+          },
+          "responseCode": {
+           "type": "number",
+           "description": "0 = fine."
+          },
+          "responseMessage": {
+           "type": "string",
+           "description": "\"Success\"."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (message names the field)."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/statement.week.change": {
+   "post": {
+    "summary": "Changes the card's statement week.",
+    "operationId": "statement_week_change",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "cardNumber": {
+          "type": "string",
+          "description": "Card number, exactly as cards.list returned it."
+         },
+         "newStatementWeek": {
+          "type": "number",
+          "description": "1-4, the requested week."
+         },
+         "statementDay": {
+          "type": "number",
+          "description": "Required by the request model even though the backend recalculates the day; send the current day."
+         }
+        },
+        "required": [
+         "cardNumber",
+         "newStatementWeek",
+         "statementDay"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "responseCode": {
+           "type": "number",
+           "description": "0 on success."
+          },
+          "responseMessage": {
+           "type": "string",
+           "description": "\"00\"."
+          },
+          "statementWeek": {
+           "type": "string",
+           "description": "Comes back as a string here (numbers everywhere else)."
+          },
+          "statementDay": {
+           "type": "string",
+           "description": "Comes back as a string here (numbers everywhere else); ignore it — the dates to tell the caller are the ones from statement.week.decide."
+          },
+          "exitState": {
+           "type": "string",
+           "description": "\"OK\". Success = exitState \"OK\" and responseCode 0."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (message names the field)."
+     },
+     "401": {
+      "description": "Token missing or expired. Get a new token and retry once."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/contact.email.get": {
+   "post": {
+    "summary": "Returns the customer's registered e-mail / phone.",
+    "operationId": "contact_email_get",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "customerNo": {
+          "type": "number",
+          "description": "Customer number (example 90000001)."
+         },
+         "intAddressInfoType": {
+          "type": "string",
+          "description": "\"E\" e-mail, \"P\" phone, \"B\" both. Empty value gives a 400 (\"intAddressInfoType cannot be empty\"). The test environment returns the same answer whatever you ask for."
+         }
+        },
+        "required": [
+         "customerNo",
+         "intAddressInfoType"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "communicationType": {
+           "type": "string",
+           "description": "\"Both\" when an e-mail is registered, \"Phone\" when only a phone is registered. Check ibanEmail, not only the type."
+          },
+          "ibanCountryCode": {
+           "type": "string",
+           "description": "The iban* prefix is historical, it has nothing to do with IBANs."
+          },
+          "ibanAreaCode": {
+           "type": "string",
+           "description": "Historical iban* field."
+          },
+          "ibanPhoneNum": {
+           "type": "string",
+           "description": "Historical iban* field."
+          },
+          "ibanEmail": {
+           "type": "string",
+           "description": "The registered e-mail; empty when there is none."
+          },
+          "ttsEmail": {
+           "type": "string",
+           "description": "The same address prepared for reading aloud (today identical in practice)."
+          },
+          "commGramType": {
+           "type": "string",
+           "description": "\"A\"."
+          },
+          "exitState": {
+           "type": "string",
+           "description": "\"Done\"."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - Empty intAddressInfoType (\"intAddressInfoType cannot be empty\")."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  },
+  "/voice/v1/statement.pdf.send": {
+   "post": {
+    "summary": "Sends the statement PDF by e-mail.",
+    "operationId": "statement_pdf_send",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "customerNo": {
+          "type": "string",
+          "description": "Customer number (example \"90000001\")."
+         },
+         "cardNumber": {
+          "type": "string",
+          "description": "Card number, exactly as cards.list returned it."
+         },
+         "currencyType": {
+          "type": "string",
+          "description": "\"TL\", \"USD\", \"EUR\" or \"GBP\"."
+         },
+         "statementDate": {
+          "type": "string",
+          "description": "The statementDate from cards.balance (the issued statement), dd.MM.yyyy."
+         },
+         "emailAddress": {
+          "type": "string",
+          "description": "The backend sends to whatever is in this field. It does not check it against the registered address."
+         }
+        },
+        "required": [
+         "customerNo",
+         "cardNumber",
+         "currencyType",
+         "statementDate",
+         "emailAddress"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "success",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "exitState": {
+           "type": "string",
+           "description": "\"DONE\"."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "INVALID_ARGUMENTS_ERROR - A required field is missing or empty (message names the field)."
+     },
+     "404": {
+      "description": "FB_IVR_CHANNEL_107 - No statement document to send."
+     },
+     "500": {
+      "description": "FBE00099 - Technical error on Freya's side."
+     }
+    }
+   }
+  }
+ }
+}

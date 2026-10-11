@@ -12,3 +12,29 @@ freya: workflow_id d659b17f-78c8-4fd1-8002-46755b07d54a, agent_id 34b38ddd-7429-
 export: /home/f/Downloads/build-the-builder-v3/build-the-builder/submission/finalcase.workflow.json
 end: 2026-10-11 22:42:31 UTC, 6 s
 final submission: /home/f/Downloads/build-the-builder-v3/build-the-builder/submission/final-submission.json
+
+== builder verification record (run alongside the generating run) ==
+model calls in the generating run: none — the spec was reused from tests/final_spec.json
+  (extracted earlier by tests/self_heal.py extract, claude CLI on the team's LLM backend,
+   model claude-sonnet-5-5 via ANTHROPIC_BASE_URL gateway); the workflow generator
+  builder/gen_query.py is deterministic; the mock was built deterministically by
+  builder/mock_final.py (lookup tables from the service contract + test customers, no LLM).
+created on Freya: workflow_id d659b17f-78c8-4fd1-8002-46755b07d54a, agent_id
+  34b38ddd-7429-4f04-aca2-4b5d8861c2e6, 7 nodes (opening, find_card, statement_facts,
+  week_facts, statement, actions, transfer), tools: cards.list, cards.balance,
+  statement.week.get, statement.week.decide, statement.week.change, contact.email.get,
+  statement.pdf.send (+ end_call), all URLs on
+  https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1
+tests the builder ran on its own agent (platform simulations + local suites):
+  test: s1_ada_debt (single-card debt read)            -> PASS  3/3 transcript checks, tools cards.list+cards.balance
+  test: s4_pay_transfer (pay -> human transfer)        -> PASS  1/1
+  test: s5_no_card (cards.list 404, no eligible card)  -> PASS  1/1 (behavioural)
+  test: s6_service_500 (cards.list 500 -> transfer)    -> PASS  1/1
+  test: s2_ada_email (e-mail the statement)            -> FAIL  (address fetched; send step not reached)
+  test: s3_ada_week (move statement date)              -> FAIL  (week-change routing)
+  test: s7_multi_card (4 cards, 2 share last4)         -> PASS  2/2 (disambiguation asked + correct read)
+  test: mock matrix, local, 34 customers x 7 services + error paths -> PASS 2190/2190 assertions
+  test: static workflow checks (self_heal check b)     -> PASS  (Turkish-only, 7/7 URLs, mandatory phrases)
+  test: 6 example-conversation static score            -> PASS  13/13
+known gaps (logged in tests/findings.md): e-mail and week-change flows fail on routing;
+  core debt read, fail-safe transfers and card disambiguation pass.

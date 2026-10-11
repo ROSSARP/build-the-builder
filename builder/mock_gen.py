@@ -1,7 +1,19 @@
 """Generate a Cloudflare Workers mock bank from a service contract + test customers.
 
+    python3 builder/mock_gen.py <case_folder> --deploy          # final package, one step
+    python3 builder/mock_gen.py <case_folder> [--out mock]      # generate, no deploy
     python3 builder/mock_gen.py <contract_file> <customers_file> [--out mock] [--name NAME]
                                 [--model claude-sonnet-5-5] [--repairs 2] [--no-verify] [--no-llm] [--selftest]
+
+<case_folder> is the package as delivered: a folder or a .zip (Markdown, .docx, .pdf,
+.xlsx are read through builder/read_case.py when its optional libraries are installed;
+a plain fallback reads the text formats). The service contract and the test customers
+are located inside it by filename and content; a Markdown brief, a contract document and
+the customer table can all be the same package, so the contract side of the prompt gets
+the whole package ordered contract-likelihood-first. With two file arguments the two
+inputs are taken exactly as given (a single file argument is used as both).
+`--deploy` then runs mock/deploy.sh against the generated files (needs CF_API_TOKEN +
+CF_ACCOUNT_ID) and prints MOCK_URL=<url> for builder/build.py.
 
 `generate_mock(contract_text, customers_text, out_dir)` writes into out_dir:
 
@@ -26,8 +38,9 @@ session's model overrides stripped from the environment. Environment knobs:
 MOCK_GEN_MODEL (or BUILDER_MODEL) picks the model, MOCK_GEN_TIMEOUT bounds one call
 (default 900 s), MOCK_GEN_BUDGET bounds the whole generation (default 1800 s).
 
-Nothing here deploys anything: deploy is mock/deploy.sh (wrangler or the Cloudflare
-REST API) with CF_API_TOKEN + CF_ACCOUNT_ID.
+Nothing in the generation path deploys anything: deploy is mock/deploy.sh (wrangler or
+the Cloudflare REST API) with CF_API_TOKEN + CF_ACCOUNT_ID, invoked by --deploy or by
+hand.
 """
 import json
 import os
@@ -1535,9 +1548,15 @@ def _llm_json(prompt, purpose, attempts=2, timeout=None):
 
 
 def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=2,
-                  use_llm=True, verify=True, quiet=False):
+                  use_llm=True, verify=True, quiet=False,
+                  primary_contract_text=None, primary_customers_text=None):
     """Generate worker.js, seed.json, README.md (+ analysis.json, endpoints.json,
-    wrangler.toml, gen-trace.log) into out_dir. Returns a summary dict."""
+    wrangler.toml, gen-trace.log) into out_dir. Returns a summary dict.
+
+    contract_text/customers_text may be a whole package concatenated (the case-folder
+    path); primary_contract_text/primary_customers_text then name the single best
+    contract/customers file, which the deterministic fallback parsers use when they can.
+    """
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.time()

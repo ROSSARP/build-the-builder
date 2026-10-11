@@ -167,15 +167,48 @@ requests. The generated worker's stance:
 when cross-call; `mock/deploy.sh --with-kv` creates the namespace and binds it, both on
 the wrangler path and on the REST path (binding in the script `metadata`).
 
+## Input: the delivered case folder
+
+The runbook runs `python3 builder/mock_gen.py <case_folder> --deploy`, so the generator
+takes the package as delivered. `read_inputs()` accepts a folder, a `.zip`, a single
+document, or the explicit `<contract_file> <customers_file>` pair. Reading goes through
+the sibling `builder/read_case.py` when it imports (it knows the optional
+python-docx/openpyxl/pypdf handling and the cp1254 fallback); a built-in fallback reader
+covers the text formats, and an unreadable package fails with that hint rather than a
+stack trace.
+
+The package is one folder of documents — briefs, the contract, announcements, the
+customer table, example conversations — and nothing says which is which. So the whole
+package is *classified* rather than guessed at:
+
+* every file is scored for contract-likelihood (OpenAPI `paths`, HTTP verb density,
+  `/v1` mentions, filename hints incl. Turkish: sözleşme/servis/api/teknik) and for
+  customers-likelihood (JSON with `variables`/`identity`/`products`, filename hints:
+  müşteri/test/senaryo/örnek);
+* the contract side of the prompts gets the whole package ordered
+  contract-likelihood-first — the truth may be split across a contract, a memo and the
+  examples, and the analysis call reads all of it;
+* the customers side gets the top ≤3 customer-scoring files joined (falling back to the
+  whole package when nothing scores);
+* the single best contract/customer file is kept as `primary_*` so the deterministic
+  fallback parsers (`naive_analysis`, `naive_seed`) still have something exact to parse
+  when a model call fails.
+
 ## Artefacts and how to run it
 
 ```
-python3 builder/mock_gen.py <contract> <customers> --out mock/run      # generate
-python3 builder/mock_gen.py <contract> <customers> --selftest          # no model calls
-bash mock/deploy.sh --dry-run --dir mock/run                           # show the plan
+python3 builder/mock_gen.py <case_folder> --deploy              # the window path
+python3 builder/mock_gen.py <case_folder> --out mock/run        # generate only
+python3 builder/mock_gen.py <contract> <customers> --out mock/run   # explicit pair
+python3 builder/mock_gen.py <contract> <customers> --selftest   # no model calls
+bash mock/deploy.sh --dry-run --dir mock/run                    # show the deploy plan
 export CF_API_TOKEN=... CF_ACCOUNT_ID=...
-bash mock/deploy.sh --dir mock/run [--with-kv]                         # deploy + health check
+bash mock/deploy.sh --dir mock/run [--with-kv]                  # deploy + health check
 ```
+
+`--deploy` shells out to `mock/deploy.sh --dir <out>` (add `--with-kv` for the KV
+binding), propagates its exit code, and prints `MOCK_URL=<url>` from `deployed.json`
+with the exact `builder/build.py <case_folder> <url>` command to run next.
 
 * `worker.js` — the deployable file; `seed.json` — the embedded seed, readable;
 * `analysis.json` — what the generator believed the contract says (diff it against the
@@ -187,3 +220,31 @@ bash mock/deploy.sh --dir mock/run [--with-kv]                         # deploy 
 `endpoints.json`, `analysis.json` and `gen-trace.log` are for the team; `worker.js` +
 `seed.json` + `wrangler.toml` are what deploy. The mock is deployed with the team's own
 Cloudflare account (`CF_API_TOKEN` + `CF_ACCOUNT_ID`); nothing here touches Freya.
+
+## Deploy and health check (`mock/deploy.sh`)
+
+Deploy never runs on its own — `mock_gen.py` without `--deploy` prints the exact command
+and stops. Two paths, picked automatically: `npx wrangler@4 deploy` when `npx` exists
+(config written to `deploy.wrangler.toml`, long tokens redacted in the output), else the
+REST API (`PUT /accounts/{id}/workers/scripts/{name}` with a `metadata` part plus the
+`worker.js` module). `--with-kv` creates/rebinds `MOCK_KV` on both paths.
+
+After the upload the script pings `/health` with 12 retries at 3 s (a fresh worker takes
+a moment to propagate), then every GET route in `endpoints.json`; each probe prints
+PASS/FAIL, the result lands in `deployed.json` (which is also where `MOCK_URL` comes
+from), and a failing probe fails the script — the runbook wants the mock's uptime proven
+before the conversations start, not assumed.
+
+URL resolution: after the upload the script enables the workers.dev route, reads the
+account subdomain and prints both the bare host and the submission URL with the contract
+base path (`mock url: https://<worker>.<subdomain>.workers.dev/v1`, from
+`endpoints.json.base_path`). `deployed.json` records `url`, `base_path` and `mock_url`;
+`mock_gen.py --deploy` prints `MOCK_URL=` from `mock_url`, the host+base form
+`builder/build.py` wants (gen.py appends the tool paths to it). The health probes use the
+bare host because the probe paths already carry the base prefix, and
+`--health-only --url` accepts the URL with or without that prefix.
+
+The REST path runs on python3's stdlib (`urllib`) — the machine has no node, so wrangler
+is never the only option; the curl one-liners in FINAL_RUNBOOK Block 3 stay the manual
+fallback. `CF_API_BASE` can point the REST path at a stub of the Cloudflare API for
+offline testing (unset in normal use).

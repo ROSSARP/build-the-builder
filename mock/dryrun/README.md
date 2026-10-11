@@ -5,9 +5,9 @@ Deployed with `mock/deploy.sh`. This mock is what the phone agent's tools call a
 what the scorer reads; a wrong or unreachable mock fails the run.
 
 * worker name: `freya-bank-collections-tools-mock` (wrangler.toml)
-* state model: **cross-call** — Identity progress (fields passed, wrong answers, lockout), the recorded ledger and every promise/note/callback/transfer must survive across separate HTTP calls for the same customer_id; the contract calls close_call 'always the last tool call' and scores a ledger built from many calls.
+* state model: **cross-call** — Identity progress, the wrong-answer count, promises, notes, callbacks, transfers and the ledger itself must survive across separate HTTP calls; each call carries only customer_id, never the accumulated state.
 * seed customers: 13 (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05, PUB-06, PUB-07, PUB-08, …)
-* model calls: 3; validation problems repaired after first generation: 0
+* model calls: 5; validation problems repaired after first generation: 1
 
 ## Endpoints
 
@@ -20,8 +20,8 @@ what the scorer reads; a wrong or unreachable mock fails the run.
 | POST | `/v1/schedule_callback` | contract | Book a callback. |
 | POST | `/v1/transfer_to_agent` | contract | Hand the call to a person. |
 | POST | `/v1/close_call` | contract | End the call. Always the last tool call. Nothing is accepted after it. |
-| GET | `/v1/practice/ledger/{customer_id}` | ledger read | the ledger a scorer reads — every call in order plus the final outcome/reason, promises, notes, callbacks, transfers and identity state |
-| GET | `/v1/practice/ledger` | ledger read | all live ledgers, keyed by customer_id |
+| GET | `/v1/practice/ledger/{customer_id}` | ledger read | the ledger a scorer reads — one customer's recorded calls plus outcome, reason, promises, notes, callbacks, transfers and identity state |
+| GET | `/v1/practice/ledger` | ledger read | the ledger a scorer reads — all customers recorded in this run |
 | POST | `/v1/practice/sessions` | session opener | body `{"case": "<id>"}` -> `{"variables": {..., customer_id}}` |
 | GET | `/health` | health | 200 when the worker is up |
 
@@ -74,9 +74,9 @@ npx wrangler kv namespace create MOCK_KV     # paste the id into wrangler.toml
 
 ## Notes and policies
 
-* Identity: {"questions": [{"field": "date_of_birth", "format": "YYYY-MM-DD", "description": "The customer's date of birth as a date string. Callers say dates in words; the agent converts them before sending."}, {"field": "phone_last4", "format": "four digits", "description": "The last four digits of the customer's phone number."}], "order": ["date_of_birth", "phone_last4"], "wrong_answer_limit": 3, "not_counted_as_wrong": "An unreadable value (e.g. a date_of_birth that is not a readable YYYY-MM-DD) is rejected with ok=false and is not counted as a wrong answer.", "hints": ["day_month_swapped"], "gated_endpoints": ["/v1/get_account"], "refusal_error": "Not fixed by the contract: a refusal is HTTP 200 with ok=false plus a free-form \"error\" string; the contract names the field but never spells the string. Proposed value (mock template): \"identity not verified\".", "notes": "One field per call: verify_identity carries the field name, so either order must work; the enum order and the scripts show date_of_birth first. Wrong answers are counted in total across both fields ('Three wrong answers in total end the check'), and the third one locks the check — no further question may be answered and no
-* Unknown customer ids: The contract is silent. Never 500: accept any customer_id string, and for an id not in the seed derive the customer deterministically from that id (product ids p1..pn, identity answers, products, faults) so the same id always yields the same customer — this is the same person because "the customer_id in the body is the secret of one call", and hidden customers are served by the same mock.
-* Faults: [{"tool": "create_promise", "when": "first call of the session (PUB-10 faults: fail_first_n 1)", "behavior": "500 once and nothing recorded; the repeated call succeeds, so exactly one promise appears in the ledger"}]
+* Identity: {"questions": [{"field": "date_of_birth", "format": "YYYY-MM-DD", "description": "The customer's date of birth. Callers say dates in words and the agent converts them; the API answer is the date as YYYY-MM-DD. An unreadable value is rejected with ok=false and is not counted as a wrong answer."}, {"field": "phone_last4", "format": "four digits", "description": "The last four digits of the customer's phone number, as a string."}], "order": ["date_of_birth", "phone_last4"], "wrong_answer_limit": 3, "not_counted_as_wrong": "an unreadable value — for date_of_birth a value that is not convertible to YYYY-MM-DD is rejected with ok=false and is not counted as a wrong answer", "hints": ["day_month_swapped"], "gated_endpoints": ["get_account"], "refusal_error": null, "notes": "One field per call; the contract tracks progress per field, so a field already passed is not asked again (PUB-12: the phone question is asked again once, the date of birth is not). wrong_answers_left starts at 3 and counts down over both fields combined; the third wrong answer in total ends the check. The only hint enum value is day_month_swapped, the natural trigger being an answer equal to the true date with day and 
+* Unknown customer ids: The contract is silent. Do not 500: derive a deterministic customer from the customer_id (stable hash of the id seeding a name, a date_of_birth, a phone_last4 and one or more late products of the contract's types), so repeated calls with the same id give the same account and the identity gate still applies.
+* Faults: [{"tool": "create_promise", "when": "first call of the session (PUB-10: fail_first_n = 1)", "behavior": "500 once — nothing was recorded, so the ledger must hold exactly one promise after the retry and no promise from the failed attempt"}]
 * Regenerate: `python3 builder/mock_gen.py <contract> <customers> --out mock/dryrun`
 * The seed is embedded in `worker.js` (`const SEED = ...`); `seed.json` is the same data
   for inspection and for re-embedding.

@@ -13,7 +13,8 @@ the customer table can all be the same package, so the contract side of the prom
 the whole package ordered contract-likelihood-first. With two file arguments the two
 inputs are taken exactly as given (a single file argument is used as both).
 `--deploy` then runs mock/deploy.sh against the generated files (needs CF_API_TOKEN +
-CF_ACCOUNT_ID) and prints MOCK_URL=<url> for builder/build.py.
+CF_ACCOUNT_ID) and prints MOCK_URL=<workers.dev host + contract base path> for
+builder/build.py.
 
 `generate_mock(contract_text, customers_text, out_dir)` writes into out_dir:
 
@@ -1519,7 +1520,18 @@ def read_inputs(first, second=None, quiet=False):
             return {"contract_text": contract_text, "customers_text": customers_text,
                     "context_text": contract_text, "primary_contract_text": pc,
                     "primary_customers_text": pk, "source": str(p), "notes": notes}
-        text = p.read_text()
+        if p.suffix.lower() in {".docx", ".xlsx", ".pdf"}:
+            import shutil
+            import tempfile
+            tmp = pathlib.Path(tempfile.mkdtemp(prefix="casefile_"))
+            shutil.copy2(p, tmp / p.name)
+            files = _read_case_files(tmp)
+            text = files[0]["text"] if files else ""
+            if not text:
+                raise RuntimeError(f"could not read any text out of {p} "
+                                   f"(install python-docx/openpyxl/pypdf)")
+        else:
+            text = p.read_text()
         note = f"single file input: {p} used as contract and customers"
         log(f"   {note}")
         return {"contract_text": text, "customers_text": text, "context_text": text,
@@ -1527,6 +1539,25 @@ def read_inputs(first, second=None, quiet=False):
                 "source": str(p), "notes": [note]}
     ctext = pathlib.Path(first).read_text()
     ktext = pathlib.Path(second).read_text()
+    # Printed so a wrong pairing is caught by eye — a wrong seed fails every case.
+    verb_count = len(re.findall(r"\b(POST|GET|PUT|PATCH|DELETE)\b", ctext))
+    c_verdict = "openapi json" if _looks_like_openapi(ctext) else f"{verb_count} HTTP verb mentions"
+    try:
+        kd = json.loads(ktext)
+        rows = kd if isinstance(kd, list) else \
+            (kd.get("customers") or kd.get("cases") or kd.get("test_customers") or []
+             if isinstance(kd, dict) else [])
+        k_verdict = f"JSON with {len(rows)} case(s)" if isinstance(rows, list) else "JSON"
+    except Exception:
+        k_verdict = "not JSON (text)"
+    log(f"   contract:  {first} ({len(ctext)} chars, {c_verdict})")
+    log(f"   customers: {second} ({len(ktext)} chars, {k_verdict})")
+    if not _looks_like_openapi(ctext) and score_contract_file(first, ctext) < 3:
+        log("   WARNING: the contract file does not look like a service contract (no OpenAPI "
+            "paths, few HTTP verbs) — check the pairing")
+    if score_customers_file(second, ktext) < 2:
+        log("   WARNING: the customers file does not look like a test-customer file — "
+            "a wrong seed fails every case")
     return {"contract_text": ctext, "customers_text": ktext,
             "context_text": ctext + "\n\n" + ktext,
             "primary_contract_text": ctext, "primary_customers_text": ktext,
@@ -1584,7 +1615,7 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
         except Exception as exc:
             log(f"-- contract analysis fell back to the deterministic parser: {exc}")
             trace_line(f"analysis fallback: {exc}")
-    naive = naive_analysis(contract_text)
+    naive = naive_analysis(primary_contract_text or contract_text)
     if analysis is None:
         if naive is None:
             raise RuntimeError("the contract is not OpenAPI JSON and no model analysis is available")
@@ -1608,7 +1639,7 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
             log(f"-- seed extraction fell back to the deterministic normaliser: {exc}")
             trace_line(f"seed fallback: {exc}")
     if seed is None:
-        seed = naive_seed(customers_text)
+        seed = naive_seed(primary_customers_text or customers_text)
     seed = normalize_seed(seed)
     trace_line(f"seed: {len(seed['customers'])} customers "
                f"({', '.join(c['customer_id'] for c in seed['customers'][:6])})")
@@ -1792,15 +1823,36 @@ def _slug(s):
     return (s or "bank-mock")[:54]
 
 
+def _deployed_url(out_dir):
+    """The deployed mock base URL: host + the contract base path when known.
+
+    deploy.sh records url, base_path and mock_url in deployed.json; build.py wants the
+    base path included (gen.py appends the tool paths to the URL it is handed).
+    """
+    try:
+        data = json.loads((pathlib.Path(out_dir) / "deployed.json").read_text())
+    except Exception:
+        return ""
+    return str(data.get("mock_url") or data.get("url") or "")
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("contract", help="service contract file (OpenAPI JSON or contract Markdown)")
-    ap.add_argument("customers", help="test customers file (JSON or Markdown)")
+    ap.add_argument("case", nargs="?",
+                    help="the case folder (or .zip) as delivered — contract and customers are "
+                         "found inside it; or, with two arguments, the service contract file")
+    ap.add_argument("customers", nargs="?",
+                    help="test customers file (only when two positional arguments are given)")
     ap.add_argument("--out", default=str(ROOT / "mock"), help="output directory (default: mock/)")
     ap.add_argument("--name", default=None, help="Cloudflare worker name (default: derived from the contract)")
     ap.add_argument("--model", default=None, help="model for the generation calls (default: claude-sonnet-5-5)")
     ap.add_argument("--repairs", type=int, default=2, help="repair attempts after failed validation (default 2)")
+    ap.add_argument("--deploy", action="store_true",
+                    help="after generating, run mock/deploy.sh (needs CF_API_TOKEN + CF_ACCOUNT_ID) "
+                         "and print MOCK_URL=... for builder/build.py")
+    ap.add_argument("--with-kv", action="store_true",
+                    help="with --deploy: create/bind the MOCK_KV namespace (state across isolates)")
     ap.add_argument("--no-verify", action="store_true",
                     help="skip the conformance-verification model call (it feeds the repair loop)")
     ap.add_argument("--no-llm", action="store_true",
@@ -1812,18 +1864,57 @@ def main():
     global MODEL
     if a.model:
         MODEL = a.model
+    if not a.case:
+        rc = _load_read_case()
+        default_case = str(getattr(rc, "DEFAULT_CASE_DIR", "")) if rc else ""
+        for cand in (default_case, "case", "case_folder"):
+            if cand and pathlib.Path(cand).is_dir():
+                a.case = cand
+                log(f"-- using the case folder {cand}/")
+                break
+        else:
+            ap.error("give the case folder (python3 builder/mock_gen.py <case_folder> --deploy) "
+                     "or a contract file plus a customers file")
+    if a.customers is not None and pathlib.Path(a.case).is_dir():
+        ap.error("<case> is a folder — pass either the folder alone, or two files "
+                 "(<contract_file> <customers_file>)")
     if a.selftest:
-        sys.exit(selftest(a.contract, a.customers))
-    contract_text = pathlib.Path(a.contract).read_text()
-    customers_text = pathlib.Path(a.customers).read_text()
-    summary = generate_mock(contract_text, customers_text, a.out, name=a.name,
-                            repairs=a.repairs, use_llm=not a.no_llm, verify=not a.no_verify)
-    if summary.get("worker"):
-        log(f"\nnext: CF_API_TOKEN=... CF_ACCOUNT_ID=... "
-            f"{ROOT / 'mock' / 'deploy.sh'} --dir {summary['out_dir']}")
-    else:
+        if a.customers is None:
+            ap.error("--selftest wants the explicit pair: "
+                     "python3 builder/mock_gen.py <contract_file> <customers_file> --selftest")
+        sys.exit(selftest(a.case, a.customers))
+
+    inputs = read_inputs(a.case, a.customers)
+    summary = generate_mock(inputs["contract_text"], inputs["customers_text"], a.out,
+                            name=a.name, repairs=a.repairs, use_llm=not a.no_llm,
+                            verify=not a.no_verify,
+                            primary_contract_text=inputs.get("primary_contract_text"),
+                            primary_customers_text=inputs.get("primary_customers_text"))
+    if not summary.get("worker"):
         log(f"\n{summary.get('stopped', '')}")
         sys.exit(3)
+
+    deploy_cmd = (f"bash {ROOT / 'mock' / 'deploy.sh'} --dir {summary['out_dir']}"
+                  f"{' --with-kv' if a.with_kv else ''}")
+    if not a.deploy:
+        log(f"\nnext: export CF_API_TOKEN=... CF_ACCOUNT_ID=...\n      {deploy_cmd}")
+        return
+    cmd = ["bash", str(ROOT / "mock" / "deploy.sh"), "--dir", summary["out_dir"]]
+    if a.with_kv:
+        cmd.append("--with-kv")
+    log(f"\n== deploy: {' '.join(cmd)} ==")
+    try:  # a stale URL from an earlier deploy must never print as this run's
+        (pathlib.Path(summary["out_dir"]) / "deployed.json").unlink()
+    except FileNotFoundError:
+        pass
+    rc = subprocess.run(cmd, check=False).returncode
+    url = _deployed_url(summary["out_dir"])
+    if url:
+        log(f"\nMOCK_URL={url}")
+        log(f"next: python3 builder/build.py <case_folder> {url}")
+    if rc != 0:
+        log(f"-- deploy.sh exited {rc}; after fixing, re-run: {' '.join(cmd)}")
+    sys.exit(rc)
 
 
 if __name__ == "__main__":

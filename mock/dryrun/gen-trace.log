@@ -1,10 +1,14 @@
-start: mock generation into mock/dryrun at 2026-10-11 19:39:36 UTC, model claude-sonnet-5-5
+start: mock generation into mock/dryrun at 2026-10-11 19:48:13 UTC, model claude-sonnet-5-5, budget 1800s
 inputs: contract 10557 chars, customers 15967 chars
-model call: claude-sonnet-5-5, purpose: analyse the service contract (attempt 1), prompt 30339 chars, answer 11379 chars, 64 s
+model call: claude-sonnet-5-5, purpose: analyse the service contract (attempt 1), prompt 30339 chars, answer 11987 chars, 39 s
 analysis: 7 contract endpoints, state_model cross-call, 1 faults, base '/v1'
-model call: claude-sonnet-5-5, purpose: normalise the test customers into seed.json (attempt 1), prompt 28414 chars, answer 22633 chars, 44 s
+model call: claude-sonnet-5-5, purpose: normalise the test customers into seed.json (attempt 1), prompt 28414 chars, answer 29863 chars, 82 s
 seed: 13 customers (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05, PUB-06)
-model call: claude-sonnet-5-5, purpose: generate the Cloudflare Worker, prompt 81901 chars, answer 24283 chars, 158 s
-worker attempt 1: 46654 chars, 0 validation problem(s) — clean
-written: worker.js (46654 chars), seed.json, endpoints.json, wrangler.toml, README.md
-end: 2026-10-11 19:44:02 UTC, 266 s
+model call: claude-sonnet-5-5, purpose: generate the Cloudflare Worker, prompt 81031 chars, answer 28961 chars, 254 s
+worker attempt 1: 51269 chars, 0 validation problem(s) — clean
+model call: claude-sonnet-5-5, purpose: verify the worker against the contract (attempt 1), prompt 80345 chars, answer 1546 chars, 305 s
+verification: 1 issue(s): create_promise is not gated on identity: verifiedGate is called only from handleGetAccount, so a create_promise before both questions pass returns 200 {ok:true, promise_id} and records a promise — the scorer's policy check reads that refusal on get_account AND create_promise (tools/score.py:32: c["tool"] in ("get_account","create_promise") and c["result"].get("error") == "identity not verified", and FINAL_RUNBOOK.md:462 requires both to return it) — call the same gate at the top of handleCreatePromise so it returns 200 {ok:false, error:"identity not verified"} and records the refusal, while le
+model call: claude-sonnet-5-5, purpose: repair the Worker (pass 1), prompt 58009 chars, answer 29803 chars, 87 s
+worker attempt 2: 52156 chars, 0 validation problem(s) — clean
+written: worker.js (52156 chars), seed.json, endpoints.json, wrangler.toml, README.md
+end: 2026-10-11 20:00:59 UTC, 766 s

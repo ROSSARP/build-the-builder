@@ -21,7 +21,7 @@ Prompt text is generated in the brief's language: ``localize`` rewrites the
 fixed English scaffolding into the brief's language (Turkish today) at
 generation time; rule text copied from the brief is already in that language.
 """
-import json, os, sys
+import json, os, re, sys
 
 # ---------------------------------------------------------------- language
 
@@ -508,6 +508,21 @@ def _as_list(value):
         return [value.strip()]
     return []
 
+def _normalize_bands(bands):
+    """Ledger bands use {min,max,attempts}; the date code reads days_late_min/max
+    and persuasion_attempts. Fill the code's keys from the ledger's, never the
+    other way round (a structured band keeps its own values)."""
+    for b in bands if isinstance(bands, list) else []:
+        if not isinstance(b, dict):
+            continue
+        if b.get("min") is not None and b.get("days_late_min") is None:
+            b["days_late_min"] = b.get("min")
+        if b.get("max") is not None and b.get("days_late_max") is None:
+            b["days_late_max"] = b.get("max")
+        if b.get("attempts") is not None and b.get("persuasion_attempts") is None:
+            b["persuasion_attempts"] = b.get("attempts")
+    return bands
+
 def apply_ledger(spec):
     """Fill the spec's empty structured slots from the rule ledger (ADDITIVE).
 
@@ -520,27 +535,15 @@ def apply_ledger(spec):
     out = json.loads(json.dumps(spec))
     d = out.get("dates") if isinstance(out.get("dates"), dict) else {}
     dr = ledger_params(spec, "date_rule")
-    if isinstance(d.get("bands"), list):
-        # ledger bands may use {min,max}; the code reads days_late_min/max
-        for b in d["bands"]:
-            if isinstance(b, dict) and b.get("min") is not None and b.get("days_late_min") is None:
-                b["days_late_min"] = b.get("min")
-            if isinstance(b, dict) and b.get("max") is not None and b.get("days_late_max") is None:
-                b["days_late_max"] = b.get("max")
     for slot, lkey in (("business_days", "business_days"), ("holidays", "holidays"),
                        ("bands", "bands"), ("validity_text", "valid"),
                        ("weekend_text", "weekend_holiday"), ("vague_text", "vague"),
                        ("next_weekday_text", "next_weekday"), ("over_deadline_text", "after_deadline")):
         if not d.get(slot) and dr.get(lkey):
             d[slot] = dr[lkey]
+    _normalize_bands(d.get("bands"))
     if d:
         out["dates"] = d
-    if isinstance(d.get("bands"), list):
-        for b in d["bands"]:
-            if isinstance(b, dict) and b.get("min") is not None and b.get("days_late_min") is None:
-                b["days_late_min"] = b.get("min")
-            if isinstance(b, dict) and b.get("max") is not None and b.get("days_late_max") is None:
-                b["days_late_max"] = b.get("max")
     am = ledger_params(spec, "amount_rule")
     a = out.get("amounts") if isinstance(out.get("amounts"), dict) else {}
     atext = ledger_text(spec, "amount_rule")
@@ -571,30 +574,44 @@ def _split_reasons(value):
     return []
 
 def closing_table(spec):
-    """The closing table as [{"outcome", "reasons", "when"}].
+    """The closing table as [{"outcome", "reasons", "when"}] — one entry per outcome.
 
-    The rule ledger's closing_rule wins when it has a table; otherwise the
-    structured closing.table of the spec is used (the pre-ledger behaviour).
+    The structured closing.table is the base (the extractor writes one row per
+    outcome-and-reason pair, so rows sharing an outcome are merged); the rule
+    ledger's closing_rule rows are merged in by outcome, adding the reasons the
+    brief states and the rule sentence for that outcome. Merging never drops a
+    row: an outcome only the structured table has is kept, and a reason only one
+    of the two tables carries survives. With no ledger the structured table is
+    used alone (the pre-ledger behaviour).
     """
-    rows = []
+    rows, order = {}, []
+    def add(outcome, reasons, when):
+        if outcome not in rows:
+            order.append(outcome)
+            rows[outcome] = {"outcome": outcome, "reasons": [], "when": ""}
+        row = rows[outcome]
+        for r in reasons:
+            if r not in row["reasons"]:
+                row["reasons"].append(r)
+        w = str(when or "").strip()
+        if w and w not in row["when"]:
+            row["when"] = (row["when"] + " " + w).strip()
+    for row in (spec.get("closing") or {}).get("table") or []:
+        if isinstance(row, dict) and str(row.get("outcome") or "").strip():
+            o = str(row["outcome"]).strip()
+            add(o, _split_reasons(row.get("reason") or row.get("reasons")), str(row.get("when") or ""))
     raw = ledger_params(spec, "closing_rule").get("table")
     if isinstance(raw, list):
         for row in raw:
             if isinstance(row, dict) and str(row.get("outcome") or "").strip():
-                rows.append({"outcome": str(row["outcome"]).strip(),
-                             "reasons": _split_reasons(row.get("reasons") or row.get("reason")),
-                             "when": str(row.get("when") or "")})
-    if not rows:
-        for row in (spec.get("closing") or {}).get("table") or []:
-            if isinstance(row, dict) and str(row.get("outcome") or "").strip():
-                rows.append({"outcome": str(row["outcome"]).strip(),
-                             "reasons": _split_reasons(row.get("reason")),
-                             "when": str(row.get("when") or "")})
-    if not rows:
+                o = str(row["outcome"]).strip()
+                add(o, _split_reasons(row.get("reasons") or row.get("reason")), str(row.get("when") or ""))
+    out = [rows[o] for o in order]
+    if not out:
         # a spec with no closing table at all: the two outcomes that take no reason
-        rows = [{"outcome": "promise", "reasons": [], "when": ""},
-                {"outcome": "paid", "reasons": [], "when": ""}]
-    return rows
+        out = [{"outcome": "promise", "reasons": [], "when": ""},
+               {"outcome": "paid", "reasons": [], "when": ""}]
+    return out
 
 def _find_pair(table, reason_names, outcome=None):
     """(outcome, reason with the table's own casing) of the first row carrying one of these reasons."""
@@ -835,13 +852,17 @@ def close_corrector_code(spec):
             "    if not done and not verified and (_true(vars.get('identity_declined'))"
             " or _true(vars.get('declined'))):\n"
             "        done = _put(%r, _pick(%r, %r))\n" % (decl[0], decl[0], decl[1]))
-    for field, flags in (("deceased", ("is_deceased", "deceased")),
-                         ("wrong_number", ("is_wrong_number", "wrong_number"))):
+    # third-party flags: the opening node's who_answers, the third_party node's
+    # situation, or a flag variable — whichever the engine carried to the end
+    for field, who, situations, flags in (
+            ("deceased", "'deceased'", ("deceased",), ("is_deceased", "deceased")),
+            ("wrong_number", "'wrong_number'", ("wrong_number",), ("is_wrong_number", "wrong_number"))):
         pair = cc[field]
         if not pair[0]:
             continue
         flag_checks = " or ".join("_true(vars.get(%r))" % f for f in flags)
-        who = "'wrong_number'" if field == "wrong_number" else "'deceased'"
+        for situ in situations:
+            flag_checks += " or _lc(vars.get('situation')) == %r" % situ
         checks.append(
             "    if not done and ((_lc(vars.get('who_answers')) == %s) or %s):\n"
             "        done = _put(%r, _pick(%r, %r))\n" % (who, flag_checks, pair[0], pair[0], pair[1]))
@@ -853,7 +874,8 @@ def close_corrector_code(spec):
     pair = cc["no_callback"]
     if pair[0]:
         checks.append(
-            "    if not done and (_true(vars.get('callback_declined')) or _true(vars.get('no_callback'))):\n"
+            "    if not done and (_true(vars.get('callback_declined')) or _true(vars.get('no_callback'))"
+            " or _lc(vars.get('situation')) == 'callback_refused'):\n"
             "        done = _put(%r, _pick(%r, %r))\n" % (pair[0], pair[0], pair[1]))
 
     code = CORRECTOR_BODY
@@ -1320,9 +1342,7 @@ try:
             days_late = int(float(days_late))
         except Exception:
             days_late = 0
-        floor = p.get('minimum_payment')
-        if floor is None:
-            floor = p.get('instalment_amount')
+__FLOOR_BLOCK__
         try:
             floor = float(floor)
         except Exception:
@@ -1380,9 +1400,37 @@ except Exception:
             vars.setdefault('p' + str(i) + '_' + s, '')
 """
     code = code.replace("__HOL__", holidays).replace("__BANDS__", bands)
+    code = code.replace("__FLOOR_BLOCK__", floor_block(spec))
     for _token, _fragment in _date_fragments(lang).items():
         code = code.replace("__" + _token + "__", _fragment)
     return code
+
+def floor_block(spec):
+    """The floor-field lookup dates_code bakes in, as Python source lines.
+
+    The mechanism's default is the fixed pair (credit-card minimum_payment, else
+    the loan instalment_amount). An amount_rule ledger's floor_by_type replaces
+    it with the brief's own field per product type, so a brief that names a
+    different floor field is honoured; the other field stays as the fallback.
+    """
+    fmap = ledger_params(spec, "amount_rule").get("floor_by_type")
+    clean = {}
+    if isinstance(fmap, dict):
+        for key, val in fmap.items():
+            if str(key).strip() and str(val).strip():
+                clean[str(key).strip()] = str(val).strip()
+    if not clean:
+        return ("        floor = p.get('minimum_payment')\n"
+                "        if floor is None:\n"
+                "            floor = p.get('instalment_amount')\n")
+    lookup = json.dumps(clean)
+    return ("        _ff = " + lookup + ".get(ptype) or " + lookup + ".get('default') or 'minimum_payment'\n"
+            "        floor = p.get(_ff)\n"
+            "        if floor is None:\n"
+            "            for _fb in ('minimum_payment', 'instalment_amount'):\n"
+            "                floor = p.get(_fb)\n"
+            "                if floor is not None:\n"
+            "                    break\n")
 
 def fix_date_code(spec, lang="English"):
     """Validate the extracted payment date and bake the corrected one into fixed_date.
@@ -1461,6 +1509,15 @@ except Exception:
 def first_line(text):
     return (text or "").strip().splitlines()[0] if (text or "").strip() else ""
 
+def templated_placeholders(text):
+    """{title}/{last_name} -> {{title}}/{{last_name}}, leaving an already
+    templated {{...}} alone (the extractor sometimes doubles them itself, and
+    the engine reads {{{title}}} as mismatched braces)."""
+    out = text or ""
+    for name in ("title", "last_name"):
+        out = re.sub(r"(?<!\{)\{" + name + r"\}(?!\})", "{{" + name + "}}", out)
+    return out
+
 def build_workflow(spec, api):
     spec = apply_ledger(spec)          # the rule ledger fills empty structured slots
     bank = spec.get("bank_name", "the bank")
@@ -1473,9 +1530,13 @@ def build_workflow(spec, api):
     closing_table_text = "\n".join(
         f"- {r['outcome']}" + (f" / {', '.join(r['reasons'])}" if r["reasons"] else "") + f": {r['when']}"
         for r in closing_table(spec))
+    # The language line is hard: the agent must speak ONLY the brief's language,
+    # whatever language the surrounding scaffolding is written in.
     speak_line = ("Siz " + bank + " adına tahsilat aramasını yürüten dijital asistansınız. "
-                  + speak_name(language) + " konuşun. ") if is_turkish(lang) else (
-                  f"You are the digital assistant of {bank} on a collection call. Speak {language}. ")
+                  "YALNIZCA " + speak_name(language) + " konuşun; müşteriye söylediğiniz her cümle "
+                  + speak_name(language) + " olmalıdır. ") if is_turkish(lang) else (
+                  f"You are the digital assistant of {bank} on a collection call. Speak ONLY {language}. "
+                  f"Every sentence you say to the customer must be in {language}. ")
     system_prompt = (
         speak_line +
         "One or two short sentences per turn. "
@@ -1541,6 +1602,14 @@ def build_workflow(spec, api):
                                   + ". Am I speaking with {{title}} {{last_name}}?")
     greeting = scrub_recording_trap(op.get("greeting") or verbatim.get("greeting", {}).get("text")
                                     or default_greeting)
+    mon_notice = first_line((mandatory.get("monitored") or {}).get("text")) or \
+        first_line((verbatim.get("monitored") or {}).get("text"))
+    if mon_notice and "monitor" not in greeting.lower() and "dinlen" not in greeting.lower():
+        # the brief mandates a monitoring notice but the greeting carries none:
+        # insert it as the greeting's second sentence
+        parts = greeting.split(". ", 1)
+        greeting = (parts[0] + ". " + mon_notice + " " + parts[1]) if len(parts) == 2 \
+            else (greeting.rstrip() + " " + mon_notice)
     opening = conv_node(
         "opening",
         f"You just started the call. Say nothing about collections, debt, payment or any product before the identity is verified.\n"
@@ -1553,7 +1622,7 @@ def build_workflow(spec, api):
           "enum_values": ["target", "relative", "wrong_number", "deceased", "unclear"],
           "description": "Who is on the line after the greeting: target is the customer themself."}],
         [],
-        on_enter={"type": "tts", "text": greeting.replace("{title}", "{{title}}").replace("{last_name}", "{{last_name}}")},
+        on_enter={"type": "tts", "text": templated_placeholders(greeting)},
         routing_prompt="Route to identity when the customer themself confirmed. Any other answer routes to the third-party callback questions.")
 
     # ---- third-party node
@@ -1673,7 +1742,12 @@ def build_workflow(spec, api):
 
     # ---- rule ledger: the sentence ids the vocabulary_rule marks as mandatory
     def mand(sid):
-        return first_line((mandatory.get(sid) or {}).get("text"))
+        text = first_line((mandatory.get(sid) or {}).get("text"))
+        if not text and sid == "rest_overdue":
+            # amount_rule carries the exact below-full-amount sentence when the
+            # vocabulary_rule does not list it as a mandatory sentence
+            text = first_line(ledger_params(spec, "amount_rule").get("rest_overdue_sentence"))
+        return text
     if tr:
         per_product_lines = [
             f"p{i}: son tarih {{{{p{i}_deadline}}}}, taban tutar {{{{p{i}_floor}}}}, {{{{p{i}_attempts}}}} ikna denemesi"

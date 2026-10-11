@@ -1,0 +1,301 @@
+{
+ "service_name": "freya-collections",
+ "base_path": "/v1",
+ "language": "tr",
+ "state_model": "cross-call",
+ "state_reason": "Identity progress (wrong-answer count, lock, all_verified), promises, notes, callbacks, transfers, the closed flag and the ledger all have to survive between separate HTTP calls — one phone call is many independent requests.",
+ "identity": {
+  "questions": [
+   {
+    "field": "date_of_birth",
+    "format": "string, YYYY-MM-DD",
+    "description": "The customer's date of birth, submitted as YYYY-MM-DD. Callers say dates in words and the agent converts. An unreadable value is rejected with ok=false and is not counted as a wrong answer."
+   },
+   {
+    "field": "phone_last4",
+    "format": "string, exactly four digits",
+    "description": "The last four digits of the customer's registered phone number."
+   }
+  ],
+  "order": [
+   "date_of_birth",
+   "phone_last4"
+  ],
+  "wrong_answer_limit": 3,
+  "not_counted_as_wrong": "An unreadable date_of_birth value: rejected with ok=false, wrong_answers_left unchanged, no increment of the wrong-answer count.",
+  "hints": [
+   "day_month_swapped"
+  ],
+  "gated_endpoints": [
+   "/v1/get_account"
+  ],
+  "refusal_error": "not_verified (proposed — the contract fixes no exact spelling, only ok=false plus a non-empty error string; the mock must pick one string and keep it identical every time)",
+  "notes": "One answer per call, field=date_of_birth or field=phone_last4. Wrong answers are counted cumulatively for the customer across both fields; at 3 total the check is locked and every further verify_identity call is refused (ok=false, error=locked, wrong_answers_left=0) and get_account stays refused. verified=true means this one answer passed; all_verified=true only once both fields have passed; passing the same field twice must not verify the other. The contract fixes no question order (the order above is just the enum order) and no per-field retry rules: accept either field at any time, and treat a repeat of an already-passed field as ok=true without consuming anything. State (verified fields, wrong-answer count, lock) is per customer_id and survives across HTTP calls. Only get_account is refused before verification — the other six tools must still work unverified (close_call even has a not_verified outcome, which proves it must work without identity). A 500 must not change any of this state. hint=day_month_swapped is the only defined hint: return it when the submitted date equals the true date with day and month transposed (the contract defines the value, not the trigger — attach it to that wrong answer so the agent can retry swapped).",
+  "gated_notes": "Gate get_account only, and gate it on all_verified (both questions), not on the first passing answer."
+ },
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/v1/verify_identity",
+   "summary": "Check one security answer; three wrong answers in total end the check.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "field": "string enum [date_of_birth, phone_last4] (required)",
+    "answer": "string (required) — YYYY-MM-DD for date_of_birth, four digits for phone_last4"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)",
+    "verified": "boolean (this answer passed)",
+    "wrong_answers_left": "integer (3 minus wrong answers used)",
+    "all_verified": "boolean (both fields passed)",
+    "hint": "string enum [day_month_swapped] (only on the swapped day/month date answer)"
+   },
+   "errors": [
+    {
+     "when": "answer is not a readable date while field=date_of_birth",
+     "response": "HTTP 200 {ok:false, error:unreadable_date, verified:false, all_verified:false, wrong_answers_left unchanged} — the contract's one explicitly non-counting rejection"
+    },
+    {
+     "when": "answer does not match the stored value",
+     "response": "HTTP 200 {ok:false, error:wrong_answer, verified:false, wrong_answers_left:one less, all_verified:false}; add hint=day_month_swapped when the date is the true date with day and month transposed"
+    },
+    {
+     "when": "three wrong answers already used (check locked)",
+     "response": "HTTP 200 {ok:false, error:locked, verified:false, wrong_answers_left:0, all_verified:false}"
+    },
+    {
+     "when": "customer_id not in the seed",
+     "response": "still HTTP 200 — derive the customer deterministically, never 500, never 404"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, no counter change, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/get_account",
+   "summary": "The late products; refused until both security questions are passed.",
+   "request_fields": {
+    "customer_id": "string (required)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)",
+    "products": "array of product objects (see products.shape)"
+   },
+   "errors": [
+    {
+     "when": "all_verified is not true for this customer",
+     "response": "HTTP 200 {ok:false, error:not_verified} with no products array"
+    },
+    {
+     "when": "verified but the customer has no products",
+     "response": "HTTP 200 {ok:true, products:[]}"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/create_promise",
+   "summary": "Record a payment promise; one per product.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "product_id": "string (required)",
+    "amount": "number (required)",
+    "date": "string, format date YYYY-MM-DD (required)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)",
+    "promise_id": "string"
+   },
+   "errors": [
+    {
+     "when": "a promise already exists for this product_id (one per product)",
+     "response": "HTTP 200 {ok:false, error:already_promised} — the first promise is left untouched"
+    },
+    {
+     "when": "required field missing, or date is not a YYYY-MM-DD date",
+     "response": "HTTP 200 {ok:false, error:bad_request} (contract defines no 400; only shape is validated)"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/add_note",
+   "summary": "Brief B: record why a product ended without a promise.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "product_id": "string (required)",
+    "reason": "string enum [refused, hardship, dispute, paid, service_error] (required)",
+    "text": "string (optional)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)"
+   },
+   "errors": [
+    {
+     "when": "reason is absent or outside the enum",
+     "response": "HTTP 200 {ok:false, error:bad_request} — this enum is the one the service does enforce"
+    },
+    {
+     "when": "required field missing",
+     "response": "HTTP 200 {ok:false, error:bad_request}"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/schedule_callback",
+   "summary": "Book a callback.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "date": "string, format date YYYY-MM-DD (required)",
+    "time": "string, HH:MM (required)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)"
+   },
+   "errors": [
+    {
+     "when": "date is not a date or time is not HH:MM",
+     "response": "HTTP 200 {ok:false, error:bad_request}"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/transfer_to_agent",
+   "summary": "Hand the call to a person.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "queue": "string enum [restructuring, general, support] (required)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)"
+   },
+   "errors": [
+    {
+     "when": "queue is absent or outside the enum",
+     "response": "HTTP 200 {ok:false, error:bad_request}"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/close_call",
+   "summary": "End the call — always the last tool call; nothing is accepted after it.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "outcome": "string enum [promise, paid, transferred, no_promise, not_verified, not_reached] (required)",
+    "reason": "string (required for every outcome except promise and paid; the contract defers the table to the brief, so any non-empty string is accepted)"
+   },
+   "response_fields": {
+    "ok": "boolean",
+    "error": "string (only when ok is false)"
+   },
+   "errors": [
+    {
+     "when": "outcome is transferred, no_promise, not_verified or not_reached and reason is absent or empty",
+     "response": "HTTP 200 {ok:false, error:reason_required}; the call is not closed"
+    },
+    {
+     "when": "any call arrives after a successful close_call",
+     "response": "HTTP 200 {ok:false, error:call_closed} — refused, but still written to the ledger"
+    },
+    {
+     "when": "service failure (injectable, off by default)",
+     "response": "HTTP 500, nothing recorded, the call stays open and may be repeated"
+    }
+   ]
+  }
+ ],
+ "ledger": {
+  "record_every_call": true,
+  "fields": [
+   "calls[] {seq:int (monotonic), at:ISO-8601, customer_id:string, tool:string (one of the seven), request:object as sent, result:object as returned incl. HTTP status}",
+   "outcome:string (close_call outcome; null until close_call)",
+   "reason:string (close_call reason; null when none was required)",
+   "promises[] {product_id:string, amount:number, date:string YYYY-MM-DD}",
+   "notes[] {product_id:string, reason:string enum}",
+   "callbacks[] {date:string, time:string}",
+   "transfers[] {queue:string}",
+   "identity {verified:boolean, wrong_answers:int, locked:boolean}"
+  ],
+  "read_routes": [
+   {
+    "method": "GET",
+    "path": "/v1/practice/ledger/{customer_id}",
+    "summary": "the ledger a scorer reads"
+   },
+   {
+    "method": "GET",
+    "path": "/v1/practice/ledger",
+    "summary": "all customer ledgers, keyed by customer_id (proposed; the contract defines no read route)"
+   }
+  ]
+ },
+ "sessions": {
+  "add": true,
+  "path": "/v1/practice/sessions",
+  "request": {
+   "case": "case object, or a case/customer id such as T-1001, whose identity, products and variables seed the mock"
+  },
+  "response": {
+   "variables": "{customer_id (fresh), first_name, last_name, title, now} — the call variables, always including a fresh customer_id"
+  },
+  "notes": "The contract has no session endpoint (its seven paths are all POST bank tools under /v1), so this practice-style route is proposed. Creating a session must register the case's customer in the seed — identity answers date_of_birth/phone_last4 and the products array — and must reset that customer's identity state, closed flag and ledger so a rerun is clean. Hand back a fresh customer_id when one is requested so parallel runs of the same case never share state. Never hard-code the smoke customer: identity, products and variables come from the case."
+ },
+ "faults": [
+  {
+   "tool": "any of the seven (POST /v1/*)",
+   "when": "the contract permits a 500 on every endpoint ('The service failed'); no test customer in this seed arms one, so it must be an injectable fault that is off by default",
+   "behavior": "HTTP 500 with nothing recorded: no ledger entry, no state change (identity counter, lock, promises, notes, callbacks, transfers, closed flag all untouched); the call may be repeated and must then succeed"
+  }
+ ],
+ "products": {
+  "shape": "{product_id: string, type: string enum [credit_card, personal_loan, car_loan], card_last4: string (credit cards only), past_due: number, days_late: integer, minimum_payment: number (credit cards only), instalment_amount: number (loans only)}",
+  "ids": "Not fixed by the contract. The seed uses short per-customer ids in listed order (p1, p2, …); keep exactly the ids the case supplies, because the agent speaks them and the ledger and scorer match on them. Deterministically derived (unknown) customers get p1..pN in their derived order. Ids are never reused across customers."
+ },
+ "unknown_customer_policy": "The contract defines no not-found response — only HTTP 200 with ok:false and the 500 — so never 500, never 404, and never a body shape outside the contract. Look the id up in the session/case-registered seed first; if it is absent, derive the customer deterministically from the id (a stable hash of the id → date_of_birth, phone_last4, 1-3 products of the defined shape with ids p1..pN) so the same id always yields the same customer and the identity check still has real answers to compare against, and mark the ledger entry as derived so the scorer can see it. Every call for such an id is still recorded.",
+ "extra_notes": [
+  "close_call outcome vocabulary is fixed by the contract: promise | paid | transferred | no_promise | not_verified | not_reached, and reason is required for every outcome except promise and paid. The contract defers the reason table to the brief, so the mock accepts any non-empty reason string and must not enforce the brief's rules.",
+  "add_note reason vocabulary is a fixed enum: refused | hardship | dispute | paid | service_error — this one is enforced (bad_request otherwise).",
+  "Test customer T-1001 (smoke): expected final state outcome=promise with promises=[{product_id:p1, amount:420.0, date:2026-10-14}] (today taken from variables.now=2026-10-14T11:00) and empty notes/callbacks/transfers; checks is empty, so this case only proves the round trip. The scorer compares the ledger against the case's `expected` object, so outcome and the promises[] product_id/amount/date are what count — and so does the absence of extra entries.",
+  "The service never enforces the brief: it records a promise on a holiday, past the deadline, or for any amount without complaint. The mock must not validate amounts or dates against business rules — following the brief is the agent's job.",
+  "Every call is recorded, including refused ones (ok:false) and any call arriving after close_call. The ledger's calls[] is the scorer's evidence, so store the request and the result as sent.",
+  "500 semantics: the service failed, nothing was recorded, the call may be repeated — no ledger entry and no state change. Implement it as an injectable fault that is off by default.",
+  "No authentication: no key, no header. The seven tool calls are open; the customer_id in the body is the only identifying value ('the secret of one call').",
+  "Every response is HTTP 200 with application/json and an ok boolean; 500 is the only non-200. CORS must allow the simulation's browser origin.",
+  "All state (identity progress, wrong-answer count, lock, promises, notes, callbacks, transfers, closed flag, ledger) is keyed by customer_id and must survive across separate HTTP calls and worker restarts — use durable storage, not in-memory-per-isolate state, because one phone call is many requests hitting possibly different isolates.",
+  "Clock: use the case's variables.now as 'now' so dates and ledger timestamps are deterministic; calls[].at should be ISO-8601 and calls[].seq monotonic.",
+  "Language: the customer-facing conversation is Turkish (seed shows title 'Bey', surname 'Musteri'); every field name, enum value and error string in the API stays exactly the English spelling of the contract.",
+  "Only get_account is contractually gated on identity; transfer_to_agent does not end the call (close_call with outcome=transferred must still follow), and close_call is always last — after it the mock refuses everything else but keeps recording."
+ ]
+}

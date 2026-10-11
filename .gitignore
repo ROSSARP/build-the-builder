@@ -1,5 +1,6 @@
 # secrets — never commit API keys
 env.sh
+.claude/settings.local.json
 
 # local state and caches
 __pycache__/

@@ -9,7 +9,17 @@
 # Deploy path, in order of preference:
 #   1. npx wrangler deploy        (used when npx exists and --rest was not passed)
 #   2. Cloudflare REST API        PUT /accounts/{account_id}/workers/scripts/{name}
-#      (fallback; also what runs when node/npx is not installed)
+#      (fallback; also what runs when node/npx is not installed). Implemented with
+#      python3's stdlib (urllib) — no node, no wrangler, no curl needed. The curl
+#      one-liners in FINAL_RUNBOOK Block 3 remain the manual fallback if this breaks.
+#
+# URL resolution: after the upload the script enables the workers.dev route, reads the
+# account subdomain and prints the deployed host AND the submission URL with the
+# contract base path (contract analysis -> endpoints.json -> base_path), e.g.
+#    deployed: https://name.subdomain.workers.dev
+#    mock url: https://name.subdomain.workers.dev/v1
+# deployed.json records url, base_path and mock_url; mock_gen.py prints MOCK_URL from
+# mock_url, which is the value builder/build.py wants (it appends the tool paths).
 #
 # --with-kv creates a KV namespace MOCK_KV, binds it (the worker then mirrors its ledger
 # to KV so state survives a change of Worker isolate) and records the id in
@@ -25,7 +35,7 @@
 set -euo pipefail
 
 usage() {
-  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 DIR=""
@@ -60,6 +70,11 @@ while [ $# -gt 0 ]; do
     *) die "unknown flag: $1 (try --help)";;
   esac
 done
+
+# The runbook's env.sh also carries the CLOUDFLARE_* spellings; accept either.
+CF_API_TOKEN="${CF_API_TOKEN:-${CLOUDFLARE_API_TOKEN:-}}"
+CF_ACCOUNT_ID="${CF_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}"
+export CF_API_TOKEN CF_ACCOUNT_ID
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR="${DIR:-$HERE}"
@@ -125,6 +140,7 @@ health_check() {
   local target="$1"
   python3 - "$target" "$MANIFEST" "$TIMEOUT" "$RETRIES" "$INSECURE" "$DIR" "$NAME" <<'PY'
 import json, os, ssl, sys, time, urllib.error, urllib.request
+from urllib.parse import urlsplit
 
 url, manifest_path, timeout, retries, insecure, outdir, name = sys.argv[1:8]
 timeout, retries, insecure = float(timeout), int(retries), insecure == "1"
@@ -143,9 +159,11 @@ def get(path):
 
 probes = ["/health"]
 probe_of = {"/health": "/health"}
+base_path = ""
 if manifest_path and os.path.exists(manifest_path):
     try:
         man = json.load(open(manifest_path))
+        base_path = (man.get("base_path") or "").rstrip("/")
         for p in man.get("get_probes") or []:
             path = p.get("path") or ""
             if path and path not in probe_of:
@@ -153,6 +171,12 @@ if manifest_path and os.path.exists(manifest_path):
                 probe_of[path] = p.get("probe_of", path)
     except Exception as e:
         print(f"   warning: could not read {manifest_path}: {e}")
+
+# The URL may be handed in with the contract's base path (the runbook's MOCK_URL is
+# https://host/v1): the probe paths below already carry it, so the health target is
+# the bare host.
+if base_path and urlsplit(target).path.rstrip("/") == base_path:
+    target = target[: -len(base_path)].rstrip("/")
 
 def probe(path):
     code, body = get(path)
@@ -190,7 +214,9 @@ for path in probes[1:]:
 passed, total = sum(1 for r in results if r["pass"]), len(results)
 print(f"   health: {'ok' if health_ok else 'FAILED'}; get endpoints: {passed}/{total} passed")
 
-out = {"url": target, "worker_name": name, "checked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+out = {"url": target, "base_path": base_path,
+       "mock_url": (target + base_path) if base_path else target,
+       "worker_name": name, "checked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
        "health": health_ok, "get_probes": results, "passed": passed, "total": total}
 try:
     with open(os.path.join(outdir, "deployed.json"), "w") as f:
@@ -212,8 +238,20 @@ outdir, name, with_kv, dry = sys.argv[1:5]
 with_kv, dry = with_kv == "1", dry == "1"
 acct = os.environ.get("CF_ACCOUNT_ID", "")
 tok = os.environ.get("CF_API_TOKEN", "")
-api = f"https://api.cloudflare.com/client/v4/accounts/{acct}"
+# CF_API_BASE exists so the REST path can be exercised against a local stub of the
+# Cloudflare API; in normal use it is unset and the real API is called.
+api_base = (os.environ.get("CF_API_BASE") or "https://api.cloudflare.com/client/v4").rstrip("/")
+api = f"{api_base}/accounts/{acct}"
 headers = {"authorization": "Bearer " + tok, "user-agent": "mock-deploy/1.0"}
+
+# The contract base path (e.g. /v1) — appended to the deployed host so the printed
+# URL and deployed.json carry what build.py and the submission need.
+base_path = ""
+try:
+    base_path = (json.load(open(os.path.join(outdir, "endpoints.json")))
+                 .get("base_path") or "").rstrip("/")
+except Exception:
+    pass
 
 def call(method, path, body=None, raw=None, ctype=None):
     data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
@@ -299,7 +337,9 @@ if not dry:
 if url:
     print(f"   deployed: {url}")
     with open(os.path.join(outdir, "deployed.json"), "w") as f:
-        json.dump({"url": url, "worker_name": name,
+        json.dump({"url": url, "base_path": base_path,
+                   "mock_url": (url + base_path) if base_path else url,
+                   "worker_name": name,
                    "deployed_at": __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()),
                    "path": "rest", "kv": bool(binding)}, f, indent=1)
         f.write("\n")
@@ -350,12 +390,18 @@ PY
     fi
   fi
   echo "   npx --yes wrangler@4 deploy (config deploy.wrangler.toml)"
+  local raw
+  raw="$(mktemp)"
   ( cd "$DIR" && CLOUDFLARE_API_TOKEN="$CF_API_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID" \
-      npx --yes wrangler@4 deploy --config deploy.wrangler.toml 2>&1 | sed 's/[A-Za-z0-9_-]\{30,\}/[redacted]/g' )
+      npx --yes wrangler@4 deploy --config deploy.wrangler.toml 2>&1 ) | tee "$raw" \
+      | sed 's/[A-Za-z0-9_-]\{30,\}/[redacted]/g'
+  DEPLOYED_URL="$(grep -oE 'https://[A-Za-z0-9.-]+\.workers\.dev' "$raw" | tail -1 || true)"
+  rm -f "$raw"
 }
 
 if [ "$HEALTH_ONLY" -eq 0 ]; then
   echo "== deploy: worker '$NAME' from $DIR (path: $MODE) =="
+  DEPLOYED_URL=""
   if [ "$MODE" = "wrangler" ]; then
     deploy_wrangler
   else
@@ -365,6 +411,37 @@ if [ "$HEALTH_ONLY" -eq 0 ]; then
       URL="$(printf '%s\n' "$DEPLOY_OUT" | tail -1)"
       [ "$URL" = "URL_UNKNOWN" ] && URL=""
     fi
+  fi
+  if [ -z "$URL" ] && [ -n "$DEPLOYED_URL" ]; then
+    URL="$DEPLOYED_URL"
+  fi
+  if [ -n "$URL" ]; then
+    # The submission, build.py and the runbook want the URL *with* the contract base
+    # path (https://<worker>.<subdomain>.workers.dev/v1); the health check wants the
+    # bare host, because the probe paths from endpoints.json already carry the prefix.
+    BASE_PATH="$(python3 - "$MANIFEST" <<'PY'
+import json, sys
+try:
+    print((json.load(open(sys.argv[1])).get("base_path") or "").rstrip("/"))
+except Exception:
+    print("")
+PY
+)"
+    echo "   deployed: $URL"
+    if [ -n "$BASE_PATH" ]; then
+      echo "   mock url: $URL$BASE_PATH"
+    fi
+    python3 - "$DIR" "$NAME" "$URL" "$BASE_PATH" "$MODE" <<'PY'
+import json, sys, time
+outdir, name, url, base, mode = sys.argv[1:6]
+with open(outdir + "/deployed.json", "w") as f:
+    json.dump({"url": url, "base_path": base,
+               "mock_url": (url + base) if base else url,
+               "worker_name": name,
+               "deployed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+               "path": mode}, f, indent=1)
+    f.write("\n")
+PY
   fi
 fi
 

@@ -1,0 +1,17 @@
+{
+  "customers": [
+    {
+      "id": "T-1001",
+      "family": "smoke",
+      "title": "Smoke test customer (synthetic — deploy pipeline test only)",
+      "variables": {"first_name": "Test", "last_name": "Musteri", "title": "Bey", "now": "2026-10-14T11:00"},
+      "identity": {"date_of_birth": "1988-03-14", "phone_last4": "4471"},
+      "products": [
+        {"product_id": "p1", "type": "credit_card", "card_last4": "1234", "past_due": 420.0, "days_late": 12, "minimum_payment": 100.0}
+      ],
+      "script": "Confirms identity, promises the full amount today, closes the call.",
+      "expected": {"outcome": "promise", "promises": [{"product_id": "p1", "amount": 420.0, "date": "2026-10-14"}]},
+      "checks": []
+    }
+  ]
+}

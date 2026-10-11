@@ -2,8 +2,8 @@
  "customers": [
   {
    "customer_id": "PUB-01",
-   "case_id": null,
-   "name": "Mr Daniel Reyes",
+   "case_id": "PUB-01",
+   "name": "Daniel Reyes",
    "variables": {
     "first_name": "Daniel",
     "last_name": "Reyes",
@@ -94,8 +94,8 @@
   },
   {
    "customer_id": "PUB-02",
-   "case_id": null,
-   "name": "Ms Maria Costa",
+   "case_id": "PUB-02",
+   "name": "Maria Costa",
    "variables": {
     "first_name": "Maria",
     "last_name": "Costa",
@@ -180,8 +180,8 @@
   },
   {
    "customer_id": "PUB-03",
-   "case_id": null,
-   "name": "Mr Owen Park",
+   "case_id": "PUB-03",
+   "name": "Owen Park",
    "variables": {
     "first_name": "Owen",
     "last_name": "Park",
@@ -258,8 +258,8 @@
   },
   {
    "customer_id": "PUB-04",
-   "case_id": null,
-   "name": "Ms Lena Hoffmann",
+   "case_id": "PUB-04",
+   "name": "Lena Hoffmann",
    "variables": {
     "first_name": "Lena",
     "last_name": "Hoffmann",
@@ -346,8 +346,8 @@
   },
   {
    "customer_id": "PUB-05",
-   "case_id": null,
-   "name": "Mr Tomas Novak",
+   "case_id": "PUB-05",
+   "name": "Tomas Novak",
    "variables": {
     "first_name": "Tomas",
     "last_name": "Novak",
@@ -424,8 +424,8 @@
   },
   {
    "customer_id": "PUB-06",
-   "case_id": null,
-   "name": "Ms Priya Nair",
+   "case_id": "PUB-06",
+   "name": "Priya Nair",
    "variables": {
     "first_name": "Priya",
     "last_name": "Nair",
@@ -514,8 +514,8 @@
   },
   {
    "customer_id": "PUB-07",
-   "case_id": null,
-   "name": "Mr Samuel Ortiz",
+   "case_id": "PUB-07",
+   "name": "Samuel Ortiz",
    "variables": {
     "first_name": "Samuel",
     "last_name": "Ortiz",
@@ -602,8 +602,8 @@
   },
   {
    "customer_id": "PUB-08",
-   "case_id": null,
-   "name": "Ms Hannah Schmidt",
+   "case_id": "PUB-08",
+   "name": "Hannah Schmidt",
    "variables": {
     "first_name": "Hannah",
     "last_name": "Schmidt",
@@ -678,8 +678,8 @@
   },
   {
    "customer_id": "PUB-09",
-   "case_id": null,
-   "name": "Mr Victor Ionescu",
+   "case_id": "PUB-09",
+   "name": "Victor Ionescu",
    "variables": {
     "first_name": "Victor",
     "last_name": "Ionescu",
@@ -762,8 +762,8 @@
   },
   {
    "customer_id": "PUB-10",
-   "case_id": null,
-   "name": "Ms Grace Lin",
+   "case_id": "PUB-10",
+   "name": "Grace Lin",
    "variables": {
     "first_name": "Grace",
     "last_name": "Lin",
@@ -799,8 +799,8 @@
    "faults": [
     {
      "tool": "create_promise",
-     "when": "on the first create_promise call of the session",
-     "behavior": "fail_first_n",
+     "when": "first call of the session",
+     "behavior": "500 once and nothing recorded; the repeated call succeeds",
      "times": 1
     }
    ],
@@ -863,8 +863,8 @@
   },
   {
    "customer_id": "PUB-11",
-   "case_id": null,
-   "name": "Ms Sofia Almeida",
+   "case_id": "PUB-11",
+   "name": "Sofia Almeida",
    "variables": {
     "first_name": "Sofia",
     "last_name": "Almeida",
@@ -999,8 +999,8 @@
   },
   {
    "customer_id": "PUB-12",
-   "case_id": null,
-   "name": "Mr Marcus Bell",
+   "case_id": "PUB-12",
+   "name": "Marcus Bell",
    "variables": {
     "first_name": "Marcus",
     "last_name": "Bell",
@@ -1135,8 +1135,8 @@
   },
   {
    "customer_id": "PUB-13",
-   "case_id": null,
-   "name": "Ms Elena Rossi",
+   "case_id": "PUB-13",
+   "name": "Elena Rossi",
    "variables": {
     "first_name": "Elena",
     "last_name": "Rossi",

@@ -1,13 +1,13 @@
 {
- "team": "Şükrü Fırat Sarp",
+ "team": "\u015e\u00fckr\u00fc F\u0131rat Sarp",
  "members": [
   {
-   "name": "Şükrü Fırat Sarp",
+   "name": "\u015e\u00fckr\u00fc F\u0131rat Sarp",
    "email": "fcodefcode3@gmail.com"
   }
  ],
  "repo": "https://github.com/ROSSARP/build-the-builder.git",
- "commit": "82ade33",
+ "commit": "f515988",
  "run_command": "python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1",
  "workflow": "submission/finalcase.workflow.json",
  "trace": "traces/finalcase.log",

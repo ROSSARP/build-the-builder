@@ -22,3 +22,8 @@ TODO:
 - Track v6 publish; on landing check its relay says R3+R4b included (I relay only — never edit gen_query/spec).
 - e5 ack for bff1bb5: theirs; flag only if silent past 18:54 UTC.
 - Drive Monitor expires ~19:04 UTC → re-arm. Heartbeat entry due ~19:05 UTC if quiet.
+
+## 18:55 UTC — e5 ack overdue → SendMessage backup sent
+DONE:
+- No ack commit for bff1bb5 by 18:54 UTC → sent SendMessage nudge to build-the-builder-e5 (hold sims until all-clear; ack via one-line commit; v6 expected next). Delivery accepted into their inbox.
+- Drive heartbeats continuous 0 new, 0 changed.

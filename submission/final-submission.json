@@ -2,7 +2,7 @@
  "team": "YOUR-TEAM-NAME",
  "members": [],
  "repo": "https://github.com/ROSSARP/build-the-builder",
- "commit": "ccbe8c2",
+ "commit": "82ade33",
  "run_command": "python3 builder/build.py {case_folder} {mock_url}",
  "workflow": "submission/finalcase.workflow.json",
  "trace": "traces/finalcase.log",

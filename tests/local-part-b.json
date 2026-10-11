@@ -1,0 +1,397 @@
+[
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 below the floor, then the floor",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. The full amount is too much for you. When the assistant offers the floor, say you can only pay 50 dollars. When the assistant says that cannot be recorded and offers the floor once more, accept it on Friday the 16th.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 637.5,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the 50 dollar amount is refused as below the floor",
+   "the floor is offered once and recorded on the 16th",
+   "the rest stays overdue is mentioned"
+  ],
+  "case_id": "PUB-06",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "The full amount is too much. When the floor is offered, say you can only pay 50. When the assistant says that cannot be recorded and offers the floor once more, accept it on Friday the 16th.",
+   "quirks": "Stay polite throughout."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 637.5,
+   "expected_ledger_date": "2026-10-16"
+  }
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "A vague period, then a holiday \u2014 rushed, Saturday before the holiday",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "Answer both security questions correctly but give short, rushed answers. You can pay the full amount on Saturday the 24th. When the assistant proposes the next business day, accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 540.0,
+     "date": "2026-10-27"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the weekend date is not recorded",
+   "Monday the 27th is proposed and recorded (the 26th is a holiday)"
+  ],
+  "case_id": "PUB-07",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "actual_dob": "1975-12-05",
+   "actual_phone_last4": "7093",
+   "product": "personal_loan",
+   "days_late": 5,
+   "past_due_amount": 540.0,
+   "floor_amount": 180.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "You can pay the full amount on Saturday the 24th. Accept whatever the assistant proposes next.",
+   "quirks": "Be in a hurry; give short answers."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 540.0,
+   "expected_ledger_date": "2026-10-27"
+  }
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "medium",
+  "title": "Says she already paid \u2014 already paid, said in words",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "Answer both security questions correctly. Say every amount and date in words. Tell the assistant you already paid this past-due amount two days ago, though you are not sure of the exact day. Ask when the payment will show up. Do not agree to any promise.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says payments can take one business day to appear",
+   "no promise is taken",
+   "the call closes as paid"
+  ],
+  "case_id": "PUB-08",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Confused",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Say you already paid this amount two days ago; you are unsure of the exact day. Ask when it will show up. Take no promise.",
+   "quirks": "Say every amount and date in words, never digits."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "paid",
+   "expected_close_reason": null,
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "medium",
+  "title": "Asks for a new payment plan \u2014 insists on a human",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "Answer both security questions correctly but be in a hurry. You want to talk to a human being. When the assistant asks once whether it can help first, say no, and insist on a human.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "human",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "general"
+    }
+   ]
+  },
+  "checks": [
+   "the assistant asks once whether it can help",
+   "the call transfers to the general queue",
+   "the call closes as transferred with reason human"
+  ],
+  "case_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Escalation",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "You want to talk to a human. When the assistant asks once whether it can help, say no and insist.",
+   "quirks": "Be in a hurry."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "human",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "hard",
+  "title": "The promise service fails on the first call \u2014 hostile customer, promise service fails once",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "Answer both security questions correctly. You are short-tempered and complain about being called during work hours. You can pay the full amount today; confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 365.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "exactly one promise in the ledger after the retry",
+   "the assistant does not say recorded before a successful call",
+   "the assistant retries the failed create_promise"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ],
+  "case_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "API Failure",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "actual_dob": "1989-02-23",
+   "actual_phone_last4": "9904",
+   "product": "credit_card",
+   "days_late": 8,
+   "past_due_amount": 365.0,
+   "floor_amount": 109.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Pay the full amount today, but be short-tempered. The promise service fails on the assistant's first attempt (injected by the bank).",
+   "quirks": "Complain about being called during work hours."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 365.0,
+   "expected_ledger_date": "2026-10-14"
+  }
+ }
+]

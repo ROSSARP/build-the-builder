@@ -14,6 +14,7 @@ import freya
 from builder import gen, spec as spec_mod
 
 BUILDER_MODEL = os.environ.get("BUILDER_MODEL", "claude-sonnet-5-5")
+TRACE = []  # set per-run in main(); a module default so helper imports work standalone
 
 def log(msg):
     print(msg, flush=True)

@@ -554,7 +554,10 @@ def build_workflow(spec, api):
           "description": "The day the person named for a callback."},
          {"name": "callback_time", "type": "string", "min_confidence": 0.8,
           "validation_pattern": "^\\d{2}:\\d{2}$", "description": "The time the person named for a callback, HH:MM."}],
-        [{"target_node": "third_party", "description": "Keep talking", "condition": always()}])
+        [{"target_node": "identity", "description": "The person insists they ARE the customer",
+          "condition": {"operator": "matches_intent",
+                        "description": "The person on the line insists they are the customer themself."}},
+         {"target_node": "third_party", "description": "Keep talking", "condition": always()}])
 
     # ---- identity node
     ident = spec.get("identity", {})
@@ -728,7 +731,10 @@ def build_workflow(spec, api):
     # fill the self-transitions' targets and wire the routing ones
     opening["transitions"] = [
         trans("identity", "The customer themself confirmed", cond("who_answers", "equals", "target")),
-        trans("third_party", "Someone else is on the line", cond_is_set("who_answers")),
+        trans("third_party", "A relative answered", cond("who_answers", "equals", "relative")),
+        trans("third_party", "Wrong number", cond("who_answers", "equals", "wrong_number")),
+        trans("third_party", "The customer has died", cond("who_answers", "equals", "deceased")),
+        # "unclear" falls through here: stay and ask once more (rule 3)
         trans("opening", "Keep asking", always()),
     ]
     identity["transitions"] = [

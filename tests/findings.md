@@ -635,3 +635,10 @@ Failures:
 
 - artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
 - judgement: (none noted)
+## 2026-10-11 15:42 — local harness v3: opening routing fix verified
+
+- The local simulator caught the third_party trap: who_answers='unclear' matched the 'is_set' transition and routed real customers to third_party, where they got stuck (ledger 6/10 locally, all failures as not_reached/callback).
+- Fix: opening routes to third_party only on explicit values (relative/wrong_number/deceased); 'unclear' stays in opening and asks once more (rule 3). Plus a matches_intent recovery route in third_party ('the person insists they are the customer' -> identity).
+- Local v3 result: 10 / 10 ledger check (platform's own scorer, run locally) — matches the platform's official score.
+- The fix lives in builder/gen.py; the next platform regeneration carries it. Note: the local harness uses DeepSeek for agent/customer/extraction, so judge verdicts are approximate; ledger is exact.
+

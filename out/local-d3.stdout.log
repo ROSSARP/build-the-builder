@@ -1,0 +1,191 @@
+==============================================================================
+case PUB-07 - A vague period, then a holiday — f-p7-three-hundred-counter  (Dates, hard)
+bank session customer_id=c_3ac5ce2e-7e0  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, this is a digital assistant calling from Freya Bank, and this conversation is being monitored. Am I speaking with Mr Ortiz?
+    . llm customer: 4s, 53 chars
+[customer] Before you start — fourth time your lot have rung me.
+    . llm extract: 7s, 55 chars
+[extract] who_answers = 'target'
+[route] opening -> identity  (The customer themself confirmed)
+[node] identity (conversation)
+    . llm agent/identity/opening: 4s, 148 chars
+[agent] I'm sorry to hear we've rung you so often. Before anything else, could you please confirm your date of birth?
+    . llm customer: 3s, 41 chars
+[customer] Fifth of December, nineteen seventy-five.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 3s, 137 chars
+[agent] Thank you. Let me check that for you.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1975-12-05"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": false, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+    . llm agent/identity/reply: 3s, 155 chars
+[agent] Thank you, that's confirmed. And could you tell me the last four digits of the phone number we have on file for you?
+    . llm customer: 3s, 23 chars
+[customer] Seven, oh, nine, three.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 4s, 134 chars
+[agent] Thank you, let me check those four digits.
+[tool] verify_identity {"field": "phone_last4", "answer": "7093"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": true, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+[route] identity -> account  (Both security answers verified)
+[node] account (api_request)
+[tool] get_account {"customer_id": "c_3ac5ce2e-7e0"} -> {"ok": true, "products": [{"product_id": "p1", "type": "personal_loan", "past_due": 540, "days_late": 5, "instalment_amount": 180}]}
+[route] account -> dates
+[node] dates (code)
+[route] dates -> collect
+[node] collect (conversation)
+    . llm agent/collect/opening: 5s, 177 chars
+[agent] I'm calling from the Freya Bank collections team about your personal loan — 540 is past due, 5 days late. Can you make this payment today?
+    . llm customer: 3s, 55 chars
+[customer] I'll give you a hundred and twenty. Generous, aren't I.
+    . llm extract: 70s, 210 chars
+[extract] payment_amount = 120.0
+[extract] claim = 'none'
+[extract] confirmation = 'none'
+[route] collect stays  (Keep going)
+    . llm agent/collect/reply: 5s, 208 chars
+[agent] I'm not able to record 120 — the minimum instalment on the personal loan is 180, and the rest of the balance would stay overdue. Could you pay 180 on Friday, 16 October?
+    . llm customer: 3s, 59 chars
+[customer] No. Not a hundred and eighty, not your minimum, none of it.
+    . llm extract: 21s, 216 chars
+[extract] payment_amount = 120.0
+[extract] claim = 'dont_want'
+[extract] confirmation = 'none'
+[route] collect stays  (Keep going)
+    . llm agent/collect/reply: 8s, 184 chars
+[agent] I understand — I won't press you further today. Thank you for your time, and have a good day.
+[tool] close_call -> not available
+    . llm agent/collect/reply: 11s, 120 chars
+[agent] I understand — I'll leave it there. Thank you for your time, and have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 4s, 46 chars
+[close] decided outcome='no_promise' reason='refused'
+[tool] close_call {"customer_id": "c_3ac5ce2e-7e0", "outcome": "no_promise", "reason": "refused"} -> {"ok": true}
+[ledger] {"outcome": "no_promise", "reason": "refused", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] verify_identity > verify_identity > get_account > close_call
+LOCAL FAIL  PUB-07  (ledger, platform scorer)
+       - outcome ('no_promise', 'refused'), expected ('promise', None)
+       - promises [], expected [('p1', 300.0, '2026-10-16')]
+    . llm local judge: 5s, 747 chars
+local judge (approximate, not authoritative): FAIL
+       - ok  the 120.00 offer is refused as below the minimum and the floor is offered once
+       - BAD the 300.00 offer is accepted because it is above the minimum, with the note that the rest   -- No 300.00 offer appears anywhere in the transcript.
+       - BAD the promise is recorded for 300.00 on Friday 16 October  -- No promise recorded; close_call errored with outcome 'no_promise' and the call ended.
+       - ok  no offer already refused is repeated
+-- PUB-07: FAIL in 168 s
+
+==============================================================================
+case PUB-08 - Says she already paid — f-p8-salon-closed  (Already paid, medium)
+bank session customer_id=c_73080ce8-5d8  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, this is a digital assistant calling from Freya Bank, and this conversation is being monitored. Am I speaking with Ms Schmidt?
+    . llm customer: 6s, 6 chars
+[customer] Hello?
+    . llm extract: 33s, 56 chars
+[extract] who_answers = 'unclear'
+[route] opening stays  (Keep asking)
+    . llm agent/opening/reply: 3s, 141 chars
+[agent] Hello, this is Freya Bank's digital assistant calling. Could you please confirm your full name for me?
+    . llm customer: 3s, 15 chars
+[customer] Hannah Schmidt.
+    . llm extract: 4s, 55 chars
+[extract] who_answers = 'target'
+[route] opening -> identity  (The customer themself confirmed)
+[node] identity (conversation)
+    . llm agent/identity/opening: 3s, 132 chars
+[agent] Thank you, Ms. Schmidt. To verify your identity, could you please tell me your date of birth?
+    . llm customer: 4s, 101 chars
+[customer] The twenty-eighth of April... ninety-three. Sorry, the twenty-eighth of April, nineteen ninety-three.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 4s, 137 chars
+[agent] Thank you, let me check that for you.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1993-04-28"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": false, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+    . llm agent/identity/reply: 4s, 146 chars
+[agent] Thank you, that's confirmed. Now could you please tell me the last four digits of the phone number on file?
+    . llm customer: 3s, 49 chars
+[customer] Three-three-one-seven, I think... yes, that's it.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 3s, 137 chars
+[agent] Thank you, let me check those digits for you.
+[tool] verify_identity {"field": "phone_last4", "answer": "3317"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": true, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+[route] identity -> account  (Both security answers verified)
+[node] account (api_request)
+[tool] get_account {"customer_id": "c_73080ce8-5d8"} -> {"ok": true, "products": [{"product_id": "p1", "type": "credit_card", "card_last4": "5512", "past_due": 180, "days_late": 5, "minimum_payment": 54}]}
+[route] account -> dates
+[node] dates (code)
+[route] dates -> collect
+[node] collect (conversation)
+    . llm agent/collect/opening: 3s, 190 chars
+[agent] I'm calling from Freya Bank's collections team about a late payment on your credit card ending 5512 — the amount past due is 180, and it's 5 days late.
+    . llm customer: 7s, 295 chars
+[customer] Sorry — what was it you asked me again? The hundred and eighty, is it? It's just... the salon I rented a chair at closed in August, so I'm doing mobile cuts now. I've an appointment book, but most weeks it's two heads of hair and a pensioner's perm, and there's nothing left over at the moment.
+    . llm extract: 12s, 214 chars
+[extract] claim = 'hardship'
+[extract] confirmation = 'none'
+[route] collect stays  (Keep going)
+    . llm agent/collect/reply: 10s, 182 chars
+[agent] I'm sorry to hear things are tight at the moment. Can you make this payment today, or could you pay the full 180 by Friday the 16th of October?
+    . llm customer: 3s, 93 chars
+[customer] No — I'm sorry, I can't manage that just now. There's nothing left over at the moment, truly.
+    . llm extract: 88s, 214 chars
+[extract] claim: dropped ('hardship', conf 0.55)
+[extract] confirmation = 'none'
+[route] collect stays  (Keep going)
+    . llm agent/collect/reply: 14s, 118 chars
+[agent] I understand, Ms. Schmidt — thank you for your time today, and have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . bank /v1/practice/ledger/c_73080ce8-5d8 hiccup (Expecting value: line 1 column 1 (char 0)); retrying
+    . bank /v1/practice/ledger/c_73080ce8-5d8 hiccup (Expecting value: line 1 column 1 (char 0)); retrying
+    . bank /v1/practice/ledger/c_73080ce8-5d8 hiccup (Expecting value: line 1 column 1 (char 0)); retrying
+    . llm close_call decision: 7s, 47 chars
+[close] decided outcome='no_promise' reason='hardship'
+[tool] close_call {"customer_id": "c_73080ce8-5d8", "outcome": "no_promise", "reason": "hardship"} -> {"ok": true}
+[ledger] {"outcome": "no_promise", "reason": "hardship", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] verify_identity > verify_identity > get_account > close_call
+LOCAL PASS  PUB-08  (ledger, platform scorer)
+    . llm local judge: 8s, 875 chars
+local judge (approximate, not authoritative): FAIL
+       - BAD one short sentence of sympathy and no persuasion attempt  -- Sympathy is one short sentence, but the agent pushed: 'Can you make this payment today, or could you pay the full 180 by Friday the 16th of October?'
+       - BAD the support team is offered once and declined  -- No support team (or any support referral) is ever offered; the agent goes straight from the payment ask to closing.
+       - BAD no amount, date, discount or plan is discussed  -- Agent stated the amount past due (180) and 5 days late, then named a date (Friday the 16th of October) and a full-balance plan.
+       - ok  the call closes no_promise / hardship
+-- PUB-08: PASS in 239 s
+
+==============================================================================
+case PUB-08 - Says she already paid — f-p8-third-of-november  (Already paid, hard)
+bank session customer_id=c_80e95edd-cf0  now=2026-10-14T11:00
+[node] opening (conversation)
+[agent] Hello, this is a digital assistant calling from Freya Bank, and this conversation is being monitored. Am I speaking with Ms Schmidt?
+    . llm customer: 4s, 71 chars
+[customer] Yes, speaking - sorry, I've only got a minute, I'm rushing for a train.
+    . llm extract: 3s, 56 chars
+[extract] who_answers = 'target'
+[route] opening -> identity  (The customer themself confirmed)
+[node] identity (conversation)
+    . llm agent/identity/opening: 3s, 134 chars
+[agent] I understand, this will only take a moment. First, could you please confirm your date of birth?
+    . llm customer: 3s, 50 chars
+[customer] The twenty-eighth of April, nineteen ninety-three.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 3s, 138 chars
+[agent] Thank you. Let me just note that down.
+[tool] verify_identity {"field": "date_of_birth", "answer": "1993-04-28"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": false, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+    . llm agent/identity/reply: 3s, 131 chars
+[agent] Thank you. Next, could you confirm the last four digits of the phone number we have on file?
+    . llm customer: 3s, 22 chars
+[customer] Three three one seven.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 3s, 121 chars
+[agent] Thank you. Let me check that.
+[tool] verify_identity {"field": "phone_last4", "answer": "3317"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": true, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
+[route] identity -> account  (Both security answers verified)
+[node] account (api_request)
+[tool] get_account {"customer_id": "c_80e95edd-cf0"} -> {"ok": true, "products": [{"product_id": "p1", "type": "credit_card", "card_last4": "5512", "past_due": 180, "days_late": 5, "minimum_payment": 54}]}
+[route] account -> dates
+[node] dates (code)
+[route] dates -> collect
+[node] collect (conversation)
+    . llm agent/collect/opening: 3s, 184 chars
+[agent] I'm calling from the collections team about your credit card ending 5512, which is 180 past due and 5 days late. Can you make this payment today?
+    . llm customer: 3s, 131 chars
+[customer] Right - can't do it today, but I'll clear the whole hundred and eighty on the third of November. That's payday, and it's a Tuesday.

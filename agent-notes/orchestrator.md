@@ -44,3 +44,8 @@ DONE:
 TODO:
 - Fix final_sim.py (mock __log URL + transcript extraction) → run 8 scenarios → collect data → report to user
 - Coordinate sim windows with e5 (one simulation at a time)
+
+## 00:10 (21:10 UTC)
+DONE: v11 yayında (model-fetch balance yapısı); teslim paketi + freeze işareti + commit cec5c55; submission.json commit alanı pinlenecek (kullanıcı tetiğinde)
+TODO: v11 üzerinde 12 senaryo x 2 tekrar tutarlılık benchmarkı (varyans elenecek) -> sürüm karşılaştırma tablosu -> en iyi sürüm kararı kullanıcıya
+OWN: tests/final_sim.py@stable-system-test-campaign — --reps eklendi

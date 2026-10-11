@@ -160,6 +160,7 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--agent", default=os.environ.get("FREYA_AGENT_ID", ""))
     ap.add_argument("--max-sec", type=int, default=420)
+    ap.add_argument("--reps", type=int, default=1, help="run each scenario N times")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
     scenarios = load()
@@ -172,15 +173,19 @@ def main():
     picked = scenarios if a.all else [s for s in scenarios if s["id"] in a.ids]
     if not picked:
         raise SystemExit("no scenarios selected (use ids, --all, or --list)")
-    print(f"== final-case simulation runs against agent {a.agent} ==")
+    print(f"== final-case simulation runs against agent {a.agent} (reps {a.reps}) ==")
     results = []
     for s in picked:
-        try:
-            results.append(run_one(s, a.agent, a.max_sec, a.quiet))
-        except Exception as e:
-            print(f"  {s['id']}: ERROR {type(e).__name__}: {e}")
-            results.append(False)
-    print(f"== {sum(1 for r in results if r)}/{len(results)} scenarios passed ==")
+        for rep in range(1, a.reps + 1):
+            try:
+                ok = run_one(s, a.agent, a.max_sec, a.quiet)
+                if a.reps > 1:
+                    print(f"  {s['id']} rep {rep}/{a.reps}: {'PASS' if ok else 'FAIL'}")
+                results.append(ok)
+            except Exception as e:
+                print(f"  {s['id']}: ERROR {type(e).__name__}: {e}")
+                results.append(False)
+    print(f"== {sum(1 for r in results if r)}/{len(results)} scenario-reps passed ==")
 
 
 if __name__ == "__main__":

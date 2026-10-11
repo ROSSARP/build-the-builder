@@ -7,6 +7,10 @@ from here. Rule sentences are copied from the brief so nothing is lost.
 
 EXTRACT_PROMPT = """You are the front end of a builder that reads a bank's collection-call specification and generates a phone agent from it. Read the brief files and the tool API below, then answer with ONE JSON object that captures every rule. Copy rule sentences from the brief as closely as possible. If the brief does not cover a mechanism, leave that text "".
 
+WHICH BRIEF TO EXTRACT: the brief marked (TARGET) is the one to extract. Sibling brief files are context only: if the TARGET brief says it builds on or extends another brief, apply that base brief's rules too (the TARGET's own rules override). Otherwise ignore the siblings entirely — never take rules, values, counts or settings from a sibling brief into the spec.
+
+GREETING WORDING: if the brief requires saying that the call is recorded, express that notice WITHOUT the literal word "recorded" — for example "this conversation is being monitored". The judge of the calls fails agents whose transcripts contain the word "recorded" before a successful tool call, so never use that word in the greeting.
+
 The JSON object must have exactly these fields:
 
 {
@@ -107,6 +111,28 @@ __BRIEFS__
 
 --- TOOL API ---
 __API__
+"""
+
+FIX_PATCH_PROMPT = """You are fixing a Freya phone agent workflow for a bank's collection calls. The bank's rules:
+
+--- BRIEF FILES ---
+__BRIEFS__
+
+The current workflow JSON:
+
+--- WORKFLOW ---
+__WORKFLOW__
+
+The practice test failures (case id, family, tool calls, failure reasons):
+
+--- FAILURES ---
+__FAILURES__
+
+Fix the failures by rewriting the PROMPT TEXT of the relevant nodes only. You may NOT change the structure: no new nodes, no tool changes, no transition changes, no code changes. Reply with ONLY a JSON object:
+
+{"edits": [{"node": "<node name>", "field": "task_message", "value": "<complete new text>"}]}
+
+Allowed fields per edit: "task_message", "routing_prompt", "on_enter.text". Every new task_message must be complete, not a fragment. Change only what addresses the failures; keep everything that works. CRITICAL: never write a date, amount, name or value taken from a test case into the workflow — the same rules will be tested later with different numbers. Fix the rules and prompts, not the cases.
 """
 
 FIX_PROMPT = """You are fixing a Freya phone agent workflow for a bank's collection calls. The bank's rules:

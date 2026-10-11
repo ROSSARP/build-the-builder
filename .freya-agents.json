@@ -2,6 +2,15 @@
  "brief-a": {
   "workflow_id": "73a14df1-aec9-4c0d-a76a-50c703d08081",
   "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6",
-  "version": 2
+  "version": 24
+ },
+ "brief-b": {
+  "workflow_id": "c0be864c-40f8-4b8e-a13e-f2d075c919b3",
+  "agent_id": "72479558-62ed-428e-b4e6-06e459fbcd17",
+  "version": 7
+ },
+ "hidden-1": {
+  "workflow_id": "a9952de3-139b-4b1b-8764-2cadfc2c7e42",
+  "agent_id": "9add1e83-1b56-4873-9e2f-36685c3705a1"
  }
 }

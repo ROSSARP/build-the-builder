@@ -1,0 +1,1418 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 weekend date",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You can pay the full amount, but only on Saturday the 17th of October. When the assistant offers the next business day instead, accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-19"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant does not record the weekend date",
+   "the promise is recorded on Monday the 19th",
+   "the read-back names the corrected date"
+  ]
+ },
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 corrects the date",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You can pay the full amount on Friday. First say 'the sixteenth', then correct yourself: 'sorry, I mean the twentieth'. Confirm the corrected date when it is read back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-20"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the corrected date, the 20th, is recorded, not the 16th",
+   "the customer's correction is accepted"
+  ]
+ },
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "easy",
+  "title": "Confirms identity and pays the full amount today \u2014 talkative",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "Before answering the security questions, mention your cousin's wedding is on the 30th and that traffic was terrible today. Then answer everything normally and pay the full amount today.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the promise is recorded for today with the full amount",
+   "the wedding talk does not change any fact",
+   "identity is still verified first"
+  ]
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 callback after one out-of-window offer",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are NOT the customer, a relative answered. You do not know the security answers. First you suggest Sunday for the callback. When the assistant asks for another time, say Thursday at 11 o'clock.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "callback",
+   "promises": [],
+   "notes": [],
+   "callbacks": [
+    {
+     "date": "2026-10-15",
+     "time": "11:00"
+    }
+   ],
+   "transfers": []
+  },
+  "checks": [
+   "nothing about the account is said",
+   "the Sunday suggestion is refused once and Thursday at 11:00 is scheduled",
+   "the call closes as not_reached with reason callback"
+  ]
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 callback outside the window, twice",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are NOT the customer, a relative answered. You say the customer can be reached only tomorrow evening at 9 pm. When asked once more, you still say 9 pm.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "no_callback",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "no callback is scheduled",
+   "the call closes as not_reached with reason no_callback"
+  ]
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 deceased",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are NOT the customer. You tell the assistant the customer passed away last month. Answer nothing else.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "deceased",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says one sentence of condolence",
+   "no further questions are asked",
+   "the call closes as not_reached with reason deceased"
+  ]
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 wrong number",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are NOT the customer. You say this is the wrong number and nobody by that name lives here.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "wrong_number",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "nothing about the account is said",
+   "the call closes as not_reached with reason wrong_number"
+  ]
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "hard",
+  "title": "Three wrong answers \u2014 day-month swapped hint",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "When asked for your date of birth, give it as three numbers with the month first: '7 21 1992', spoken like 'seven, twenty-one, ninety-two'. If the assistant asks you to say the month as a word, say 'July'. Always include the year when you repeat the date. Then give the last four digits of your phone normally and pay the full amount today.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 95.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the swapped date is not counted as a wrong answer",
+   "the assistant asks for the month as a word",
+   "identity passes and the promise is recorded"
+  ]
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "medium",
+  "title": "Three wrong answers \u2014 declines security questions",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "When the assistant asks for your date of birth, answer 'why do you need that?'. Whatever the reply, refuse once more. Do not answer any security question.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant explains once that the questions protect the account",
+   "no debt is stated",
+   "the call closes as not_verified with reason declined"
+  ]
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 holiday past the deadline",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "You can pay the full amount on the 26th of October. The assistant will say that is too late and propose the latest possible date; accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says 26 October is past the latest date",
+   "the deadline is offered",
+   "the promise is recorded on the deadline"
+  ]
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 vague period",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "When asked when you can pay, say 'next week'. When asked for the exact day, say 'when my salary comes'. The assistant then proposes a concrete date; accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant asks once for the exact day",
+   "the proposed deadline is recorded"
+  ]
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 next Friday",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "You can pay the full amount next Friday. Confirm the date the assistant reads back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "next Friday is understood as 23 October",
+   "the promise is recorded on 23 October"
+  ]
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 asks back",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Twice in the call, before answering, ask a short question back: first 'why do you need that?' before your date of birth, then 'which account is this about?' before the amount talk. Otherwise answer normally and pay the full amount on the 20th.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-20"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the questions are answered and the call continues",
+   "the promise is recorded on the 20th"
+  ]
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "medium",
+  "title": "Lost his job, declines the support team \u2014 accepts support",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "You lost your job and cannot pay anything. The assistant offers to connect you with the customer support team; accept.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "support",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "support"
+    }
+   ]
+  },
+  "checks": [
+   "one short sentence of sympathy",
+   "support is offered exactly once",
+   "no persuasion attempt is made",
+   "the call transfers to the support queue"
+  ]
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 hardship but names a date",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "You lost your job and cannot pay the full amount, but say you can pay the floor amount on the 20th. Accept the assistant's read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 260.0,
+     "date": "2026-10-20"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one short sentence of sympathy",
+   "no persuasion attempt is made",
+   "the self-named date is still recorded"
+  ]
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 below the floor",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "The full amount is too much for you. When the assistant offers the floor amount, say you can only pay 50 dollars. When the assistant says that cannot be recorded and offers the floor once more, accept it on the 16th.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 637.5,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the 50 dollar amount is refused as below the floor",
+   "the floor is offered once and recorded"
+  ]
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "medium",
+  "title": "Full amount is too much, accepts the floor \u2014 refuses the floor",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "The full amount is too much for you, and you also refuse the floor amount the assistant offers. Say you will not pay anything.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the floor is offered only once",
+   "the call closes as no_promise with reason refused"
+  ]
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 amounts in words",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Say every amount in words, never in digits: 'six hundred and thirty-seven fifty'. You cannot pay the full amount today; accept the floor on Friday the 16th when it is offered.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 637.5,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the floor amount is recorded on the 16th",
+   "the rest stays overdue is mentioned"
+  ]
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "A vague period, then a holiday \u2014 weekend before a holiday",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "You can pay the full amount on Saturday the 24th of October. When the assistant names the next business day, accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 540.0,
+     "date": "2026-10-27"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the weekend date is not recorded",
+   "Monday the 27th is proposed and recorded (the 26th is a holiday)"
+  ]
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "A vague period, then a holiday \u2014 flat refusal, accepts attempt 1",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "First you refuse to pay: you give no date and no amount. When the assistant makes one proposal, accept it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 540.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one persuasion attempt is made, proposing the last business day of this week",
+   "the accepted proposal is recorded"
+  ]
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "medium",
+  "title": "Says she already paid \u2014 already paid, asks when it shows",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You already paid this past-due amount yesterday. Ask when the payment will show up. Take no promise.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says payments can take one business day to appear",
+   "no promise is taken",
+   "the call closes as paid"
+  ]
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "medium",
+  "title": "Says she already paid \u2014 disputes the debt",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You say this debt is not yours and you never had this product. Do not accept any payment arrangement.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant does not argue",
+   "no promise is taken",
+   "the call closes as no_promise with reason dispute"
+  ]
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "medium",
+  "title": "Asks for a new payment plan \u2014 wants a human",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You want to talk to a human being. The assistant asks once whether it can help first; insist on a human.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "human",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "general"
+    }
+   ]
+  },
+  "checks": [
+   "the assistant asks once whether it can help",
+   "the call transfers to the general queue"
+  ]
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "medium",
+  "title": "The promise service fails on the first call \u2014 scam question first",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "First ask 'is this a scam?'. After the assistant answers, pay the full amount today.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 365.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says the call can be verified through the bank's customer service number",
+   "the promise is recorded today"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ]
+ },
+ {
+  "id": "PUB-11",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Three products, one date for all \u2014 three products, one date",
+  "variables": {
+   "first_name": "Sofia",
+   "last_name": "Almeida",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1987-06-03",
+   "phone_last4": "2288"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "2288",
+    "past_due": 220.0,
+    "days_late": 9,
+    "minimum_payment": 66.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 640.0,
+    "days_late": 9,
+    "instalment_amount": 213.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 75.0,
+    "days_late": 3,
+    "instalment_amount": 25.0
+   }
+  ],
+  "script": "You can pay all three products in full on Friday the 16th. Confirm the combined read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 220.0,
+     "date": "2026-10-16"
+    },
+    {
+     "product_id": "p2",
+     "amount": 640.0,
+     "date": "2026-10-16"
+    },
+    {
+     "product_id": "p3",
+     "amount": 75.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one promise per product on the 16th",
+   "one combined read-back and one confirmation"
+  ]
+ },
+ {
+  "id": "PUB-11",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Three products, one date for all \u2014 two-part security answer",
+  "variables": {
+   "first_name": "Sofia",
+   "last_name": "Almeida",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1987-06-03",
+   "phone_last4": "2288"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "2288",
+    "past_due": 220.0,
+    "days_late": 9,
+    "minimum_payment": 66.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 640.0,
+    "days_late": 9,
+    "instalment_amount": 213.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 75.0,
+    "days_late": 3,
+    "instalment_amount": 25.0
+   }
+  ],
+  "script": "Give the last four digits of your phone number in two parts: first '46', pause, then '35'. Then pay all three products in full today.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 220.0,
+     "date": "2026-10-14"
+    },
+    {
+     "product_id": "p2",
+     "amount": 640.0,
+     "date": "2026-10-14"
+    },
+    {
+     "product_id": "p3",
+     "amount": 75.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "identity passes despite the two-part answer",
+   "one promise per product for today"
+  ]
+ },
+ {
+  "id": "PUB-12",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Promises one product, refuses two \u2014 dispute on one product",
+  "variables": {
+   "first_name": "Marcus",
+   "last_name": "Bell",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1983-10-19",
+   "phone_last4": "4410"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "9015",
+    "past_due": 510.0,
+    "days_late": 16,
+    "minimum_payment": 153.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 1320.0,
+    "days_late": 16,
+    "instalment_amount": 440.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 140.0,
+    "days_late": 7,
+    "instalment_amount": 46.0
+   }
+  ],
+  "script": "You promise to pay the first product in full today. You say the second product is not yours, and for the third you simply refuse to pay.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 510.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [
+    {
+     "product_id": "p2",
+     "reason": "dispute"
+    },
+    {
+     "product_id": "p3",
+     "reason": "refused"
+    }
+   ],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "a note with reason dispute for the second product",
+   "a note with reason refused for the third product",
+   "the promise for the first product is recorded"
+  ]
+ },
+ {
+  "id": "PUB-12",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Promises one product, refuses two \u2014 refuses all three",
+  "variables": {
+   "first_name": "Marcus",
+   "last_name": "Bell",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1983-10-19",
+   "phone_last4": "4410"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "9015",
+    "past_due": 510.0,
+    "days_late": 16,
+    "minimum_payment": 153.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 1320.0,
+    "days_late": 16,
+    "instalment_amount": 440.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 140.0,
+    "days_late": 7,
+    "instalment_amount": 46.0
+   }
+  ],
+  "script": "You refuse to pay anything for all three products. Refuse every offer.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [
+    {
+     "product_id": "p1",
+     "reason": "refused"
+    },
+    {
+     "product_id": "p2",
+     "reason": "refused"
+    },
+    {
+     "product_id": "p3",
+     "reason": "refused"
+    }
+   ],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "a refused note per product",
+   "the call closes as no_promise with reason refused"
+  ]
+ },
+ {
+  "id": "PUB-13",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "One date for both, but the deadlines differ \u2014 one date past one deadline",
+  "variables": {
+   "first_name": "Elena",
+   "last_name": "Rossi",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1991-01-08",
+   "phone_last4": "6604"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "6604",
+    "past_due": 300.0,
+    "days_late": 4,
+    "minimum_payment": 90.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 900.0,
+    "days_late": 20,
+    "instalment_amount": 300.0
+   }
+  ],
+  "script": "You can pay both products in full on the 30th of October. Whatever date the assistant reads back for each product, confirm it.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 300.0,
+     "date": "2026-10-23"
+    },
+    {
+     "product_id": "p2",
+     "amount": 900.0,
+     "date": "2026-10-30"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the product whose deadline is earlier is recorded on its own deadline",
+   "the other product keeps the named date",
+   "the read-back says so"
+  ]
+ },
+ {
+  "id": "PUB-13",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "One date for both, but the deadlines differ \u2014 hardship on two products",
+  "variables": {
+   "first_name": "Elena",
+   "last_name": "Rossi",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1991-01-08",
+   "phone_last4": "6604"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "6604",
+    "past_due": 300.0,
+    "days_late": 4,
+    "minimum_payment": 90.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 900.0,
+    "days_late": 20,
+    "instalment_amount": 300.0
+   }
+  ],
+  "script": "You mention that you have been ill and cannot pay either product. When support is offered, decline it.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "hardship",
+   "promises": [],
+   "notes": [
+    {
+     "product_id": "p1",
+     "reason": "hardship"
+    },
+    {
+     "product_id": "p2",
+     "reason": "hardship"
+    }
+   ],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one sentence of sympathy",
+   "no persuasion attempt",
+   "a hardship note per product",
+   "the call closes as no_promise with reason hardship"
+  ]
+ }
+]

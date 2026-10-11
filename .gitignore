@@ -1,0 +1,14 @@
+# secrets — never commit API keys
+env.sh
+
+# local state and caches
+__pycache__/
+*.pyc
+.freya-agents.json
+.personas.json
+
+# intermediate run artifacts (findings.md and the final submission files stay tracked)
+results/
+hidden-demo/
+tests/custom-batch*.json
+tests/archive/

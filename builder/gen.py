@@ -27,7 +27,8 @@ def self_trans(description="Keep going"):
     return {"target_node": None, "description": description, "condition": always()}  # target filled by caller
 
 def api_tool(api, path, guidance, response_mapping=None, max_retries=0,
-             pre_process_code=None, post_process_code=None, always_runs_at=None):
+             pre_process_code=None, post_process_code=None, always_runs_at=None,
+             body_defaults=None):
     """One bank API call as a Freya function object, fields taken from the tool API file."""
     op = api["paths"][path]["post"]
     url = api["servers"][0]["url"] + path
@@ -41,11 +42,16 @@ def api_tool(api, path, guidance, response_mapping=None, max_retries=0,
             leaf["enum"] = fspec["enum"]
         if "description" in fspec:
             leaf["description"] = fspec["description"]
-        # customer_id is baked from the call variable. Every other field gets NO
-        # default at all: the model fills it. (A {{var}} default that nothing sets
-        # only produces a "will not resolve" warning in the editor.)
+        # customer_id is baked from the call variable; every other field the model fills.
+        # The {{var}} default is what makes the model fill it — without a default the
+        # model sends nothing (proven by the 0/10 identity run). The editor's
+        # "will not resolve" warning for these is noise.
         if fname == "customer_id":
             leaf["default"] = "{{customer_id}}"
+        elif body_defaults and fname in body_defaults:
+            leaf["default"] = body_defaults[fname]
+        else:
+            leaf["default"] = "{{" + fname + "}}"
         props[fname] = leaf
     required = [r for r in schema.get("required", []) if r != "customer_id"]
     body = {"type": "object", "properties": props}
@@ -77,6 +83,14 @@ def api_tool(api, path, guidance, response_mapping=None, max_retries=0,
         tool["post_process_code"] = post_process_code
     return tool
 
+# The extraction model anchors relative dates (today, next Friday...) on the REAL
+# clock, but every call has its own `now`. Without this prompt the extractor turns
+# "today" into the real world date and the whole date pipeline shifts.
+EXTRACT_DATE_ANCHOR = ("The current call date is {{now}}. Interpret every date the caller says "
+    "(today, tomorrow, next Friday, the 20th, dates in words) relative to {{now}}, never to the real-world clock.\n\n"
+    "{{extractor.speech}}\n\n{{extractor.type_preamble}}\n\n{{extractor.variables_list}}\n\n"
+    "{{extractor.conversation.last-10}}")
+
 END_CALL_TOOL = {
     "type": "function",
     "config": {"timeoutMs": 10000},
@@ -102,7 +116,7 @@ VERIFY_HOOK = """try:
             d['what_to_do_next'] = 'Tell the customer to say the month as a word, then call verify_identity again with the new answer.'
         elif d.get('verified') or d.get('all_verified'):
             d['what_to_do_next'] = 'This answer passed. Move to the next security question, or continue the call if all questions passed.'
-        elif str(d.get('wrong_answers_left') or '1') == '0':
+        elif d.get('wrong_answers_left') is not None and str(d['wrong_answers_left']) == '0':
             d['what_to_do_next'] = 'The identity check failed. Tell the customer to use the mobile app or a branch, then end the call.'
         else:
             d['what_to_do_next'] = 'Tell the customer the answer was wrong and ask the same question again.'
@@ -117,6 +131,20 @@ PROMISE_HOOK = """try:
             d['what_to_do_next'] = 'Say the promise is recorded and the text-message sentence. Then continue with any remaining product, or end the call.'
         else:
             d['what_to_do_next'] = 'The recording failed. Call create_promise once more. If it fails again, tell the customer it could not be recorded and end the call.'
+except Exception:
+    pass
+"""
+
+# Multi-product: the engine bakes one {{fixed_date}} for every create_promise call.
+# This hook rewrites the date per product from fixed_date_p<id>, which carries each
+# product's own deadline-clamped date, so "one date for everything" records the
+# earlier-deadline product on its own deadline.
+PROMISE_DATE_HOOK = """try:
+    b = config.get('body')
+    if isinstance(b, dict) and b.get('product_id'):
+        f = 'fixed_date_' + str(b.get('product_id'))
+        if vars.get(f):
+            b['date'] = vars[f]
 except Exception:
     pass
 """
@@ -313,6 +341,18 @@ try:
     a1 = last_biz(today)
     if a1 <= today:
         a1 = last_biz(today + datetime.timedelta(days=7))
+    # weekday semantics, so "next Friday" and "this Saturday" resolve to exact dates
+    names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    this_monday = today - datetime.timedelta(days=today.weekday())
+    this_w = []
+    next_w = []
+    for i, nm in enumerate(names):
+        tw = this_monday + datetime.timedelta(days=i)
+        nw = tw + datetime.timedelta(days=7)
+        this_w.append(nm + ' ' + tw.isoformat() + (' (today)' if tw == today else ''))
+        next_w.append(nm + ' ' + nw.isoformat())
+    vars['this_week_days'] = ', '.join(this_w)
+    vars['next_week_days'] = ', '.join(next_w)
     vars['p_count'] = str(len(infos))
     for i, inf in enumerate(infos, start=1):
         vars['p' + str(i) + '_text'] = texts[i - 1]
@@ -332,6 +372,65 @@ except Exception:
         for s in ('text', 'deadline', 'floor', 'attempts'):
             vars.setdefault('p' + str(i) + '_' + s, '')
 """.replace("__HOL__", holidays).replace("__BANDS__", bands)
+
+def fix_date_code(spec):
+    """Validate the extracted payment date and bake the corrected one into fixed_date.
+
+    Weekend/holiday -> next business day (mechanical). Past the product deadline ->
+    date_ok is set to false with a message; the model must offer the deadline.
+    Clears payment_date afterwards so the check runs once per customer answer.
+    """
+    holidays = json.dumps(spec.get("dates", {}).get("holidays", []))
+    return """import json, datetime
+try:
+    HOL = json.loads('__HOL__')
+    raw = str(vars.get('payment_date') or '')[:10]
+    vars.pop('fixed_date', None)
+    vars.pop('date_msg', None)
+    vars['date_ok'] = 'true'
+    vars.pop('payment_date', None)
+    if raw:
+        d = datetime.date.fromisoformat(raw)
+        now = str(vars.get('now') or '')[:10]
+        call_today = datetime.date.fromisoformat(now) if now else None
+        if call_today is not None and d < call_today:
+            # the extraction model anchored on the real clock: shift by the offset
+            # between the real day and the call's day, so "today" and "tomorrow"
+            # land on the call's today and tomorrow
+            real_now = str(vars.get('system.iso_utc_now') or '')[:10]
+            if real_now:
+                real_today = datetime.date.fromisoformat(real_now)
+                d = d + (call_today - real_today)
+            else:
+                d = call_today
+            vars['date_msg'] = 'The customer said a relative date; the corrected date is ' + d.isoformat() + '.'
+        if d.weekday() >= 5 or d.isoformat() in HOL:
+            while d.weekday() >= 5 or d.isoformat() in HOL:
+                d = d + datetime.timedelta(days=1)
+            vars['fixed_date'] = d.isoformat()
+            vars['date_msg'] = 'The date the customer named is a weekend day or a bank holiday. Offer ' + d.isoformat() + ' instead and record that date.'
+        else:
+            vars['fixed_date'] = d.isoformat()
+        deadlines = [vars.get('p' + str(i) + '_deadline') for i in range(1, 4)]
+        deadlines = [x for x in deadlines if x]
+        if len(deadlines) >= 2:
+            # one date for everything: a product whose deadline is earlier than the
+            # named date is recorded on its own deadline (multi-product rule)
+            for i in range(1, 4):
+                dl = vars.get('p' + str(i) + '_deadline')
+                if not dl:
+                    continue
+                dd = datetime.date.fromisoformat(dl)
+                vars['fixed_date_p' + str(i)] = (d if d <= dd else dd).isoformat()
+        if deadlines and d.isoformat() > max(deadlines):
+            vars['date_ok'] = 'false'
+            vars['date_msg'] = 'The date the customer named is after the latest date. Do NOT call create_promise with it. Say the latest date you can record is ' + max(deadlines) + ' and offer it.'
+except Exception:
+    vars.pop('fixed_date', None)
+    vars.pop('date_msg', None)
+    vars['date_ok'] = 'true'
+    vars.pop('payment_date', None)
+""".replace("__HOL__", holidays)
 
 def first_line(text):
     return (text or "").strip().splitlines()[0] if (text or "").strip() else ""
@@ -361,8 +460,10 @@ def build_workflow(spec, api):
         "The customer's late products. CALL it once, before you say anything about the account.",
         max_retries=2)
     promise = api_tool(api, "/create_promise",
-        "Record a payment promise. CALL it only after the customer said yes to the read-back of amount and date.",
-        post_process_code=PROMISE_HOOK)
+        "Record a payment promise. CALL it only after the customer said yes to the read-back of amount and date. "
+        "The date is filled in for you from what the customer agreed.",
+        post_process_code=PROMISE_HOOK, body_defaults={"date": "{{fixed_date}}"},
+        pre_process_code=PROMISE_DATE_HOOK if products_max > 1 else None)
     transfer = api_tool(api, "/transfer_to_agent",
         "Hand the call to a person. CALL it with the queue the rule says.")
     callback = api_tool(api, "/schedule_callback",
@@ -398,20 +499,36 @@ def build_workflow(spec, api):
 
     # ---- third-party node
     tp = spec.get("third_party", {})
-    tp_extra = " ".join(filter(None, [
-        first_line(tp.get("say_nothing_text")), first_line(tp.get("callback_window_text")),
-        first_line(tp.get("wrong_number_text")), first_line(tp.get("deceased_text")),
-        first_line(tp.get("no_callback_text")), first_line(tp.get("unclear_text") or op.get("unclear_text"))]))
+    def close_str(o):
+        if not isinstance(o, dict) or not o.get("outcome"):
+            return "?"
+        return o["outcome"] + (("/" + o["reason"]) if o.get("reason") else "")
+    tp_lines = ["Someone other than the customer answered, or it is unclear who is on the line. "
+                "Do not say why the bank is calling. Say nothing about any account."]
+    if tp.get("wrong_number_close"):
+        tp_lines.append("Only if the person literally says the number does not belong to the customer, "
+                        "close as " + close_str(tp["wrong_number_close"]) + ". Do not use this close for anything else.")
+    if tp.get("deceased_close"):
+        tp_lines.append(("If the person says the customer has died, say \"" + str(tp.get("deceased_line") or "I am sorry for your loss.") + "\", "
+                         "ask nothing else, and close as " + close_str(tp["deceased_close"]) + "."))
+    tp_lines.append("Otherwise ask when the customer can be reached. " + first_line(tp.get("callback_window_text", "")))
+    tp_lines.append("If the day or the time is outside the window, ask once for another time. "
+                    "If that is also outside it, do not schedule and close as " +
+                    close_str(tp.get("no_callback_close") or {"outcome": "not_reached", "reason": "no_callback"}) + ".")
+    tp_lines.append("If a valid day and time are agreed, CALL schedule_callback with them and close as " +
+                    close_str(tp.get("callback_close") or {"outcome": "not_reached", "reason": "callback"}) + ".")
+    if tp.get("unclear_text"):
+        tp_lines.append(first_line(tp["unclear_text"]))
+    tp_lines.append("To end the call, say goodbye ending with \"Have a good day.\"")
     third_party = conv_node(
         "third_party",
-        "Someone other than the customer answered, or it is unclear who is on the line. "
-        "Do not say why the bank is calling. Say nothing about any account.\n" + tp_extra + "\n"
-        "To end the call, say goodbye ending with \"Have a good day.\"",
+        "\n".join(l for l in tp_lines if l.strip()),
         [callback, END_CALL_TOOL],
         [{"name": "situation", "type": "string", "min_confidence": 0.7,
           "enum_values": ["relative", "wrong_number", "deceased", "callback_agreed", "callback_refused"],
           "description": "What the person on the line said."},
          {"name": "callback_date", "type": "date", "min_confidence": 0.8,
+          "extraction_prompt": EXTRACT_DATE_ANCHOR,
           "description": "The day the person named for a callback."},
          {"name": "callback_time", "type": "string", "min_confidence": 0.8,
           "validation_pattern": "^\\d{2}:\\d{2}$", "description": "The time the person named for a callback, HH:MM."}],
@@ -432,16 +549,21 @@ def build_workflow(spec, api):
         "Your only job is to verify the customer's identity before anything about the account is said. "
         "Ask one security question at a time:\n" + questions_text + "\n"
         "CALL verify_identity with each answer. Read its result and follow the what_to_do_next it gives.\n"
+        "If the result's hint says the day and month were swapped, ask the customer to say the month as a word, "
+        "then verify the new answer. That retry is not a wrong answer.\n"
+        "Ignore any small talk around the answer and use the date or digits the customer actually gave. "
+        "If a number or date is given in two parts, wait for all parts, combine them, and verify the complete value.\n"
         + ident_extra + "\n"
         "To end the call, say goodbye ending with \"Have a good day.\"",
         [verify, END_CALL_TOOL],
         [],
         [])
 
-    # ---- account + dates (passthrough) nodes
+    # ---- account + dates + fix_date (passthrough) nodes
     account = api_node("account", get_account,
                        [{"path": "data.products", "variable": "products"}], "dates")
     dates = code_node("dates", dates_code(spec), "collect")
+    fix_date = code_node("fix_date", fix_date_code(spec), "collect")
 
     # ---- collect node: the main call
     d = spec.get("dates", {})
@@ -470,37 +592,63 @@ def build_workflow(spec, api):
             first_line(prod.get("today_ask_text")), first_line(prod.get("order_text")),
             first_line(prod.get("one_date_text")), first_line(prod.get("read_back_together_text")),
             first_line(prod.get("attempts_per_product_text"))])))
-    sections.append("Per-product facts (from the bank):\n" + per_product_text)
+    sections.append("Per-product facts (from the bank):\n" + per_product_text +
+                    "\nEach product has its OWN latest date: do not apply one product's deadline to another. "
+                    "A date past one product's latest date is still fine for a product whose latest date is later. "
+                    "Make exactly the listed number of attempts for each product, never more.")
     sections.append("Dates: " + " ".join(filter(None, [
         first_line(d.get("validity_text")), first_line(d.get("weekend_text")),
         first_line(d.get("vague_text")), first_line(d.get("next_weekday_text")),
         first_line(d.get("over_deadline_text"))])))
+    sections.append("Weekday names mean these exact dates:\n"
+                    "this week: {{this_week_days}}\n"
+                    "next week: {{next_week_days}}\n"
+                    "When the customer says 'next Friday', use the next-week Friday from that list, never this week's.")
+    sections.append("The date check says: {{date_msg}}. The date to record in create_promise is filled in for you "
+                    "as {{fixed_date}}. If the check says the date cannot be recorded, do NOT call create_promise with it; "
+                    "offer the latest date instead.")
     sections.append("Amounts: " + " ".join(filter(None, [
         first_line(am.get("full_first_text")), first_line(am.get("floor_text")),
         first_line(am.get("floor_once_text")), first_line(am.get("range_text")),
-        first_line(am.get("below_floor_text"))])))
+        first_line(am.get("below_floor_text"))])) +
+        "\nWhen you offer the floor, always say that the rest of the balance stays overdue. "
+        "Offer the floor AT MOST ONCE; if it is refused, treat it as a flat refusal. "
+        "NEVER ask the customer how much they can pay: you propose every amount.")
     sections.append("Persuasion: " + " ".join(filter(None, [
         first_line(per.get("attempt1_text")), f"Attempt 1 proposes {{attempt1}}.",
         first_line(per.get("attempt2_text")), first_line(per.get("stop_text")),
-        first_line(per.get("never_repeat_text"))])))
+        first_line(per.get("never_repeat_text"))])) +
+        "\nA flat refusal uses the attempts in order: attempt 1 first (the FULL amount on {{attempt1}}, "
+        "the last business day of this week), and attempt 2 only when the band allows it (the floor on the "
+        "latest date). Never skip to attempt 2 before attempt 1 was made.")
     sections.append("Hardship: " + " ".join(filter(None, [
         first_line(hard.get("sympathy_text")), first_line(hard.get("support_text")),
-        first_line(hard.get("decline_text")), first_line(hard.get("beats_persuasion_text"))])))
+        first_line(hard.get("decline_text")), first_line(hard.get("beats_persuasion_text"))])) +
+        "\nWhen hardship is mentioned (illness, a death in the family, job loss): say exactly ONE short sentence "
+        "of sympathy, then make NO persuasion attempt. Offer the support team once. If they accept, call "
+        "transfer_to_agent with the support queue. If they decline, close without a promise. A date or amount "
+        "the customer names themselves is still recorded.")
     claims_text = " ".join(filter(None, [
         first_line(cl.get("paid_text")), first_line(cl.get("dispute_text")),
         first_line(cl.get("restructuring_text")), first_line(cl.get("human_text")),
         first_line(cl.get("scam_text")), first_line(cl.get("dont_know_text")),
         first_line(cl.get("dont_want_text"))]))
     if claims_text:
-        sections.append("What customers say: " + claims_text)
+        sections.append("What customers say: " + claims_text +
+                        "\nA claim that THIS past-due amount was already paid means close paid, no promise — "
+                        "even when the customer says it in words or asks when the payment shows up. "
+                        "A claim that the product is not theirs or was closed long ago means dispute.")
     sections.append("Recording a promise: " + " ".join(filter(None, [
         first_line(pr.get("read_back_text")), first_line(pr.get("confirm_text")),
         first_line(pr.get("retry_text")), first_line(pr.get("sms_text")),
-        first_line(pr.get("one_per_product_text"))])))
+        first_line(pr.get("one_per_product_text"))])) +
+        "\nNever call create_promise without the customer's clear yes to the read-back.")
     if note_tool:
         sections.append("Notes: " + " ".join(filter(None, [
             first_line(notes.get("when_text")), first_line(notes.get("reasons_text")),
-            first_line(notes.get("transfer_note_text"))])))
+            first_line(notes.get("transfer_note_text"))])) +
+            "\nBefore ending the call, CALL add_note for EVERY product that ended without a promise, "
+            "with the reason the notes rules say.")
     sections.append("Ending the call: " + first_line(closing.get("goodbye_text", "")) +
                     " Say goodbye ending with \"Have a good day.\" The close outcome is recorded automatically from the rules above.")
 
@@ -513,29 +661,31 @@ def build_workflow(spec, api):
         collect_task,
         collect_tools,
         [{"name": "payment_date", "type": "date", "min_confidence": 0.85,
-          "description": "The payment date the customer agreed to, if any."},
+          "extraction_prompt": EXTRACT_DATE_ANCHOR,
+          "description": "The payment date the CUSTOMER named in their own words. Never take a date that only the assistant said (for example from a read-back); when the customer only confirms, leave it unset."},
          {"name": "payment_amount", "type": "float", "min_confidence": 0.8,
           "description": "The payment amount the customer agreed to, if any."},
          {"name": "claim", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "paid", "dispute", "hardship", "restructuring", "human", "scam", "dont_know", "dont_want"],
-          "description": "What the customer is saying, if it is one of these."},
+          "description": "hardship ONLY when the customer mentions illness, a death in the family or job loss; a mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
          {"name": "confirmation", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the read-back confirmation."},
          {"name": "note_reason", "type": "string", "min_confidence": 0.7,
           "enum_values": note_reasons, "description": "Why a product ended without a promise."},
         ] if note_reasons else [{"name": "payment_date", "type": "date", "min_confidence": 0.85,
-          "description": "The payment date the customer agreed to, if any."},
+          "extraction_prompt": EXTRACT_DATE_ANCHOR,
+          "description": "The payment date the CUSTOMER named in their own words. Never take a date that only the assistant said (for example from a read-back); when the customer only confirms, leave it unset."},
          {"name": "payment_amount", "type": "float", "min_confidence": 0.8,
           "description": "The payment amount the customer agreed to, if any."},
          {"name": "claim", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "paid", "dispute", "hardship", "restructuring", "human", "scam", "dont_know", "dont_want"],
-          "description": "What the customer is saying, if it is one of these."},
+          "description": "hardship ONLY when the customer mentions illness, a death in the family or job loss; a mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
          {"name": "confirmation", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the read-back confirmation."}],
         [{"target_node": "collect", "description": "Keep going", "condition": always()}])
 
     nodes = {}
-    for node in (opening, third_party, identity, account, dates, collect):
+    for node in (opening, third_party, identity, account, dates, fix_date, collect):
         nodes[node["name"]] = node
 
     # fill the self-transitions' targets and wire the routing ones
@@ -548,6 +698,10 @@ def build_workflow(spec, api):
         trans("account", "Both security answers verified",
               bool_group("verify_identity_response.data.all_verified")),
         trans("identity", "Keep asking", always()),
+    ]
+    collect["transitions"] = [
+        trans("fix_date", "The customer named a payment date", cond_is_set("payment_date")),
+        trans("collect", "Keep going", always()),
     ]
 
     workflow = {

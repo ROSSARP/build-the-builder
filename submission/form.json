@@ -1,0 +1,14 @@
+{
+  "team": "YOUR-TEAM-NAME",
+  "repo": "https://github.com/YOU/your-builder",
+  "commit": "COMMIT-HASH-TO-FILL",
+  "run_command": "python3 builder/build.py {brief_path} {tool_api_path}",
+  "workflows": {
+    "hidden-1": "submission/hidden-1.workflow.json",
+    "hidden-2": "submission/hidden-2.workflow.json"
+  },
+  "traces": {
+    "hidden-1": "traces/hidden-1.log",
+    "hidden-2": "traces/hidden-2.log"
+  }
+}

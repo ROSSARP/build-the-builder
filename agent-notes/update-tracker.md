@@ -58,3 +58,10 @@ DONE:
 - MY ARTEFACT CHECK (grep counts, no reads): submission/finalcase.workflow.json (22:25) = R4b totalDebt x2 + R3 "kesilmiş" x2 (UNICODE-ESCAPED — raw grep of "henüz kesilmiş" shows 0; same trap verify-mock hit at 21:42). Both content gaps CLOSED in the export.
 - Reachability alert at 19:20 worked: rebuild happened ~4 min after main was alerted.
 REMAINING TRACKED: sim-tester v9 baseline; e5 verification runs; submission email by 20:00 UTC (user-gated team/members). Drive Monitor re-arm due ~19:34 UTC.
+
+## 19:32 UTC — submission scaffold (1bd725e) + v9 acceptance run live (3dd9ae8)
+DONE:
+- 1bd725e (22:28 local): final-submission.json scaffold — repo/run_command/workflow/trace/mock_url filled; TEAM NAME + MEMBERS still pending from USER (the only submission blocker on the content side).
+- 3dd9ae8 (22:31 local): sim-tester v9 acceptance live — probe-cutday (R4b behavioral: totalDebt 860.4 vs statementDebt 0), probe-ncut (R3 regression), ex1 (ordinary). Results ~19:56 UTC (4 min before deadline — tight). ACK-REQ to @main, due ~19:41 UTC; harness tests/sim-tester-build.py + tests/sim-tester-practice-shim.py committed.
+TODO:
+- If main silent on 3dd9ae8 by 19:41 → nudge. Track acceptance results + submission email. Cutoff 19:45 UTC — expect to hand off the last stretch.

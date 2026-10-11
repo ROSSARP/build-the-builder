@@ -505,3 +505,80 @@ Failures:
 
 - judgement: First mock exam: 9/10. PUB-08 (already paid in words) failed: the agent said the one-business-day line correctly but closed dispute instead of paid — the recurring paid-vs-dispute weakness. Next: 100-case bulk exam with subagent-generated scenarios.
 
+## 2026-10-11 11:50 — transcript audit (all calls so far)
+
+- calls audited: see results/calls/index.json; incidents: 39
+
+- [brief_violation] Second persuasion attempt on an early-band product — call ce67d8eb…, severity medium
+  - The car loan is 7 days late (early band), which allows exactly one persuasion attempt. The agent first proposed the full 140 by Friday October 16th; after the customer refused, it made a second attempt by offering the fl
+  - evidence: 'AGENT [collect] I understand. Now, regarding your car loan, can you pay the full past-due amount of 140 by Friday, October 16th?'
+  - suggested fix: builder/gen.py per-product attempts instructions (~line 592): enforce the attempt budget from each product's days_late band (1-7 late = one attempt) before offe
+- [brief_violation] Already-paid claim closed as dispute/no_promise instead of paid — call 707e798a…, severity medium
+  - The customer said she had already paid this past-due amount and asked when the payment would show up. The brief says a claim that THIS past-due amount was already paid means close the call as `paid` with no promise. The 
+  - evidence: 'CUST [identity] I already paid this past-due amount two days ago, though I am not sure of the exact day. When will the payment show up?'
+  - suggested fix: builder/gen.py already-paid claim mapping (~line 637): when the claim is that this past-due amount was already paid, close with outcome 'paid' (no reason/disput
+- [brief_violation] Amended amount (540) recorded without a re-read-back — call 6bdfe32a…, severity medium
+  - The agent read back 'promising to pay 500 ... on Tuesday, October 27th'. The customer amended the amount ('and forty. Yes, I confirm.') and create_promise was called with amount 540, but the agent never read back 540 or 
+  - evidence: 'To confirm, you are promising to pay 500 for your personal loan on Tuesday, October 27th. Do you confirm?'
+  - suggested fix: builder/gen.py: after the customer amends a value, re-read the amended amount and ask for confirmation before calling create_promise (Rule 35).
+- [brief_violation] Fabricated DOB year (2026) submitted, burning a wrong-answer attempt — call 66798f6e…, severity low
+  - The customer answered 'May seventeenth.' with no year; the workflow normalized it to 2026-05-17 (the current year) and submitted it to verify_identity, which returned verified:false with wrong_answers_left 2. The agent t
+  - evidence: 'May seventeenth.'
+  - suggested fix: builder/gen.py: identity answer normalization must not fabricate a year; ask for the full date instead of calling verify_identity with a guessed date (Rule 11).
+- [brief_violation] Fabricated DOB year (1900) submitted, burning a wrong-answer attempt — call 01db5f64…, severity low
+  - The customer answered 'Thirty January...' with no year; the workflow normalized it to 1900-01-30 and submitted it to verify_identity, which returned verified:false with wrong_answers_left 2, so the agent told the custome
+  - evidence: 'Thirty January...'
+  - suggested fix: builder/gen.py: identity answer normalization must not substitute a default year; request the complete date before calling verify_identity (Rule 11).
+- [brief_violation] 'Already paid' claim closed as no_promise/dispute instead of paid — call a830cc93…, severity medium
+  - The customer said 'I paid that in the app this morning.' and the agent answered 'Payments can take one business day to appear in our system.', but the system closed the call with close_call {"reason": "dispute", "outcome
+  - evidence: 'I paid that in the app this morning.'
+  - suggested fix: builder/gen.py: route an 'I paid it in the app' claim to close_call outcome 'paid' (Rule 39); the in_words claim extraction mislabels it as dispute.
+- [brief_violation] Second payment proposal on the early-band car loan (floor on 2 Nov) — call fb52caad…, severity medium
+  - The car loan (140 past due, 7 days late, early band) allows exactly one persuasion attempt. The customer flatly refused the full amount on Friday 16 Oct ('I am not paying the car loan.'), after which the agent made a sec
+  - evidence: 'AGENT @collect: Finally, for your car loan, it is 140 past due. Can you pay this in full by Friday, October 16th?'
+  - suggested fix: builder/gen.py per-product attempts and persuasion text (lines 610-612 and 631-639): cap each product at its own attempt count and stop proposing for an early-b
+- [brief_violation] Credit card moved to 2 Nov although the customer's 30 Oct was within its deadline — call d93790b5…, severity high
+  - The customer named one date for both products ('I can't pay today. I want to pay both on 30 October.'). The per-product table gives the credit card latest date 2026-11-02 and the personal loan 2026-10-23, so under brief-
+  - evidence: "USER @identity: I can't pay today. I want to pay both on 30 October."
+  - suggested fix: builder/gen.py per-product date handling (lines 610-612 and 430-437): record the customer's named date on every product whose own latest date allows it and clam
+- [brief_violation] Both products forced to 23 Oct with a false 'too late' claim; credit card lost 30 Oct — call 06a66e55…, severity high
+  - The customer named 30 October for both. The credit card's latest date is 2026-11-02, so 30 Oct was recordable for it; only the personal loan (latest date 2026-10-23) was supposed to move onto its own deadline. The agent 
+  - evidence: "USER @identity: I can't pay today. I want to pay both on 30 October."
+  - suggested fix: builder/gen.py per-product date handling (lines 610-612 and 430-437): never claim a date is past the limit when it is within a product's own latest date, and ke
+- [brief_violation] Credit card moved to 2 Nov with a false 'after the limits' claim — call 0ca9630d…, severity high
+  - The customer named 30 October for both; the credit card's latest date 2026-11-02 made 30 Oct recordable, while the personal loan's latest date 2026-10-23 forces the loan onto 23 Oct. The agent claimed 'Since 2026-10-30 i
+  - evidence: 'USER @identity: I cannot pay today. I want to pay both on 30 October.'
+  - suggested fix: builder/gen.py per-product date handling (lines 610-612 and 430-437): keep the customer's 30 Oct on the credit card and move only the product whose own deadline
+- [brief_violation] Second payment proposal on the early-band car loan (floor on 2 Nov) — call f8fa7e72…, severity medium
+  - Same pattern as the sibling PUB-12 calls: the car loan (140 past due, 7 days late, early band) allowed one attempt; after the flat refusal of the full amount on Friday 16 Oct the agent proposed the floor of 46 'by the de
+  - evidence: 'AGENT @collect: Moving on to your car loan, it is 140 past due. Can you pay the full amount by Friday, October 16th?'
+  - suggested fix: builder/gen.py per-product attempts and persuasion text (lines 610-612 and 631-639): cap each product at its own attempt count and stop proposing for an early-b
+- [brief_violation] Second payment proposal on the early-band car loan (floor on 2 Nov) — call c6a155c0…, severity medium
+  - The car loan (140 past due, 7 days late, early band, one attempt) was refused in full on Friday 16 Oct ('I am not paying the car loan either.'); the agent then proposed 'the instalment of 46 on the latest possible date, 
+  - evidence: 'AGENT @collect: I understand. Finally, regarding your car loan, it is 140 past due. Can you pay the full amount by this Friday, October 16th?'
+  - suggested fix: builder/gen.py per-product attempts and persuasion text (lines 610-612 and 631-639): cap each product at its own attempt count and stop proposing for an early-b
+- [brief_violation] Extra car-loan offer after one allowed attempt; personal-loan floor offered on the wrong date — call 6f9b53cd…, severity medium
+  - The car loan (140 past due, 7 days late, early band) got a full-amount question and, after the refusal, a second proposal of the floor of 46 on Friday 16 Oct - the early band allows one attempt, so the extra offer violat
+  - evidence: 'AGENT @collect: I understand. Moving on to your car loan, which is 140 past due. Can you pay this full amount?'
+  - suggested fix: builder/gen.py persuasion text (lines 631-639): stop after an early-band product's single refused attempt and place the late-band attempt-2 floor on the product
+- [customer_unhelped] Two-part phone digits never combined; closed not_verified with zero wrong answers — call a1d1c1a9…, severity high
+  - The scripted phone answer is split into two parts ('seven-oh-nine... and three', i.e. 7093). After the DOB 1975-12-05 verified OK, the agent asked for the last four digits, heard '70.' then '93.', and re-asked three time
+  - evidence: 'USER @identity: 70.'
+  - suggested fix: builder/gen.py identity-node task message (line 566): verify only the combined value once both parts of a split answer have arrived, and never take the fail_tex
+- [out_of_scope] Agent asked the customer to choose the payment amount — call 99f4cf76…, severity low
+  - After the date was settled, the agent asked the customer how much of the balance they would pay, instead of proposing an amount itself. The brief requires the agent to propose every amount and never to ask how much the c
+  - evidence: 'AGENT [collect] And how much of the dollars540 balance will you be paying on that date?'
+  - suggested fix: builder/gen.py amounts section (~line 614): forbid asking the customer to name or choose a payment amount; the agent must propose the amount (full, then floor) 
+- [out_of_scope] Agent asked the customer to name the payment amount — call 6bdfe32a…, severity medium
+  - In the collect phase the agent twice asked the customer to state how much they could pay instead of proposing amounts itself: 'I understand. How much are you able to pay?' and later 'And how much will you be paying on Tu
+  - evidence: 'I understand. How much are you able to pay?'
+  - suggested fix: builder/gen.py: replace the collect-node clarification prompt that asks the customer to name an amount with a re-offer of the specific full/floor amount (Rule 2
+- [out_of_scope] Agent asked the customer to state the exact amount they can pay — call 00acab64…, severity medium
+  - After the customer's fragmented reply 'I can pay six hundred and thirty-seven dollars and', the agent asked 'I'm sorry, I didn't catch the full amount. Could you please tell me the exact amount you can pay and the date y
+  - evidence: 'I can pay six hundred and thirty-seven dollars and'
+  - suggested fix: builder/gen.py: replace the 'exact amount you can pay' clarification prompt in the collect node with a re-offer of the specific amount (Rule 24).
+- [platform_error] Silence after transfer: 'no speakable content' errors — call 953e1c6d…, severity low
+  - After the agent said 'I will transfer you to a representative now.' and transfer_to_agent succeeded, two consecutive model errors ('The model returned no speakable content') produced no spoken line. The agent went silent
+  - evidence: 'AGENT [collect] I understand. I will transfer you to a representative now.'
+  - suggested fix: builder/gen.py: add a deterministic speak-after-transfer step (announce the transfer and closing line from the tool result) so a successful transfer never leave
+

@@ -395,11 +395,13 @@ def fix_date_code(spec):
 try:
     HOL = json.loads('__HOL__')
     raw = str(vars.get('payment_date') or '')[:10]
-    vars.pop('fixed_date', None)
-    vars.pop('date_msg', None)
     vars['date_ok'] = 'true'
     vars.pop('payment_date', None)
+    # IMPORTANT: when no fresh date was extracted (e.g. the customer only confirmed),
+    # keep the previous fixed_date — clearing it makes the model invent a date.
     if raw:
+        vars.pop('fixed_date', None)
+        vars.pop('date_msg', None)
         d = datetime.date.fromisoformat(raw)
         now = str(vars.get('now') or '')[:10]
         call_today = datetime.date.fromisoformat(now) if now else None
@@ -425,21 +427,27 @@ try:
         deadlines = [x for x in deadlines if x]
         if len(deadlines) >= 2:
             # one date for everything: a product whose deadline is earlier than the
-            # named date is recorded on its own deadline (multi-product rule)
+            # named date is recorded on its own deadline (multi-product rule).
+            # Do NOT block the whole date: the per-product clamp below handles it.
+            moved = []
             for i in range(1, 4):
                 dl = vars.get('p' + str(i) + '_deadline')
                 if not dl:
                     continue
                 dd = datetime.date.fromisoformat(dl)
-                vars['fixed_date_p' + str(i)] = (d if d <= dd else dd).isoformat()
-        if deadlines and d.isoformat() > max(deadlines):
+                fixed = d if d <= dd else dd
+                if fixed != d:
+                    moved.append('p' + str(i) + ' on ' + fixed.isoformat())
+                vars['fixed_date_p' + str(i)] = fixed.isoformat()
+            if moved:
+                vars['date_msg'] = ('The named date is past the latest date of some products. Record '
+                                    + ', '.join(moved) + ' on their own deadlines and say so in the read-back.')
+        elif deadlines and d.isoformat() > max(deadlines):
             vars['date_ok'] = 'false'
             vars['date_msg'] = 'The date the customer named is after the latest date. Do NOT call create_promise with it. Say the latest date you can record is ' + max(deadlines) + ' and offer it.'
 except Exception:
-    vars.pop('fixed_date', None)
-    vars.pop('date_msg', None)
-    vars['date_ok'] = 'true'
     vars.pop('payment_date', None)
+    vars['date_ok'] = 'true'
 """.replace("__HOL__", holidays)
 
 def first_line(text):
@@ -563,7 +571,9 @@ def build_workflow(spec, api):
         "If the result's hint says the day and month were swapped, ask the customer to say the month as a word, "
         "then verify the new answer. That retry is not a wrong answer.\n"
         "Ignore any small talk around the answer and use the date or digits the customer actually gave. "
-        "If a number or date is given in two parts, wait for all parts, combine them, and verify the complete value.\n"
+        "If a number or date is given in two parts, wait for all parts, combine them, and verify the complete value. "
+        "If a date is missing its year, ASK for the year — never guess or invent one. "
+        "Never close the check as failed while the customer is still giving an answer in parts; ask for the rest first.\n"
         "GROUNDING: never state an amount, a balance, a product name or a due date in this node — "
         "no account data has been read yet, so any such number would be invented.\n"
         + ident_extra + "\n"
@@ -650,8 +660,9 @@ def build_workflow(spec, api):
         first_line(cl.get("dont_want_text"))]))
     if claims_text:
         sections.append("What customers say: " + claims_text +
-                        "\nA claim that THIS past-due amount was already paid means close paid, no promise — "
-                        "even when the customer says it in words or asks when the payment shows up. "
+                        "\nA claim that THIS past-due amount was already paid — however the customer says it "
+                        "(in the app, by card, online, yesterday) — means close paid, no promise, even when the "
+                        "customer asks when the payment shows up. "
                         "A claim that the product is not theirs or was closed long ago means dispute.")
     sections.append("Recording a promise: " + " ".join(filter(None, [
         first_line(pr.get("read_back_text")), first_line(pr.get("confirm_text")),

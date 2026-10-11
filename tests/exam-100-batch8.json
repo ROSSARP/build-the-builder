@@ -1,0 +1,674 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 a-paid-at-the-branch",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes, calm and sure this is already dealt with. Answer both security questions correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'. When the agent states the four hundred and twenty, say 'ah \u2014 I've paid that. I went into the branch on Monday lunchtime and paid it in cash. I've got the receipt in my bag somewhere, if you want the number off it.' Ask when it comes off: 'when does that show up? I don't want it sitting on my file.' If the agent asks for a promise, say 'no \u2014 I've paid it. I'm not paying it twice.' Stay polite, do not get cross, and do not ask for a person.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent says a payment can take one business day to appear",
+   "no promise is taken and no amount or date is accepted",
+   "the call closes paid with no reason"
+  ],
+  "case_id": "PUB-01-a-paid-at-the-branch",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Polite",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes and you are sure this is already handled. Give both security answers correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "You have already paid this past-due amount, so there is nothing to agree: no promise, and you will not pay twice. You do ask when the payment will show.",
+   "quirks": "Calm and certain, slightly amused, mentions the branch and the paper receipt in your bag. Asks twice when it will show on the account."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "paid",
+   "expected_close_reason": null,
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 a-refuses-every-question",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria Costa and you have no patience today. Confirm your name with 'yes, speaking \u2014 make it quick.' When the agent asks for your date of birth, refuse: 'I'm not giving my date of birth over the phone to a machine.' When the agent explains once that the questions protect your account, refuse again: 'I said no. Either say what you want or take me off your list.' Say nothing else \u2014 no date of birth, no phone digits, no questions about what you owe. If the agent tries the question a third time, say 'no means no' and stop answering.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the explanation that the questions protect the account is given exactly once",
+   "the debt is never stated and neither verify_identity nor get_account is called",
+   "the call closes not_verified / declined"
+  ],
+  "case_id": "PUB-02-a-refuses-every-question",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria Costa but you refuse to give the date of birth or the phone digits. Refuse twice, with the warmth of a slammed door.",
+   "negotiation_behavior": "You never reach the debt. You are refusing to answer questions, not refusing to pay.",
+   "quirks": "Hostile from the first second, talks over the agent, says 'take me off your list'. Never asks a question about the account."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-illness-support",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. Then say, without drama: 'I have been in hospital for three weeks, I am not back at work, and there is nothing coming in until November'. Do not name any date or any amount, even if you are asked. Lose your train of thought once - 'sorry, what was I saying?' - and come back to the hospital. When the assistant offers the support team, accept: 'yes please, that would help'. Thank the assistant for asking and say goodbye when the call is handed over.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "support",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "support"
+    }
+   ]
+  },
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "no amount or date is proposed to the customer and no discount or plan is offered",
+   "the support team is offered once and accepted",
+   "transfer_to_agent is called with queue support and close_call is the last call"
+  ],
+  "case_id": "PUB-06-b-priya-illness-support",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, sounding tired.",
+   "negotiation_behavior": "Say you have been in hospital and cannot pay anything. Accept the support team when it is offered. Name no date and no amount.",
+   "quirks": "Tired voice; you lose your train of thought once and come back to it. Thank the assistant for asking."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "support",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "Wants a date after the deadline \u2014 b-lena-wont-confirm",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "You picked up this phone and you are not going to say who you are. When the assistant asks whether it is speaking with Ms Hoffmann, answer only with a question and sound annoyed: 'who is this?' When it asks the second time, answer with another question: 'what is this about?' Never say 'yes', 'speaking' or 'that is me', never give a name, a date of birth or any digits, and do not say who you are or why you answered. If the assistant says who it is calling, reply only 'and?'. Stay on the line, in a hurry, until the assistant ends the call.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "unclear",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant names no product, amount or reason for the call",
+   "the assistant asks once more and then closes the call when it is still unclear",
+   "verify_identity, get_account and schedule_callback are never called",
+   "the call closes as not_reached with reason unclear"
+  ],
+  "case_id": "PUB-04-b-lena-wont-confirm",
+  "difficulty": "Edge-Case",
+  "theme": "Third Party",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You never confirm who you are. You answer every question with a question of your own and give no name, no date of birth and no digits.",
+   "negotiation_behavior": "You never reach the debt stage, and nothing about the account may reach you.",
+   "quirks": "In a hurry and guarded; you talk over the assistant once with 'who is this?'. You never say 'yes', 'speaking' or 'that is me'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "unclear",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-year-missing",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer the first security question with a date that has no year in it: 'the ninth of September'. If the assistant asks for the year, or says it did not come through, give it: 'nineteen ninety'. Give the last four digits of your phone number in two parts: first 'eight, eight', and only when the assistant asks for the rest, 'four, six'. Once in the call, ask 'how do I know this is really the bank?'; when the assistant tells you how to check, say 'alright' and carry on. You can pay the full seven hundred and eighty on Friday the sixteenth - confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 780.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the incomplete date is not counted as a wrong answer and the assistant asks for the missing year",
+   "the date of birth is verified as 1990-09-09 and the phone digits as 8846",
+   "the customer is told they can check the call through the bank's customer service number and the call continues",
+   "the promise is recorded for the full 780.00 on Friday 16 October"
+  ],
+  "case_id": "PUB-05-b-tomas-year-missing",
+  "difficulty": "Hard",
+  "theme": "API Failure",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Give the date of birth without a year at first - 'the ninth of September' - and give the year only when you are asked for it: 'nineteen ninety'. Give the phone digits in two parts: 'eight, eight' and then 'four, six'.",
+   "negotiation_behavior": "You can pay the full amount on Friday the sixteenth. Confirm the read-back.",
+   "quirks": "Sound unsure on the phone and ask once, 'how do I know this is really the bank?'. Say 'alright' when you are told how to check."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 780.0,
+   "expected_ledger_date": "2026-10-16"
+  }
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "A vague period, then a holiday \u2014 c-ortiz-refuses-all",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "You are Samuel Ortiz, at work and not in the mood. Answer the two security questions correctly and quickly. When the assistant asks whether you can pay the five hundred and forty today, cut in: 'No. I'm at work.' When it proposes Friday the sixteenth, say 'No - I said no. I'm not doing a date with you today. I'm at work.' If anything else is proposed, say 'Nothing's changed since the last time you asked. The answer's still no.' Never name an amount or a date you could pay, and never say yes to anything. Let the assistant finish the closing.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the early band produces exactly one persuasion attempt, on Friday 16 October",
+   "no third offer is made after the second refusal",
+   "no promise is recorded and no callback is scheduled",
+   "the call closes as no_promise with reason refused"
+  ],
+  "case_id": "PUB-07-c-ortiz-refuses-all",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "actual_dob": "1975-12-05",
+   "actual_phone_last4": "7093",
+   "product": "personal_loan",
+   "days_late": 5,
+   "past_due_amount": 540.0,
+   "floor_amount": 180.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly but impatiently, and say 'I'm at work' once.",
+   "negotiation_behavior": "Refuse to pay anything, flatly, with no date and no amount - both when asked about today and when the assistant proposes Friday the sixteenth. Never name an amount or a date you could pay.",
+   "quirks": "Interrupt with 'No' before the assistant finishes its sentence. Say 'I'm at work' twice. Do not say you want to hang up or that you will not talk."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "refused",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "medium",
+  "title": "Says she already paid \u2014 c-schmidt-branch-cash",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You are Hannah Schmidt, calm and polite. Answer both security questions correctly. When the hundred and eighty is stated, say 'Oh - I paid that yesterday. A hundred and eighty, in cash, at the branch on the high street. The lady took it and gave me a receipt, so I think we're square.' Ask 'How long does it take to come off the account?' and accept the answer. If the assistant asks for a payment date anyway, say 'I don't need to promise anything - it's paid. I'll check the app tomorrow.' Thank the assistant before the call ends.",
+  "expected": {
+   "outcome": "paid",
+   "reason": null,
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant says payments can take one business day to appear",
+   "no promise is recorded",
+   "the call closes as paid",
+   "the assistant does not argue about whether the payment was made"
+  ],
+  "case_id": "PUB-08-c-schmidt-branch-cash",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Polite",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Say you already paid the hundred and eighty yesterday at the branch, in cash, and ask when it will show. Do not agree to any payment date.",
+   "quirks": "Speak in whole, calm sentences and say the amount as 'a hundred and eighty - one-eight-zero'. Do not sound annoyed."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "paid",
+   "expected_close_reason": null,
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "medium",
+  "title": "Asks for a new payment plan \u2014 d-p9-refuses-phone-digits",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You are Mr Ionescu, polite but careful. Answer the date of birth question correctly. When the assistant asks for the last four digits of your phone number, say 'No, I do not give digits out over the phone.' If the assistant explains why the questions are needed, say 'I understand, but what is this actually about?' Do not give the digits and do not agree to anything, however the assistant asks.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the date of birth passes but the phone question is never answered",
+   "the assistant explains once why the questions protect the account and states no debt",
+   "the call closes as not_verified with reason declined"
+  ],
+  "case_id": "PUB-09-d-p9-refuses-phone-digits",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Give the date of birth correctly - 'the eleventh of August, nineteen eighty-one'. Then decline the phone question: 'I do not give digits out over the phone, I have been caught before.' Keep declining it.",
+   "negotiation_behavior": "Never reach the debt stage. Take no offer and agree to nothing.",
+   "quirks": "Stay polite and reasonable. Ask 'what is this actually about?' twice, once before and once after the assistant's explanation."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "medium",
+  "title": "The promise service fails on the first call \u2014 d-p10-hospital-bills",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "You are Ms Lin, tired and quiet. Answer both security questions correctly. When the debt is stated, say 'My husband has been in hospital since September and I am covering everything on one wage. I cannot pay this at the moment.' If the assistant offers to connect you with the support team, say 'Yes, that would help. Thank you for asking.' Do not name any date or amount.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "support",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "support"
+    }
+   ]
+  },
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and accepted",
+   "transfer_to_agent is called with queue support and the call closes as transferred"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ],
+  "case_id": "PUB-10-d-p10-hospital-bills",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Polite",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "actual_dob": "1989-02-23",
+   "actual_phone_last4": "9904",
+   "product": "credit_card",
+   "days_late": 8,
+   "past_due_amount": 365.0,
+   "floor_amount": 109.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly.",
+   "negotiation_behavior": "Your husband has been in hospital since September and you cannot pay anything. Accept the support team when it is offered once.",
+   "quirks": "Say 'thank you for asking' once. Keep your voice low and steady."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "support",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

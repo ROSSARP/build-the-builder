@@ -1,0 +1,145 @@
+[
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "medium",
+  "title": "Says she already paid \u2014 c-schmidt-declines",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You are Hannah Schmidt and you do not trust cold callers. Interrupt the first security question: 'Hang on - how do I know you're actually the bank? What's this about?' If the assistant explains that the questions protect your account, say 'No. I'm not giving my date of birth to someone who rang me. I don't know who you are.' When asked again, refuse again, faster: 'No - what did I just say? I'm not answering that. Put whatever it is in writing.' Never give your date of birth or your number, and never ask for a person. Stay on the line until the assistant closes the call.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "asking what the call is about counts as declining rather than answering",
+   "the assistant explains once and closes after the second refusal",
+   "no product, amount or debt is named",
+   "the call closes as not_verified with reason declined"
+  ],
+  "case_id": "PUB-08-c-schmidt-declines",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Refuse to give the security answers. Ask what the call is about, then say you do not give details to cold callers - twice. After the assistant's one explanation, decline again and keep declining. Never give your date of birth or your number, and never ask for a person.",
+   "negotiation_behavior": "The debt stage is never reached.",
+   "quirks": "Interrupt the first security question with 'How do I know you're the bank?' Speak quickly and firmly, and talk over the explanation."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "hard",
+  "title": "Asks for a new payment plan \u2014 d-p9-refuses-deadline",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You are Mr Ionescu, short-tempered and not interested in the call. Answer both security questions correctly but curtly. When the debt is stated, say 'I will pay it on the sixth of November and not a day before.' If the assistant offers the twenty-third, or Friday the sixteenth, or any other day or amount, say 'No. Not a day before the sixth of November.' Do not accept any offer and do not agree to anything.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "refused",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "6 November is never recorded",
+   "the deadline 23 October is offered as the latest recordable date",
+   "the call closes as no_promise with reason refused once the offers are used up"
+  ],
+  "case_id": "PUB-09-d-p9-refuses-deadline",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, and curtly.",
+   "negotiation_behavior": "You will pay on 6 November and nothing earlier. Refuse the deadline and every other date or amount the assistant offers. Take no promise.",
+   "quirks": "Short, dismissive answers. Say 'not a day before' twice."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "refused",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

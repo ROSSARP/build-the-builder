@@ -52,3 +52,4 @@
 {"at": "2026-10-11 04:01:33", "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6", "brief": "A", "runs": 1, "passed": 10, "total": 10, "seconds": 117, "failed": []}
 {"at": "2026-10-11 11:02:44", "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6", "brief": null, "runs": 1, "passed": 9, "total": 10, "seconds": 254, "failed": ["PUB-08"]}
 {"at": "2026-10-11 11:28:26", "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6", "brief": null, "runs": 1, "passed": 1, "total": 10, "seconds": 356, "failed": ["PUB-01", "PUB-02", "PUB-06", "PUB-04", "PUB-05", "PUB-07", "PUB-08", "PUB-09", "PUB-10"]}
+{"at": "2026-10-11 11:35:01", "agent_id": "8580c81d-938f-4854-9600-6901f5a1f4d6", "brief": null, "runs": 1, "passed": 5, "total": 10, "seconds": 353, "failed": ["PUB-01", "PUB-02", "PUB-03", "PUB-06", "PUB-04"]}

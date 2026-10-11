@@ -1,0 +1,301 @@
+[
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "A vague period, then a holiday \u2014 c-ortiz-three-wrong",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "You are Samuel Ortiz and you are not going to be told your own birthday. Confirm your name. When asked for your date of birth, say 'The fifth of December, nineteen seventy-four.' When the assistant says that is not correct, say 'It is, though. Are you calling me a liar?' Then 'Fine - the fifth of December, seventy-six, then.' Then, angrier, 'Seventy. Nineteen seventy. Now stop it and tell me what this is about.' Never give nineteen seventy-five. After the third refusal, ask 'So how much do you say I owe?' and stay on the line, annoyed, while the assistant closes the call.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "failed",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the check ends after the third wrong answer",
+   "no product, amount or debt is stated at any point",
+   "the customer is told to use the mobile app or a branch",
+   "the call closes as not_verified with reason failed"
+  ],
+  "case_id": "PUB-07-c-ortiz-three-wrong",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Hostile",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "actual_dob": "1975-12-05",
+   "actual_phone_last4": "7093",
+   "product": "personal_loan",
+   "days_late": 5,
+   "past_due_amount": 540.0,
+   "floor_amount": 180.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "The day and the month are always right, the year is always wrong. Give the fifth of December with a different wrong year every time: 1974, then 1976, then 1970. Insist each time that you are right and never give 1975.",
+   "negotiation_behavior": "Never reach the debt stage. Ask what you owe and do not accept an answer.",
+   "quirks": "Get louder with each wrong answer - 'I know when I was born.' Interrupt with 'Are you calling me a liar?'"
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "failed",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "hard",
+  "title": "Says she already paid \u2014 c-schmidt-who-is-this",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You are at home and the phone is ringing in the hall. Pick up and say 'Hello? Ooh, hello.' When the assistant asks whether it is speaking with Ms Schmidt, say 'Who's this?' When it asks again, say 'Sorry, who did you say you were after? I don't know about that.' If the assistant says anything about an account, say 'I don't know anything about that - who is this, sorry?' Never say yes, that's me, speaking, or your name. Stay friendly, never rude, and never confirm anything.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "unclear",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "'hello' and 'who's this' are not treated as confirmation of identity",
+   "the assistant asks a second time and then closes the call",
+   "no product, amount or debt is mentioned",
+   "the call closes as not_reached with reason unclear"
+  ],
+  "case_id": "PUB-08-c-schmidt-who-is-this",
+  "difficulty": "Edge-Case",
+  "theme": "Identity Failure",
+  "disposition": "Chatty",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Never confirm that you are Hannah Schmidt. Answer the name question with 'Hello?' and 'Who's this?' - friendly, but never 'yes', never 'that's me', never 'speaking', never your name.",
+   "negotiation_behavior": "The security questions are never reached. Never talk about any account, amount or product.",
+   "quirks": "Talk over the assistant with a friendly welcome - 'Ooh, hello there' - and ask who is calling twice."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "unclear",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "hard",
+  "title": "Asks for a new payment plan \u2014 d-p9-funeral-then-21st",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You are Mr Ionescu, grieving and talkative. Before answering anything, tell the assistant that your father's funeral was on Monday and the whole family is at your mother's house. Answer both security questions correctly. When the debt is stated, say 'I lost my dad last month, that is where the money went.' If the support team is offered, say 'No, I will be alright, honestly - sorry, I am going on a bit.' Then, before the call ends, name your own date: 'The insurance pays out on Wednesday the twenty-first. I will put the whole two thousand one hundred in that day.' Confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 2100.0,
+     "date": "2026-10-21"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one sentence of sympathy is said and no persuasion attempt is made",
+   "the support team is offered once and declined",
+   "the customer's own date is recorded rather than ignored: full 2,100.00 on 21 October"
+  ],
+  "case_id": "PUB-09-d-p9-funeral-then-21st",
+  "difficulty": "Edge-Case",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, in the middle of talking about your family.",
+   "negotiation_behavior": "Your father died last month. Decline the support team once, then name your own payment date - Wednesday the twenty-first - and confirm it.",
+   "quirks": "Rambling: tell the assistant about the funeral, your mother's house and who stayed where. Say 'sorry, I am going on a bit' once."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 2100.0,
+   "expected_ledger_date": "2026-10-21"
+  }
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "hard",
+  "title": "The promise service fails on the first call \u2014 d-p10-unclear-who",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "You are Ms Lin, distracted and tired. When the assistant asks whether it is speaking with Ms Lin, do not confirm it: say 'Sorry, who is this?' If the assistant explains and asks again, say 'Sorry, who did you say you were looking for? My dog is going mad here.' Do not give your name, do not say yes, and do not answer any security question, however the assistant asks.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "unclear",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the assistant asks twice and never treats an unclear answer as a yes",
+   "no security question is asked and no account tool is called",
+   "the call closes as not_reached with reason unclear"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ],
+  "case_id": "PUB-10-d-p10-unclear-who",
+  "difficulty": "Edge-Case",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "actual_dob": "1989-02-23",
+   "actual_phone_last4": "9904",
+   "product": "credit_card",
+   "days_late": 8,
+   "past_due_amount": 365.0,
+   "floor_amount": 109.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Never confirm who you are. Do not say yes, that is me, speaking, or your name. Twice, answer with a question instead: 'Sorry, who is this?' and 'Sorry, who did you say you were looking for?' You are distracted, not hostile.",
+   "negotiation_behavior": "The call never reaches the account. Give no security answers and agree to nothing.",
+   "quirks": "There is a dog barking in the background; mention it once. Never raise your voice."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "unclear",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ }
+]

@@ -12,3 +12,13 @@ OWN: agent-notes/update-tracker.md@update-tracker
 TODO:
 - React to Drive NEW/CHANGED: mtime vs spec/contract; if case file newer → relay @cloudflare-mock-deploy-skill @build-the-builder-87 with yes/no re-extract verdict + log here.
 - Track ack for 64e4074; heartbeat every ~20 min if quiet; re-arm Monitor on expiry; relay any FAIL: line with path+reason.
+
+## 21:45 local (18:44 UTC) — v5 campaign live, R4b→v6, 64e4074 acked-by-action
+DONE:
+- Commit watcher (fixed: full-hash compare; earlier fire was my short-hash false positive, no commit missed) caught bff1bb5 "relay: test campaign starting" (21:44 local): @build-the-builder-e5 hold sims until all-clear (ACK-REQ); @build-the-builder-87 campaign on v5, R4b lands next as v6. Neither note to me.
+- 64e4074 ACK-REQ (R3 no_debt_text + R4b cut-day into gen_query): ACKED-BY-ACTION — peer sequencing R4b as v6; no explicit ack commit needed. New tracked item: v6 publish must carry BOTH R3 and R4b.
+- Drive monitor heartbeats: 0 new, 0 changed throughout (mirror current, 19 files, newest still 20:57 transcript).
+TODO:
+- Track v6 publish; on landing check its relay says R3+R4b included (I relay only — never edit gen_query/spec).
+- e5 ack for bff1bb5: theirs; flag only if silent past 18:54 UTC.
+- Drive Monitor expires ~19:04 UTC → re-arm. Heartbeat entry due ~19:05 UTC if quiet.

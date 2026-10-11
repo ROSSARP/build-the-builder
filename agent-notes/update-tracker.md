@@ -27,3 +27,6 @@ TODO:
 DONE:
 - No ack commit for bff1bb5 by 18:54 UTC → sent SendMessage nudge to build-the-builder-e5 (hold sims until all-clear; ack via one-line commit; v6 expected next). Delivery accepted into their inbox.
 - Drive heartbeats continuous 0 new, 0 changed.
+
+## 19:05 UTC — heartbeat (quiet)
+- 64e4074 acked-by-action (R4b→v6 in flight); e5 acked sim hold (70c97e3); Drive mirror 0 new/0 changed all cycle (11 heartbeats, 19 files); HEAD 556013e. Watching: v6 publish, Drive Monitor re-armed at 19:04 UTC for another 30 min. Cutoff 19:45 UTC.

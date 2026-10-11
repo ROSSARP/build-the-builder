@@ -1,0 +1,11 @@
+{
+ "url": "https://final-case-mock-bank.fcodefcode3.workers.dev",
+ "base_path": "",
+ "mock_url": "https://final-case-mock-bank.fcodefcode3.workers.dev",
+ "worker_name": "final-case-mock-bank",
+ "checked_at": "2026-10-11T18:15:27Z",
+ "health": true,
+ "get_probes": [],
+ "passed": 0,
+ "total": 0
+}

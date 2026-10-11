@@ -9,7 +9,7 @@ customers, prompt-level fixing, export for submission, and a plain-text trace of
 No phone agent in `submission/` was edited by hand: each one is the output of a builder run,
 with that run's trace in `traces/`.
 
-`SUBMISSION.md` is the Sunday runbook (hidden briefs at 17:00 UTC, submit by 20:00 UTC).
+`SUBMISSION.md` is the Sunday runbook (the final case opens 17:00 UTC, submit by 20:00 UTC).
 
 ## Quick start
 

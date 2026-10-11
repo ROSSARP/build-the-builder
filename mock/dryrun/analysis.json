@@ -1,0 +1,264 @@
+{
+ "service_name": "Freya Bank collections tools",
+ "base_path": "/v1",
+ "language": "en",
+ "state_model": "cross-call",
+ "state_reason": "Identity progress (fields passed, wrong answers, lockout), the recorded ledger and every promise/note/callback/transfer must survive across separate HTTP calls for the same customer_id; the contract calls close_call 'always the last tool call' and scores a ledger built from many calls.",
+ "identity": {
+  "questions": [
+   {
+    "field": "date_of_birth",
+    "format": "YYYY-MM-DD",
+    "description": "The customer's date of birth as a date string. Callers say dates in words; the agent converts them before sending."
+   },
+   {
+    "field": "phone_last4",
+    "format": "four digits",
+    "description": "The last four digits of the customer's phone number."
+   }
+  ],
+  "order": [
+   "date_of_birth",
+   "phone_last4"
+  ],
+  "wrong_answer_limit": 3,
+  "not_counted_as_wrong": "An unreadable value (e.g. a date_of_birth that is not a readable YYYY-MM-DD) is rejected with ok=false and is not counted as a wrong answer.",
+  "hints": [
+   "day_month_swapped"
+  ],
+  "gated_endpoints": [
+   "/v1/get_account"
+  ],
+  "refusal_error": "Not fixed by the contract: a refusal is HTTP 200 with ok=false plus a free-form \"error\" string; the contract names the field but never spells the string. Proposed value (mock template): \"identity not verified\".",
+  "notes": "One field per call: verify_identity carries the field name, so either order must work; the enum order and the scripts show date_of_birth first. Wrong answers are counted in total across both fields ('Three wrong answers in total end the check'), and the third one locks the check — no further question may be answered and no product or amount may be disclosed. An already-passed field is not asked again: PUB-12 gives a wrong phone_last4 after a correct date_of_birth and only the phone question is repeated. The hint is advisory; the contract defines only the single enum value day_month_swapped and does not say how it affects counting. Only get_account is explicitly refused before both questions pass ('Refused until both questions are passed'); the contract does not state whether create_promise/add_note/schedule_callback/transfer_to_agent/close_call are gated. A 500 leaves nothing recorded, so a failed check may be repeated."
+ },
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/v1/verify_identity",
+   "summary": "Check one security answer. Three wrong answers in total end the check.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "field": "string, enum: date_of_birth | phone_last4 (required)",
+    "answer": "string (required) — for date_of_birth: the date as YYYY-MM-DD; for phone_last4: four digits"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string",
+    "verified": "boolean",
+    "wrong_answers_left": "integer",
+    "all_verified": "boolean",
+    "hint": "string, enum: day_month_swapped"
+   },
+   "errors": [
+    {
+     "when": "the answer is unreadable (e.g. a date that is not YYYY-MM-DD)",
+     "response": "200 with ok=false; the value is rejected and is NOT counted as a wrong answer"
+    },
+    {
+     "when": "the answer is readable but wrong",
+     "response": "200 with ok=false and a reduced wrong_answers_left; the third wrong answer in total ends the check"
+    },
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/get_account",
+   "summary": "The late products. Refused until both questions are passed.",
+   "request_fields": {
+    "customer_id": "string (required)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string",
+    "products": "array of product objects (see products.shape)"
+   },
+   "errors": [
+    {
+     "when": "not both security questions have been passed",
+     "response": "200 with ok=false and an error string; no products disclosed"
+    },
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/create_promise",
+   "summary": "Record a payment promise. One per product.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "product_id": "string (required)",
+    "amount": "number (required)",
+    "date": "string, format date (required)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string",
+    "promise_id": "string"
+   },
+   "errors": [
+    {
+     "when": "the service fails (this is the tool the PUB-10 fault fails once)",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    },
+    {
+     "when": "a promise already exists for that product ('One per product.')",
+     "response": "200 with ok=false (implied by the contract; it gives no string for this case)"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/add_note",
+   "summary": "Brief B: record why a product ended without a promise.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "product_id": "string (required)",
+    "reason": "string, enum: refused | hardship | dispute | paid | service_error (required)",
+    "text": "string (not in required)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string"
+   },
+   "errors": [
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/schedule_callback",
+   "summary": "Book a callback.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "date": "string, format date (required)",
+    "time": "string HH:MM (required)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string"
+   },
+   "errors": [
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/transfer_to_agent",
+   "summary": "Hand the call to a person.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "queue": "string, enum: restructuring | general | support (required)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string"
+   },
+   "errors": [
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/v1/close_call",
+   "summary": "End the call. Always the last tool call. Nothing is accepted after it.",
+   "request_fields": {
+    "customer_id": "string (required)",
+    "outcome": "string, enum: promise | paid | transferred | no_promise | not_verified | not_reached (required)",
+    "reason": "string — required for every outcome except promise and paid; see the table in the brief (not in the schema's required list)"
+   },
+   "response_fields": {
+    "ok": "boolean (false when the action was not carried out)",
+    "error": "string"
+   },
+   "errors": [
+    {
+     "when": "reason is missing for an outcome other than promise or paid",
+     "response": "200 with ok=false and an error string ('Required for every outcome except promise and paid')"
+    },
+    {
+     "when": "any tool is called after close_call",
+     "response": "not accepted — close_call is always the last tool call and nothing is accepted after it"
+    },
+    {
+     "when": "the service fails",
+     "response": "500 — nothing was recorded; the call may be repeated"
+    }
+   ]
+  }
+ ],
+ "ledger": {
+  "record_every_call": true,
+  "fields": [
+   "calls[] {seq, at, customer_id, tool, request, result}",
+   "outcome",
+   "reason",
+   "promises[] {product_id, amount, date}",
+   "notes[] {product_id, reason}",
+   "callbacks[] {date, time}",
+   "transfers[] {queue}",
+   "identity {verified, wrong_answers, locked}"
+  ],
+  "read_routes": [
+   {
+    "method": "GET",
+    "path": "/v1/practice/ledger/{customer_id}",
+    "summary": "the ledger a scorer reads — every call in order plus the final outcome/reason, promises, notes, callbacks, transfers and identity state"
+   },
+   {
+    "method": "GET",
+    "path": "/v1/practice/ledger",
+    "summary": "all live ledgers, keyed by customer_id"
+   }
+  ]
+ },
+ "sessions": {
+  "add": true,
+  "path": "/v1/practice/sessions",
+  "request": {
+   "case": "case or customer id"
+  },
+  "response": {
+   "variables": "call variables incl. a fresh customer_id"
+  },
+  "notes": "The contract defines no session endpoint — its base /v1 carries only the seven tools — so this is the proposed practice-style route; each session must hand out a fresh customer_id whose seed carries that case's variables, identity answers, products and faults. Also expose GET /v1/practice/sessions to list live sessions."
+ },
+ "faults": [
+  {
+   "tool": "create_promise",
+   "when": "first call of the session (PUB-10 faults: fail_first_n 1)",
+   "behavior": "500 once and nothing recorded; the repeated call succeeds, so exactly one promise appears in the ledger"
+  }
+ ],
+ "products": {
+  "shape": "product_id: string; type: string enum: credit_card | personal_loan | car_loan; card_last4: string (credit cards only); past_due: number; days_late: integer; minimum_payment: number (credit cards only); instalment_amount: number (loans only)",
+  "ids": "Stable per customer and tied to get_account order: the test customers' expected promises and notes use p1, p2, p3 for the 1st, 2nd and 3rd product returned."
+ },
+ "unknown_customer_policy": "The contract is silent. Never 500: accept any customer_id string, and for an id not in the seed derive the customer deterministically from that id (product ids p1..pn, identity answers, products, faults) so the same id always yields the same customer — this is the same person because \"the customer_id in the body is the secret of one call\", and hidden customers are served by the same mock.",
+ "extra_notes": [
+  "close_call outcome/reason vocabulary seen in the test customers: promise (reason null), paid (reason null), transferred (reason restructuring), no_promise (reason hardship), not_verified (reason failed), not_reached (reason callback). The close_call reason is free-form text, not the add_note enum.",
+  "The service does not enforce the brief: it records a promise on a holiday or past the deadline without complaint, and holds no holiday calendar. Following the brief is the agent's job.",
+  "No key and no auth: the seven tool calls need no credential; the customer_id in the body is the secret of one call.",
+  "A 500 means nothing was recorded — the failed call must not appear in the ledger as an action and must be safely repeatable.",
+  "Every call is ledgered, including refusals and the individual identity answers; seq is monotonic and order is insertion order.",
+  "add_note is Brief B only (record why a product ended without a promise); reject nothing beyond its required schema.",
+  "product_id is the only handle for a product; amount and date are stored verbatim, and the mock never validates amount against past_due or date against a deadline.",
+  "close_call writes outcome and reason onto the ledger and closes the call; it is always last."
+ ]
+}

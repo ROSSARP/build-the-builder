@@ -1,7 +1,7 @@
 """Generate a Cloudflare Workers mock bank from a service contract + test customers.
 
     python3 builder/mock_gen.py <contract_file> <customers_file> [--out mock] [--name NAME]
-                                [--model claude-sonnet-5-5] [--repairs 2] [--no-llm] [--selftest]
+                                [--model claude-sonnet-5-5] [--repairs 2] [--no-verify] [--no-llm] [--selftest]
 
 `generate_mock(contract_text, customers_text, out_dir)` writes into out_dir:
 
@@ -22,7 +22,9 @@
 
 Model calls go through the same `claude` CLI pattern as builder/build.py:
 subprocess `claude -p ... --output-format json --model ...` with the enclosing
-session's model overrides stripped from the environment.
+session's model overrides stripped from the environment. Environment knobs:
+MOCK_GEN_MODEL (or BUILDER_MODEL) picks the model, MOCK_GEN_TIMEOUT bounds one call
+(default 900 s), MOCK_GEN_BUDGET bounds the whole generation (default 1800 s).
 
 Nothing here deploys anything: deploy is mock/deploy.sh (wrangler or the Cloudflare
 REST API) with CF_API_TOKEN + CF_ACCOUNT_ID.
@@ -40,6 +42,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 MODEL = (os.environ.get("MOCK_GEN_MODEL") or os.environ.get("BUILDER_MODEL")
          or "claude-sonnet-5-5")
 LLM_TIMEOUT = int(os.environ.get("MOCK_GEN_TIMEOUT", "900"))
+BUDGET = int(os.environ.get("MOCK_GEN_BUDGET", "1800"))  # total seconds for all model calls
 SEED_PLACEHOLDER = "__SEED_JSON__"
 
 TRACE = []  # filled by generate_mock(); every model call lands here
@@ -54,20 +57,21 @@ def trace_line(text):
 
 
 # --------------------------------------------------------------------------- llm
-def llm(prompt, purpose):
+def llm(prompt, purpose, timeout=None):
     """One model call through the claude CLI (same pattern as builder/build.py)."""
+    tmo = timeout or LLM_TIMEOUT
     t0 = time.time()
     cmd = ["claude", "-p", prompt, "--output-format", "json", "--model", MODEL]
     # strip this session's model overrides so the spawned CLI uses the models we ask for
     env = {k: v for k, v in os.environ.items()
            if k not in ("ANTHROPIC_MODEL", "CLAUDE_CODE_SUBAGENT_MODEL")
            and not k.startswith(("CLAUDE_MODEL", "ANTHROPIC_DEFAULT_"))}
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=LLM_TIMEOUT, env=env)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=tmo, env=env)
     model = MODEL
     if r.returncode != 0 or "unrecognized_model" in (r.stderr or ""):
         model = "default"
         r = subprocess.run(["claude", "-p", prompt, "--output-format", "json"],
-                           capture_output=True, text=True, timeout=LLM_TIMEOUT, env=env)
+                           capture_output=True, text=True, timeout=tmo, env=env)
     took = time.time() - t0
     out = r.stdout.strip()
     try:
@@ -590,6 +594,26 @@ def validate_worker(js, analysis, seed):
     if analysis.get("state_model") == "cross-call" and "MOCK_KV" not in js_nc:
         problems.append("cross-call state: the worker must implement the optional KV mirror "
                         "(env.MOCK_KV) so the ledger survives a change of isolate")
+    # the ledger keys the scoring contract reads (tools/score.py: calls[].tool/.result,
+    # promises[], notes[], callbacks[], transfers[], outcome, reason)
+    for key in ("calls", "promises", "notes", "callbacks", "transfers", "outcome", "reason",
+                "customer_id", "closed", "seq", "tool", "request", "result"):
+        if f'"{key}"' not in js_nc and f"{key}:" not in js_nc:
+            problems.append(f"the ledger never mentions the key {key!r} (the scorer reads it)")
+    ident = analysis.get("identity") or {}
+    if ident and (ident.get("gated_endpoints") or []):
+        raw = str(ident.get("refusal_error") or "").strip()
+        # the analysis often quotes the string inside an explanation: pull the quoted
+        # candidates out, and accept the practice-convention default as a fallback
+        quoted = re.findall(r'"([^"\n]{3,80})"|\'([^\'\n]{3,80})\'', raw)
+        candidates = [a or b for a, b in quoted]
+        if 0 < len(raw) <= 60:
+            candidates.append(raw)
+        candidates.append("identity not verified")
+        if not any(c in js_nc for c in candidates):
+            problems.append("none of the identity refusal strings "
+                            f"{candidates[:3]} appear in the worker "
+                            f"(the scorer compares the error string literally)")
     if re.search(r"^\s*import\b", js_nc, re.M):
         problems.append("ES `import` statements are not allowed: one self-contained file, no bundles")
     for bad, label in ((r"\brequire\s*\(", "require()"), (r"\bprocess\.", "process."),
@@ -1066,6 +1090,46 @@ __JS__
 """
 
 
+VERIFY_PROMPT = """You are the conformance checker for a generated Cloudflare Worker mock. Compare the WORKER against the SERVICE CONTRACT and its analysis, and report every mismatch. Return ONE JSON object, no prose and no markdown fences:
+
+{"ok": true|false, "issues": ["one line per mismatch, precise and actionable"], "notes": "one line"}
+
+Check, in this order:
+1. every contract endpoint is implemented, with the exact path (base prefix included), the exact method, and no extra invented endpoints;
+2. request bodies use the contract's exact field names and types; required fields are validated and invalid input returns the contract's error shape;
+3. responses use the contract's exact field names, types and enum values (never a renamed or missing field);
+4. error strings and status codes match the contract exactly — especially the identity refusal, which must be the contract's exact string;
+5. the identity rules are enforced server-side: the questions, their order, the wrong-answer limit, what is not counted as wrong, hints, lockout, and which endpoints are gated;
+6. the ledger records EVERY call (success and failure) once, with {seq, at, customer_id, tool, request, result} where result is the exact response body sent, and maintains outcome/reason/promises/notes/callbacks/transfers with the contract's field names;
+7. the ledger read routes return the keys a scorer reads, including for a customer id that had a session suffix added;
+8. sessions hand out a fresh customer_id and a clean state per session; close_call (or the contract's terminal tool) sets the final outcome/reason exactly as the contract defines;
+9. faults are implemented exactly as described (which tool, when, how many times, what error) and no faults are invented;
+10. /health returns 200 JSON without touching state; unknown paths are 404; the worker cannot 500 on a well-formed call.
+
+Only real mismatches — do not report style, structure or performance. If the worker is conformant, return {"ok": true, "issues": []}.
+
+## Contract analysis (the interpretation the worker was built from)
+__ANALYSIS__
+
+## Service contract (verbatim; authoritative)
+__CONTRACT__
+
+## Generated worker
+```javascript
+__JS__
+```
+"""
+
+
+def build_verify_prompt(js, analysis, contract_text):
+    return fill_tokens(VERIFY_PROMPT, {
+        "__ANALYSIS__": render_analysis_digest(analysis) + "\n\n"
+                        + json.dumps(analysis, ensure_ascii=False, indent=1)[:12000],
+        "__CONTRACT__": contract_text[:50000],
+        "__JS__": js[:80000],
+    })
+
+
 def render_endpoint_list(analysis):
     lines = []
     for ep in analysis.get("endpoints") or []:
@@ -1282,13 +1346,187 @@ never prints the token.
 """
 
 
+# --------------------------------------------------------------- case folder ---
+# The final package is one folder of documents (Markdown, .docx, .pdf, .xlsx;
+# Turkish). read_inputs() turns it into (contract_text, customers_text): the
+# contract side is the whole package ordered contract-likelihood-first (the truth
+# may be split across a contract, a memo and examples), the customers side is the
+# files that look like the test-customer table. File reading goes through the
+# sibling builder/read_case.py when it is importable (it handles the optional
+# libraries); the fallback reads the text formats only.
+
+CONTRACT_NAME_HINTS = ("contract", "sözleşme", "sozlesme", "sozlesmesi", "servis", "service",
+                       "api", "openapi", "teknik", "endpoint", "arayüz", "arayuz", "tool")
+CUSTOMER_NAME_HINTS = ("customer", "müşteri", "musteri", "musteriler", "müşteriler", "case",
+                       "cases", "senaryo", "senaryolar", "örnek", "ornek", "example", "test",
+                       "veri", "data", "liste", "list")
+
+
+def _load_read_case():
+    try:
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import read_case  # sibling module; optional
+        return read_case
+    except Exception:
+        return None
+
+
+def _read_case_files(path):
+    """[{name, text}] for every readable file in a case folder (or zip)."""
+    p = pathlib.Path(path)
+    if p.suffix.lower() == ".zip":
+        rc = _load_read_case()
+        if rc and hasattr(rc, "unzip_case"):
+            p = pathlib.Path(rc.unzip_case(str(p)))
+        else:
+            import tempfile
+            import zipfile
+            dest = pathlib.Path(tempfile.mkdtemp(prefix="case_"))
+            with zipfile.ZipFile(str(p)) as zf:
+                for name in zf.namelist():
+                    pure = pathlib.PurePosixPath(name)
+                    if name.startswith("/") or ".." in pure.parts or "__MACOSX" in name \
+                            or pure.name.startswith("._"):
+                        continue
+                    zf.extract(name, dest)
+            p = dest
+    rc = _load_read_case()
+    if rc:
+        data = rc.read_case_folder(str(p))
+        files = list(data.get("files") or [])
+        if not files:
+            raise RuntimeError(f"read_case.py read no files from {p}")
+        return files
+    exts = {".md", ".markdown", ".txt", ".json", ".csv", ".tsv", ".yml", ".yaml"}
+    files = []
+    for f in sorted(pathlib.Path(p).rglob("*")):
+        if not f.is_file() or f.name.startswith(".") or "__MACOSX" in f.parts:
+            continue
+        if f.suffix.lower() in exts:
+            try:
+                files.append({"name": str(f.relative_to(p)), "text": f.read_text(errors="replace")})
+            except Exception:
+                pass
+    if not files:
+        raise RuntimeError(f"no readable text files in {p} (install python-docx/openpyxl/pypdf "
+                           f"for .docx/.xlsx/.pdf, or pass the contract and customers files directly)")
+    return files
+
+
+def score_contract_file(name, text):
+    s = 0
+    low = str(name).lower()
+    if any(h in low for h in CONTRACT_NAME_HINTS):
+        s += 3
+    if _looks_like_openapi(text):
+        s += 6
+    verbs = len(re.findall(r"\b(POST|GET|PUT|PATCH|DELETE)\b", text or ""))
+    s += min(3, verbs // 5)
+    if "v1/" in (text or "") or "/v1" in (text or ""):
+        s += 1
+    return s
+
+
+def score_customers_file(name, text):
+    s = 0
+    low = str(name).lower()
+    if any(h in low for h in CUSTOMER_NAME_HINTS):
+        s += 3
+    try:
+        d = json.loads(text or "")
+    except Exception:
+        d = None
+    if d is not None:
+        data = d if isinstance(d, list) else \
+            (d.get("customers") or d.get("cases") or d.get("test_customers") if isinstance(d, dict) else None)
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            keys = set()
+            for row in data[:3]:
+                if isinstance(row, dict):
+                    keys |= set(row.keys())
+            if keys & {"variables", "identity", "products"}:
+                s += 6
+            else:
+                s += 2
+    return s
+
+
+def _looks_like_openapi(text):
+    try:
+        d = json.loads(text or "")
+    except Exception:
+        return False
+    return isinstance(d, dict) and isinstance(d.get("paths"), dict)
+
+
+def _classify_case_files(files):
+    """(contract_text, customers_text, primaries, notes) from a case folder."""
+    scored = []
+    for f in files:
+        name, text = str(f.get("name") or ""), f.get("text") or ""
+        scored.append((name, text, score_contract_file(name, text), score_customers_file(name, text)))
+    c_order = sorted(scored, key=lambda x: -x[2])
+    k_order = sorted((x for x in scored if x[3] >= 2), key=lambda x: -x[3])
+    contract_text = "\n\n".join(f"--- FILE: {n} ---\n{t}" for n, t, _, _ in c_order)
+    chosen = k_order[:3]
+    customers_text = "\n\n".join(f"--- FILE: {n} ---\n{t}" for n, t, _, _ in chosen) or contract_text
+    primary_contract = c_order[0][1] if c_order and c_order[0][2] >= 3 else ""
+    primary_customers = k_order[0][1] if k_order else ""
+    notes = [
+        "case folder read: " + ", ".join(n for n, _, _, _ in scored[:12]) +
+        (f" (+{len(scored) - 12} more)" if len(scored) > 12 else ""),
+        "contract likelihood order: " + ", ".join(f"{n}={c}" for n, _, c, _ in c_order[:6]),
+        "customers files: " + (", ".join(f"{n}={k}" for n, _, _, k in chosen) or "none found"),
+    ]
+    if primary_contract:
+        notes.append(f"primary contract file: {c_order[0][0]}")
+    else:
+        notes.append("no single contract file scored high enough: the analysis call reads the "
+                     "whole package")
+    if not chosen:
+        notes.append("no customers file recognised: the analysis and seed calls read the whole package")
+    return contract_text, customers_text, primary_contract, primary_customers, notes
+
+
+def read_inputs(first, second=None, quiet=False):
+    """(folder | zip | file [| customers file]) -> the texts the generator consumes.
+
+    One positional that is a folder or .zip: the case package (read_case.py handles
+    .docx/.xlsx/.pdf). One positional that is a file: that file is used as both
+    contract and customers (the model finds both inside it). Two positionals: an
+    explicit contract file and customers file.
+    """
+    if second is None:
+        p = pathlib.Path(first)
+        if p.is_dir() or p.suffix.lower() == ".zip":
+            contract_text, customers_text, pc, pk, notes = _classify_case_files(_read_case_files(p))
+            for n in notes:
+                log(f"   {n}")
+            trace_line("case read: " + "; ".join(notes))
+            return {"contract_text": contract_text, "customers_text": customers_text,
+                    "context_text": contract_text, "primary_contract_text": pc,
+                    "primary_customers_text": pk, "source": str(p), "notes": notes}
+        text = p.read_text()
+        note = f"single file input: {p} used as contract and customers"
+        log(f"   {note}")
+        return {"contract_text": text, "customers_text": text, "context_text": text,
+                "primary_contract_text": text, "primary_customers_text": text,
+                "source": str(p), "notes": [note]}
+    ctext = pathlib.Path(first).read_text()
+    ktext = pathlib.Path(second).read_text()
+    return {"contract_text": ctext, "customers_text": ktext,
+            "context_text": ctext + "\n\n" + ktext,
+            "primary_contract_text": ctext, "primary_customers_text": ktext,
+            "source": f"{first} + {second}", "notes": []}
+
+
 # ------------------------------------------------------------------- generator --
-def _llm_json(prompt, purpose, attempts=2):
+def _llm_json(prompt, purpose, attempts=2, timeout=None):
     last = None
     for i in range(attempts):
         try:
             text = llm(prompt if i == 0 else prompt + "\n\nYour previous answer was not valid JSON. Reply with ONLY the JSON object.",
-                       f"{purpose} (attempt {i + 1})")
+                       f"{purpose} (attempt {i + 1})", timeout=timeout)
             return extract_json(text)
         except Exception as exc:
             last = exc
@@ -1297,14 +1535,23 @@ def _llm_json(prompt, purpose, attempts=2):
 
 
 def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=2,
-                  use_llm=True, quiet=False):
+                  use_llm=True, verify=True, quiet=False):
     """Generate worker.js, seed.json, README.md (+ analysis.json, endpoints.json,
     wrangler.toml, gen-trace.log) into out_dir. Returns a summary dict."""
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
+    deadline = t0 + BUDGET
+
+    def remaining():
+        return max(0, int(deadline - time.time()))
+
+    def call_timeout():
+        return min(LLM_TIMEOUT, max(180, remaining()))
+
     trace_line(f"start: mock generation into {out} at {time.strftime('%Y-%m-%d %H:%M:%S')} UTC, "
-               f"model {MODEL if use_llm else '(no-llm deterministic fallback)'}")
+               f"model {MODEL if use_llm else '(no-llm deterministic fallback)'}, "
+               f"budget {BUDGET}s")
     trace_line(f"inputs: contract {len(contract_text)} chars, customers {len(customers_text)} chars")
 
     # 1. contract analysis (model call; deterministic OpenAPI fallback)
@@ -1314,7 +1561,7 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
             analysis = _llm_json(fill_tokens(ANALYSIS_PROMPT, {
                 "<<<CONTRACT>>>": contract_text[:60000],
                 "<<<CUSTOMERS>>>": customers_text[:40000],
-            }), "analyse the service contract")
+            }), "analyse the service contract", timeout=call_timeout())
         except Exception as exc:
             log(f"-- contract analysis fell back to the deterministic parser: {exc}")
             trace_line(f"analysis fallback: {exc}")
@@ -1337,7 +1584,7 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
             seed = _llm_json(fill_tokens(SEED_PROMPT, {
                 "<<<CONTRACT>>>": contract_text[:30000],
                 "<<<CUSTOMERS>>>": customers_text[:60000],
-            }), "normalise the test customers into seed.json")
+            }), "normalise the test customers into seed.json", timeout=call_timeout())
         except Exception as exc:
             log(f"-- seed extraction fell back to the deterministic normaliser: {exc}")
             trace_line(f"seed fallback: {exc}")
@@ -1356,20 +1603,49 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
     js = ""
     problems = []
     repairs_used = 0
+    verify_left = 1 if (verify and use_llm) else 0
     if use_llm:
         prompt = build_worker_prompt(contract_text, customers_text, analysis, seed)
         for attempt in range(repairs + 1):
-            if attempt == 0:
-                js = extract_code(llm(prompt, "generate the Cloudflare Worker"))
-            else:
-                repairs_used = attempt
-                js = extract_code(llm(build_repair_prompt(js, problems, analysis),
-                                      f"repair the Worker (pass {attempt})"))
+            try:
+                if attempt == 0 or not js:
+                    purpose = "generate the Cloudflare Worker" if attempt == 0 \
+                        else f"retry the Worker generation (pass {attempt + 1})"
+                    js = extract_code(llm(prompt, purpose, timeout=call_timeout()))
+                else:
+                    repairs_used = attempt
+                    js = extract_code(llm(build_repair_prompt(js, problems, analysis),
+                                          f"repair the Worker (pass {attempt})",
+                                          timeout=call_timeout()))
+            except Exception as exc:
+                trace_line(f"worker attempt {attempt + 1} raised: {exc}")
+                log(f"-- worker attempt {attempt + 1} raised: {exc}")
+                if remaining() < 60:
+                    raise
+                problems = [f"the previous attempt failed before producing a file ({exc}); "
+                            f"produce the complete worker file"]
+                js = ""
+                continue
             js = apply_seed(js, seed)
             problems = validate_worker(js, analysis, seed)
             trace_line(f"worker attempt {attempt + 1}: {len(js)} chars, "
                        f"{len(problems)} validation problem(s)"
                        + (": " + "; ".join(problems) if problems else " — clean"))
+            if not problems and verify_left:
+                # one conformance pass: does the worker actually match the contract?
+                verify_left -= 1
+                try:
+                    verdict = _llm_json(build_verify_prompt(js, analysis, contract_text),
+                                        "verify the worker against the contract",
+                                        attempts=1, timeout=call_timeout())
+                    issues = [str(i) for i in (verdict.get("issues") or []) if str(i).strip()]
+                    trace_line("verification: " + ("clean"
+                               if not issues else f"{len(issues)} issue(s): " + "; ".join(issues)[:600]))
+                    log(f"-- verification: {'clean' if not issues else str(len(issues)) + ' issue(s)'}")
+                    problems = [f"conformance check: {i}" for i in issues]
+                except Exception as exc:
+                    trace_line(f"verification skipped: {exc}")
+                    log(f"-- verification skipped: {exc}")
             if not problems:
                 break
         if problems:
@@ -1397,7 +1673,8 @@ def generate_mock(contract_text, customers_text, out_dir, *, name=None, repairs=
     (out / "endpoints.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
     (out / "wrangler.toml").write_text(render_wrangler_toml(worker_name, analysis))
     readme = render_readme({"out_dir": str(out)}, analysis, seed, worker_name,
-                           repairs_used, len(TRACE))
+                           repairs_used,
+                           sum(1 for t in TRACE if t.startswith("model call:")))
     (out / "README.md").write_text(readme)
 
     trace_line(f"written: worker.js ({len(js)} chars), seed.json, endpoints.json, "
@@ -1505,6 +1782,8 @@ def main():
     ap.add_argument("--name", default=None, help="Cloudflare worker name (default: derived from the contract)")
     ap.add_argument("--model", default=None, help="model for the generation calls (default: claude-sonnet-5-5)")
     ap.add_argument("--repairs", type=int, default=2, help="repair attempts after failed validation (default 2)")
+    ap.add_argument("--no-verify", action="store_true",
+                    help="skip the conformance-verification model call (it feeds the repair loop)")
     ap.add_argument("--no-llm", action="store_true",
                     help="deterministic path only: write analysis.json + seed.json, skip the worker step")
     ap.add_argument("--selftest", action="store_true",
@@ -1519,7 +1798,7 @@ def main():
     contract_text = pathlib.Path(a.contract).read_text()
     customers_text = pathlib.Path(a.customers).read_text()
     summary = generate_mock(contract_text, customers_text, a.out, name=a.name,
-                            repairs=a.repairs, use_llm=not a.no_llm)
+                            repairs=a.repairs, use_llm=not a.no_llm, verify=not a.no_verify)
     if summary.get("worker"):
         log(f"\nnext: CF_API_TOKEN=... CF_ACCOUNT_ID=... "
             f"{ROOT / 'mock' / 'deploy.sh'} --dir {summary['out_dir']}")

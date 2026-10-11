@@ -99,6 +99,8 @@ the failures and asked for the complete corrected file. Checks, in order:
 | **every contract endpoint path appears as a route** (comment-stripped; regex `\/` spellings accepted; parameterised paths checked by static prefix) | the phone agent's tools must not 404 |
 | every ledger read route + the session route present | the scorer reads these; hidden runs depend on them |
 | `MOCK_KV` present when `state_model == cross-call` | cross-call state must survive an isolate change |
+| every ledger key the scorer reads is present (`calls`, `promises`, `notes`, `callbacks`, `transfers`, `outcome`, `reason`, `customer_id`, `closed`, `seq`, `tool`, `request`, `result`) | `tools/score.py` reads the ledger by those names; a renamed key scores as a failed case |
+| the analysis's identity refusal string (default `"identity not verified"`) appears verbatim | `score.py` compares that error string literally |
 | no `import`, no `require(`, `process.`, `Buffer`, `__dirname`, `module.exports` | Workers runtime is not Node |
 | delimiter balance (strings/comments/regex-aware heuristic) | catches the classic truncated answer |
 

@@ -1,0 +1,11 @@
+name = "freya-bank-collections-tools-mock"
+main = "worker.js"
+compatibility_date = "2026-10-11"
+workers_dev = true
+
+# Optional KV mirror so the ledger survives a change of Worker isolate.
+# mock/deploy.sh --with-kv creates the namespace and fills the id; or do it
+# yourself:  npx wrangler kv namespace create MOCK_KV   and paste the id here.
+[[kv_namespaces]]
+binding = "MOCK_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

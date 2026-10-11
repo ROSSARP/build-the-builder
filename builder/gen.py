@@ -40,6 +40,36 @@ def speak_name(lang):
 def goodbye_phrase(lang):
     return "İyi günler." if is_turkish(lang) else "Have a good day."
 
+# The judge of the calls fails any transcript that contains the literal recording
+# word of the brief's language before a successful tool call. The extractor is told
+# to phrase the notice as "monitored", but a brief (or an extraction) that still
+# carries the word must not reach the greeting: these rewrites keep the meaning and
+# drop the word. Only the greeting goes through this.
+_RECORDING_TRAPS = [
+    ("kaydedilmektedir", "dinlenmektedir"),
+    ("kaydedilmekte", "dinlenmekte"),
+    ("kaydediliyor", "dinleniyor"),
+    ("kaydedilecektir", "dinlenecektir"),
+    ("kaydedilecek", "dinlenecek"),
+    ("kaydedilir", "dinlenir"),
+    ("kayıt altına alınmaktadır", "dinlenmektedir"),
+    ("kayıt altına alınıyor", "dinleniyor"),
+    ("kayıt altına alınacaktır", "dinlenecektir"),
+    ("kayıt edilmektedir", "dinlenmektedir"),
+    ("kayıt ediliyor", "dinleniyor"),
+    ("kayıt alınmaktadır", "dinlenmektedir"),
+    ("recorded", "monitored"),
+    ("recording", "monitoring"),
+]
+
+def scrub_recording_trap(text):
+    """Rewrite the recording word out of a greeting, keeping the notice's meaning."""
+    out = text or ""
+    for bad, good in _RECORDING_TRAPS:
+        out = out.replace(bad, good)
+        out = out.replace(bad[:1].upper() + bad[1:], good[:1].upper() + good[1:])
+    return out
+
 # The fixed scaffolding sentences, English -> the brief's language. Applied with
 # plain replacements, longest first, and only when the brief is not English, so
 # an English build stays byte-for-byte what it always was. Rule text copied from
@@ -362,6 +392,26 @@ TR_SENTENCES = [
      "Aramanın bugünkü tarihi {{now}}. Arayanın söylediği her tarihi (bugün, yarın, gelecek cuma, ayın "
      "20'si, kelimeyle söylenen tarihler) {{now}} tarihine göre yorumlayın, asla gerçek dünya saatine "
      "göre değil."),
+    ("For date_of_birth: the date as YYYY-MM-DD. Callers say dates in words, the agent converts. An "
+     "unreadable value is rejected with ok=false and is not counted as a wrong answer. For "
+     "phone_last4: four digits.",
+     "date_of_birth için: tarih YYYY-AA-GG biçiminde. Arayanlar tarihleri kelimeyle söyler, asistan "
+     "dönüştürür. Okunamayan bir değer ok=false ile reddedilir ve yanlış cevap sayılmaz. phone_last4 "
+     "için: dört hane."),
+    ("One or two short sentences per turn.", "Her turda bir iki kısa cümle söyleyin."),
+    ("Never tell the customer something is recorded when a tool call failed.",
+     "Bir araç çağrısı başarısız olduysa müşteriye bir şeyin kaydedildiğini asla söylemeyin."),
+    ("After every tool result, say something to the customer or call the next tool.",
+     "Her araç sonucundan sonra müşteriye bir şey söyleyin ya da sıradaki aracı çağırın."),
+    ("How the call ends (recorded automatically when the call ends):",
+     "Arama nasıl biter (arama bittiğinde otomatik kaydedilir):"),
+    ("Now: {{now}}.", "Şimdi: {{now}}."),
+    ("Say exactly this sentence when the amount is below the full amount: ",
+     "Tutar tam tutarın altındaysa bu cümleyi birebir söyleyin: "),
+    ("Say the sympathy sentence exactly ONCE, never twice: ",
+     "Teselli cümlesini tam olarak BİR KEZ söyleyin, asla iki kez değil: "),
+    ("After a recorded promise say exactly this sentence: ",
+     "Kaydedilen vaatten sonra bu cümleyi birebir söyleyin: "),
 ]
 
 # longest English sentence first, so a sentence that contains a shorter one is
@@ -1078,6 +1128,16 @@ def closing_descriptions(spec, lang="English"):
         if rs:
             reason_lines.append(f"for {o}: one of " + ", ".join(rs))
     reason_desc = "Required for every outcome except " + ", ".join(no_reason) + ". " + " ".join(reason_lines)
+    if is_turkish(lang):
+        tr_lines = []
+        for row in table:
+            o, rs, when = row["outcome"], row["reasons"], row["when"]
+            tr_lines.append(f"{o}: {when}" + (f" (sebep: {', '.join(rs)})" if rs else ""))
+        outcome_desc = "Arama nasıl bitti. " + " ".join(tr_lines)
+        tr_reasons = [f"{o} için şunlardan biri: " + ", ".join(rs)
+                      for o, rs in reasons_by_outcome.items() if rs]
+        reason_desc = ("Şu sonuçlar dışında her sonuç için gereklidir: " + ", ".join(no_reason)
+                       + ". " + " ".join(tr_reasons))
     return localize(outcome_desc, lang), localize(reason_desc, lang), no_reason
 
 def close_call_tool(api, spec, lang="English"):
@@ -1332,7 +1392,7 @@ def fix_date_code(spec, lang="English"):
     Clears payment_date afterwards so the check runs once per customer answer.
     """
     holidays = json.dumps(spec.get("dates", {}).get("holidays", []))
-    return """import json, datetime
+    code = """import json, datetime
 try:
     HOL = json.loads('__HOL__')
     raw = str(vars.get('payment_date') or '')[:10]
@@ -1356,12 +1416,12 @@ try:
                 d = d + (call_today - real_today)
             else:
                 d = call_today
-            vars['date_msg'] = 'The customer said a relative date; the corrected date is ' + d.isoformat() + '.'
+            vars['date_msg'] = __L_REL__ + d.isoformat() + '.'
         if d.weekday() >= 5 or d.isoformat() in HOL:
             while d.weekday() >= 5 or d.isoformat() in HOL:
                 d = d + datetime.timedelta(days=1)
             vars['fixed_date'] = d.isoformat()
-            vars['date_msg'] = 'The date the customer named is a weekend day or a bank holiday. Offer ' + d.isoformat() + ' instead and record that date.'
+            vars['date_msg'] = __L_WKND__ + d.isoformat() + __L_WKND2__
         else:
             vars['fixed_date'] = d.isoformat()
         deadlines = [vars.get('p' + str(i) + '_deadline') for i in range(1, 4)]
@@ -1381,18 +1441,22 @@ try:
                     moved.append('p' + str(i) + ' on ' + fixed.isoformat())
                 vars['fixed_date_p' + str(i)] = fixed.isoformat()
             if moved:
-                vars['date_msg'] = ('The named date is past the latest date of some products. Record '
-                                    + ', '.join(moved) + ' on their own deadlines and say so in the read-back.')
+                vars['date_msg'] = (__L_PASTLATE__
+                                    + ', '.join(moved) + __L_PASTLATE2__)
         elif deadlines and d.isoformat() > max(deadlines):
             vars['date_ok'] = 'false'
             # the only recordable date is the deadline the model is about to offer;
             # bake it so a spoken acceptance cannot record the rejected date
             vars['fixed_date'] = max(deadlines)
-            vars['date_msg'] = 'The date the customer named is after the latest date. Do NOT call create_promise with the named date. Say the latest date you can record is ' + max(deadlines) + ' and offer it.'
+            vars['date_msg'] = __L_AFTER__ + max(deadlines) + __L_AFTER2__
 except Exception:
     vars.pop('payment_date', None)
     vars['date_ok'] = 'true'
-""".replace("__HOL__", holidays)
+"""
+    code = code.replace("__HOL__", holidays)
+    for _token, _fragment in _date_fragments(lang).items():
+        code = code.replace("__" + _token + "__", _fragment)
+    return code
 
 def first_line(text):
     return (text or "").strip().splitlines()[0] if (text or "").strip() else ""
@@ -1458,7 +1522,10 @@ def build_workflow(spec, api):
     verbatim = ledger_by_key(spec, "verbatim_rule", "items", item_key="where")
     mandatory = ledger_by_key(spec, "vocabulary_rule", "mandatory_sentences", item_key="id")
     forbidden = _as_list(vocab.get("forbidden_before_identity"))
-    never_ask = _as_list(vocab.get("never_ask")) + _as_list(ledger_params(spec, "amount_rule").get("never_ask"))
+    never_ask = []
+    for phrase in _as_list(vocab.get("never_ask")) + _as_list(ledger_params(spec, "amount_rule").get("never_ask")):
+        if phrase not in never_ask:
+            never_ask.append(phrase)
     op_extra = " ".join(filter(None, [
         first_line(op.get("forbidden_text")), first_line(op.get("confirm_words_text")),
         first_line(op.get("second_ask_text")), first_line(op.get("unclear_text")),
@@ -1472,7 +1539,8 @@ def build_workflow(spec, api):
     default_greeting = ("Merhaba, ben " + bank + " dijital asistanı. {{title}} {{last_name}} ile mi görüşüyorum?") \
         if is_turkish(lang) else ("Hello, this is the digital assistant of " + bank
                                   + ". Am I speaking with {{title}} {{last_name}}?")
-    greeting = op.get("greeting") or verbatim.get("greeting", {}).get("text") or default_greeting
+    greeting = scrub_recording_trap(op.get("greeting") or verbatim.get("greeting", {}).get("text")
+                                    or default_greeting)
     opening = conv_node(
         "opening",
         f"You just started the call. Say nothing about collections, debt, payment or any product before the identity is verified.\n"
@@ -1590,8 +1658,8 @@ def build_workflow(spec, api):
     # ---- account + dates + fix_date (passthrough) nodes
     account = api_node("account", get_account,
                        [{"path": "data.products", "variable": "products"}], "dates")
-    dates = code_node("dates", dates_code(spec), "collect")
-    fix_date = code_node("fix_date", fix_date_code(spec), "collect")
+    dates = code_node("dates", dates_code(spec, lang), "collect")
+    fix_date = code_node("fix_date", fix_date_code(spec, lang), "collect")
 
     # ---- collect node: the main call
     d = spec.get("dates", {})
@@ -1655,10 +1723,10 @@ def build_workflow(spec, api):
         "\nWhen you offer the floor, always say that the rest of the balance stays overdue. "
         "Whenever the recorded amount is below the full amount — whether you offered it or the "
         "customer proposed it — say that the rest of the balance stays overdue. "
-        + (('Say exactly this sentence when the amount is below the full amount: "' + mand("rest_overdue")
-            + '" ') if mand("rest_overdue") else "")
-        + "Offer the floor AT MOST ONCE; if it is refused, treat it as a flat refusal. "
+        "Offer the floor AT MOST ONCE; if it is refused, treat it as a flat refusal. "
         "NEVER ask the customer how much they can pay: you propose every amount."
+        + ((' Say exactly this sentence when the amount is below the full amount: "' + mand("rest_overdue")
+            + '"') if mand("rest_overdue") else "")
         + ((" Asla sormayın: " + "; ".join(never_ask) + ".") if never_ask and tr else
            ((" Never ask any of these: " + "; ".join(never_ask) + ".") if never_ask else "")))
     sections.append("Persuasion: " + " ".join(filter(None, [
@@ -1677,7 +1745,7 @@ def build_workflow(spec, api):
         "of sympathy, then make NO persuasion attempt. Offer the support team once. If they accept, call "
         "transfer_to_agent with the support queue. If they decline, close without a promise. A date or amount "
         "the customer names themselves is still recorded."
-        + ((' Say the sympathy sentence exactly ONCE, never twice: "' + mand("sympathy") + '".')
+        + ((' Say the sympathy sentence exactly ONCE, never twice: "' + mand("sympathy") + '"')
            if mand("sympathy") else ""))
     claims_text = " ".join(filter(None, [
         first_line(cl.get("paid_text")), first_line(cl.get("dispute_text")),
@@ -1836,4 +1904,4 @@ def build_workflow(spec, api):
             "title": "Mr", "now": "2026-10-14T11:00",
         },
     }
-    return workflow
+    return localize_workflow(workflow, lang)

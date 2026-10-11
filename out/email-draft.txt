@@ -13,7 +13,7 @@ Final case (Card Statement Debt) gönderimiz ektedir; üç dosya:
 Takım:   Şükrü Fırat Sarp
 Üye:     Şükrü Fırat Sarp <fcodefcode3@gmail.com>
 Repo:    https://github.com/ROSSARP/build-the-builder
-Commit:  f515988
+Commit:  4a48d97
 Mock:    https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 (sonuçlara kadar açık)
 Run:     python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1
 

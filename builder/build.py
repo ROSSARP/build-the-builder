@@ -186,6 +186,33 @@ def case_tool_api_path(folder):
             return f
     return base
 
+
+def api_from_services(contract, mock_url):
+    """OpenAPI-like tool API from an extracted services contract (a contract
+    that ships as Markdown gets extracted to a {services:[...]} JSON). Mirrors
+    tests/self_heal.py's _fake_api_from_contract.
+
+    Paths are BARE (the contract's base prefix stays out): the tool builder
+    concatenates the mock base URL (which carries the prefix) + path, exactly
+    like the practice bank's convention."""
+    api = {"servers": [{"url": mock_url}], "mock_url": mock_url, "paths": {},
+           "base_path": str(contract.get("base_path") or "")}
+    for svc in contract.get("services") or []:
+        path = str(svc.get("path") or "")
+        if not path.startswith("/"):
+            path = "/" + path
+        props, required = {}, []
+        for f in svc.get("request") or []:
+            props[f["name"]] = {"type": f.get("type", "string"),
+                                "description": f.get("description", "")}
+            if f.get("required"):
+                required.append(f["name"])
+        api["paths"][path] = {"post": {
+            "requestBody": {"content": {"application/json": {"schema": {
+                "type": "object", "properties": props, "required": required}}}},
+            "responses": {"200": {"description": "ok"}}}}
+    return api
+
 def read_case_input(arg, mock_url):
     """Case mode: unzip when needed, read the folder, build the tool API.
 
@@ -211,6 +238,21 @@ def read_case_input(arg, mock_url):
                f"{len(case['skipped'])} skipped")
     api_path = case_tool_api_path(folder)
     api = load_tool_api(api_path)
+    if str(api_path) == str(ROOT / "tools" / "openapi.json"):
+        # the bundled practice API is only a fallback: when the case's contract was
+        # extracted to tests/final_contract.json (the contract ships as Markdown in
+        # this case), build the tool API from the extracted services instead
+        fc = ROOT / "tests" / "final_contract.json"
+        if fc.is_file():
+            try:
+                contract = json.loads(fc.read_text())
+            except Exception:
+                contract = {}
+            if isinstance(contract.get("services"), list) and contract["services"]:
+                api = api_from_services(contract, mock_url)
+                api_path = str(fc)
+                log(f"case: tool API from {fc} (extracted services)")
+                trace_line(f"case: tool API from extracted services contract")
     servers = api.get("servers") if isinstance(api, dict) else None
     if not isinstance(servers, list) or not servers:
         servers = [{}]
@@ -386,20 +428,35 @@ def main():
         # 1. extract the spec
         log("== extract: reading the case ==" if case_mode else "== extract: reading the brief ==")
         spec = None
-        for attempt in range(2):
-            try:
-                spec = extract_json(llm(spec_prompt("EXTRACT_PROMPT", BRIEFS=briefs_text,
-                                                    API=json.dumps(api)[:20000]),
-                                        "extract spec from " + ("case folder" if case_mode else "brief")))
-                errors = spec_mod.spec_validation_errors(spec)
-                if errors:
-                    raise ValueError("; ".join(errors))
-                break
-            except Exception as e:
-                log(f"spec attempt {attempt + 1} failed: {e}")
-                spec = None
+        if case_mode:
+            # a case whose spec was already extracted to tests/final_spec.json
+            # reuses it: one extractor, one spec, no re-extraction drift
+            fc_spec = ROOT / "tests" / "final_spec.json"
+            if fc_spec.is_file():
+                try:
+                    spec = json.loads(fc_spec.read_text())
+                    if not isinstance(spec, dict):
+                        spec = None
+                except Exception:
+                    spec = None
+                if spec:
+                    log("case: reusing the extracted spec (tests/final_spec.json)")
+                    trace_line("case: spec reused from tests/final_spec.json")
         if spec is None:
-            raise SystemExit("could not extract a usable spec")
+            for attempt in range(2):
+                try:
+                    spec = extract_json(llm(spec_prompt("EXTRACT_PROMPT", BRIEFS=briefs_text,
+                                                        API=json.dumps(api)[:20000]),
+                                            "extract spec from " + ("case folder" if case_mode else "brief")))
+                    errors = spec_mod.spec_validation_errors(spec)
+                    if errors:
+                        raise ValueError("; ".join(errors))
+                    break
+                except Exception as e:
+                    log(f"spec attempt {attempt + 1} failed: {e}")
+                    spec = None
+            if spec is None:
+                raise SystemExit("could not extract a usable spec")
         log(f"spec: {len(spec.get('identity', {}).get('questions', []))} identity questions, "
             f"{len(spec.get('dates', {}).get('holidays', []))} holidays, "
             f"{len(spec.get('closing', {}).get('table', []))} closing rows, "
@@ -407,7 +464,17 @@ def main():
 
         # 2. generate and validate
         log("== generate: building the workflow ==")
-        workflow = gen.build_workflow(spec, api)
+        try:
+            from builder import gen_query
+            if gen_query.detect_domain(spec, api):
+                log("domain: statement query — generating with gen_query")
+                trace_line("domain: statement query (gen_query)")
+                workflow = gen_query.build_query_workflow(spec, api, mock_url or gen.mock_base_url(api))
+            else:
+                workflow = gen.build_workflow(spec, api)
+        except Exception as e:
+            log(f"gen_query unavailable or failed ({e}); falling back to gen.build_workflow")
+            workflow = gen.build_workflow(spec, api)
         try:
             freya.validate_workflow(slot, workflow)
         except RuntimeError as e:

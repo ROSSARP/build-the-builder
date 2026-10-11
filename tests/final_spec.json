@@ -16,14 +16,19 @@
    "EUR",
    "GBP"
   ],
-  "move_rule_text": "The card's statement cut-off is defined by a week of the month: statementWeek is 1 to 4, the week of the month the statement is cut, and statementDay the day of the month, both taken from statement.week.get (the assistant never computes weekdays or dates itself). The statement week can be moved once per calendar year (a calendar year runs January to December; 1 January resets the right; one change per year, per card). A caller who has already used this year's right is not offered the change; if they ask anyway, the assistant explains with 'Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.' The customer may only pick one of the offered weeks - weeks 1-4 except the card's current week: 'Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?' The chosen week is previewed with statement.week.decide using the card's current statementDay; the preview changes nothing and returns the first statement date (statementDate) and due date (statementDueDate) under the requested week - these exact preview dates are the ones read to the caller in the confirmation and after the change, never the change response. The new date applies from the next statement onwards ('The new date applies from your next statement onwards.'). statement.week.change is called only after the preview and a clear 'evet' (hedged answers like 'Olabilir', 'sanırım' are asked once more, plainly, three tries in all; a no changes nothing). The change cannot be undone in the call; if asked from when it applies, the answer is the new closing date from the preview. Asking for the week the card already has: no change needed, and never call statement.week.decide for that week (it errors). A day of the month, a date, or an unoffered week: read the offered options again. Shared statements (relationType 'M' main / 'C' linked): changing the week on either card moves the shared statement, i.e. both cards; before the confirm question the caller hears 'Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.' (linked-card holder hears 'Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.'). Any of the three services failing: 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (agent, never the main menu)."
+  "move_rule_text": "Kartın ekstre kesim tarihi ayın bir haftasıyla tanımlanır: statementWeek 1-4 arasında, ekstrenin kesildiği ayın haftasıdır; statementDay ise ayın günüdür; ikisi de statement.week.get servisinden gelir (asistan hafta gününü ya da tarihi kendisi hesaplamaz). Ekstre haftası takvim yılında bir kez değiştirilebilir (takvim yılı Ocak-Aralık; 1 Ocak hakkı sıfırlar; kart başına yılda bir değişiklik). Bu yılki hakkını zaten kullanmış arayana değişiklik önerilmez; yine de sorarsa 'Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.' diye açıklanır. Müşteri yalnızca sunulan haftalardan birini seçebilir - kartın mevcut haftası dışındaki 1-4. haftalar: 'Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?' Seçilen hafta, kartın mevcut statementDay değeriyle statement.week.decide çağrılarak önizlenir; önizleme hiçbir şeyi değiştirmez ve istenen haftadaki ilk ekstre tarihini (statementDate) ve son ödeme tarihini (statementDueDate) döndürür - onayda ve değişiklikten sonra arayana okunan tarihler tam olarak bu önizleme tarihleridir, değişiklik yanıtındaki tarihler asla değil. Yeni tarih bir sonraki ekstreden itibaren geçerlidir. statement.week.change yalnızca önizlemeden ve net bir 'evet' yanıtından sonra çağrılır (olabilir/sanırım gibi kaçamak yanıtlar bir kez daha, açıkça sorulur; toplam üç deneme; hayır ise hiçbir şey değişmez). Değişiklik arama sırasında geri alınamaz; ne zaman geçerli olacağı sorulursa yanıt önizlemedeki yeni kesim tarihidir. Kartın zaten sahip olduğu haftayı istemek: değişiklik gerekmez ve o hafta için statement.week.decide asla çağrılmaz (hata verir). Ayın bir günü, bir tarih ya da sunulmayan bir hafta: sunulan seçenekler yeniden okunur. Ortak ekstreler (relationType 'M' ana / 'C' bağlı): iki karttan birinde haftayı değiştirmek ortak ekstreyi, yani iki kartı da taşır; onay sorusundan önce arayan 'Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.' cümlesini duyar (bağlı kart sahibi 'Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.' cümlesini duyar). Üç servisten herhangi biri hata verirse: 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (temsilciye aktarılır; asla ana menüye değil).",
+  "move_rule_text_source_en": "The card's statement cut-off is defined by a week of the month: statementWeek is 1 to 4, the week of the month the statement is cut, and statementDay the day of the month, both taken from statement.week.get (the assistant never computes weekdays or dates itself). The statement week can be moved once per calendar year (a calendar year runs January to December; 1 January resets the right; one change per year, per card). A caller who has already used this year's right is not offered the change; if they ask anyway, the assistant explains with 'Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.' The customer may only pick one of the offered weeks - weeks 1-4 except the card's current week: 'Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?' The chosen week is previewed with statement.week.decide using the card's current statementDay; the preview changes nothing and returns the first statement date (statementDate) and due date (statementDueDate) under the requested week - these exact preview dates are the ones read to the caller in the confirmation and after the change, never the change response. The new date applies from the next statement onwards ('The new date applies from your next statement onwards.'). statement.week.change is called only after the preview and a clear 'evet' (hedged answers like 'Olabilir', 'sanırım' are asked once more, plainly, three tries in all; a no changes nothing). The change cannot be undone in the call; if asked from when it applies, the answer is the new closing date from the preview. Asking for the week the card already has: no change needed, and never call statement.week.decide for that week (it errors). A day of the month, a date, or an unoffered week: read the offered options again. Shared statements (relationType 'M' main / 'C' linked): changing the week on either card moves the shared statement, i.e. both cards; before the confirm question the caller hears 'Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.' (linked-card holder hears 'Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.'). Any of the three services failing: 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (agent, never the main menu)."
  },
  "dates": {
   "holidays": [],
-  "validity_text": "A date is valid only if a service returned it: every amount and date read is exactly what the service gave ('Every amount and date exactly as the service gave it. Nothing the service did not return is said'). The assistant never computes, adjusts or invents dates - not even for the statement-week change, whose dates come from the statement.week.decide preview. A card so new that no statement has been cut yet: 'tell them there is no debt, and don't invent a date to go with it.'",
-  "weekend_text": "'If the due date falls on a weekend or public holiday, it moves to the next working day.' (bank FAQ) - this move is the bank's own computation and arrives already applied in the dates the services return; the assistant reads the due date it received and never moves dates itself. The documents name no specific holiday.",
-  "vague_text": "Vague period requests ('last month's', 'the one from March'): 'Only the last cut statement. Earlier periods can't be sent from the assistant, it should just tell the caller that only the last statement can be sent.' For the week move, a vague or unoffered answer (a day of the month, a date, any week not offered): 'A week or a date we didn't offer → only the offered weeks; read them again.' Hedged confirmations ('perhaps', 'I suppose') are not a yes: ask once more, plainly, three tries in all.",
-  "next_weekday_text": "The documents give the assistant no next-Friday-style semantics; the FAQ's next-working-day rule for due dates is the bank's computation and is already reflected in the dates the services return. Every date decision in the call uses the 'now' variable (Istanbul time), never the system clock."
+  "validity_text": "Bir tarih yalnızca bir servis döndürdüyse geçerlidir: okunan her tutar ve tarih tam olarak servisin verdiğidir; servisin döndürmediği hiçbir şey söylenmez. Asistan tarihleri asla hesaplamaz, kaydırmaz ya da uydurmaz - ekstre haftası değişikliğinde bile, tarihler statement.week.decide önizlemesinden gelir. Henüz hiç ekstresi kesilmemiş yeni bir kart: borcu olmadığı söylenir ve ona bir tarih uydurulmaz.",
+  "weekend_text": "Son ödeme tarihi hafta sonu ya da resmî tatile denk gelirse bir sonraki iş gününe kayar (banka SSS). Bu kaydırma bankanın kendi hesaplamasıdır ve servislerin döndürdüğü tarihlere zaten uygulanmış olarak gelir; asistan aldığı son ödeme tarihini okur ve tarihleri asla kendisi kaydırmaz. Belgeler belirli bir resmî tatil adı vermez.",
+  "vague_text": "Belirsiz dönem istekleri ('geçen ayın', 'Mart'tan olan' gibi): yalnızca son kesilen ekstre gönderilebilir; asistan yalnızca son ekstrenin gönderilebileceğini söyler. Ekstre haftası değişikliğinde belirsiz ya da sunulmayan bir yanıt (ayın bir günü, bir tarih, sunulmayan bir hafta): sunulan haftalar yeniden okunur. Kaçamak onaylar ('belki', 'sanırım') evet değildir: bir kez daha, açıkça sorulur; toplam üç deneme.",
+  "next_weekday_text": "Belgelerde asistan için 'gelecek cuma' benzeri bir anlam yoktur; son ödeme tarihleri için SSS'deki bir sonraki iş günü kuralı bankanın hesaplamasıdır ve servislerin döndürdüğü tarihlere zaten yansımıştır. Aramadaki her tarih kararı sistem saatini değil 'now' değişkenini (İstanbul saati) kullanır.",
+  "validity_text_source_en": "A date is valid only if a service returned it: every amount and date read is exactly what the service gave ('Every amount and date exactly as the service gave it. Nothing the service did not return is said'). The assistant never computes, adjusts or invents dates - not even for the statement-week change, whose dates come from the statement.week.decide preview. A card so new that no statement has been cut yet: 'tell them there is no debt, and don't invent a date to go with it.'",
+  "weekend_text_source_en": "'If the due date falls on a weekend or public holiday, it moves to the next working day.' (bank FAQ) - this move is the bank's own computation and arrives already applied in the dates the services return; the assistant reads the due date it received and never moves dates itself. The documents name no specific holiday.",
+  "vague_text_source_en": "Vague period requests ('last month's', 'the one from March'): 'Only the last cut statement. Earlier periods can't be sent from the assistant, it should just tell the caller that only the last statement can be sent.' For the week move, a vague or unoffered answer (a day of the month, a date, any week not offered): 'A week or a date we didn't offer → only the offered weeks; read them again.' Hedged confirmations ('perhaps', 'I suppose') are not a yes: ask once more, plainly, three tries in all.",
+  "next_weekday_text_source_en": "The documents give the assistant no next-Friday-style semantics; the FAQ's next-working-day rule for due dates is the bank's computation and is already reflected in the dates the services return. Every date decision in the call uses the 'now' variable (Istanbul time), never the system clock."
  },
  "variables": {
   "customerNumber": "the 8-digit customer number from the phone menu; the phone menu has already identified the caller and hands the call to the assistant with the customer number - the agent never asks for it.",
@@ -129,11 +134,11 @@
      3,
      4
     ],
-    "valid": "Only the weeks the assistant read out are valid choices - weeks 1-4 except the card's current week. 'A week or a date we didn't offer → only the offered weeks; read them again.' The current week is not a change: 'The current week → no change needed.' The concrete dates are always the ones statement.week.decide returned; the assistant never computes a date.",
-    "weekend_holiday": "The assistant never moves dates itself. Bank FAQ: 'If the due date falls on a weekend or public holiday, it moves to the next working day.' - the bank's computation, already applied in the dates the services return; the assistant reads exactly what it received.",
-    "vague": "'A week or a date we didn't offer → only the offered weeks; read them again.' Hedged confirmations ('Olabilir', 'sanırım', 'perhaps', 'I suppose') are not a yes: ask once more, plainly, three tries in all, until a clear 'evet'.",
-    "next_weekday": "The documents define no next-Friday-style semantics for the assistant. Due dates moving to the next working day (weekend or public holiday) is the bank's computation and arrives already moved in the service date fields.",
-    "after_deadline": "The documents define no separate 'requested week already past' case for the assistant. statement.week.decide returns the first statement date and due date under the requested week, or an error; any error on statement.week.get / decide / change → 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (agent). Asking for the week the card already has: no change needed, and never call decide for it - 'Asking for the week the card already has: there is nothing to preview, you'll get an error, so don't call it for that.'",
+    "valid": "Yalnızca asistanın okuduğu haftalar geçerli seçeneklerdir - kartın mevcut haftası dışındaki 1-4. haftalar. Sunulmayan bir hafta ya da tarih söylenirse seçenekler yeniden okunur. Mevcut hafta değişiklik değildir: mevcut hafta istendiğinde değişikliğe gerek olmadığı söylenir. Somut tarihler her zaman statement.week.decide'ın döndürdüğü tarihlerdir; asistan asla tarih hesaplamaz.",
+    "weekend_holiday": "Asistan tarihleri kendisi kaydırmaz. Banka SSS: son ödeme tarihi hafta sonu ya da resmî tatile denk gelirse bir sonraki iş gününe kayar - bu bankanın kendi hesaplamasıdır ve servislerin döndürdüğü tarihlere zaten uygulanmıştır; asistan yalnızca aldığı tarihi okur.",
+    "vague": "Sunulmayan bir hafta ya da tarih (ayın bir günü, bir tarih, sunulmayan herhangi bir hafta): sunulan haftalar yeniden okunur. Kaçamak onaylar ('Olabilir', 'sanırım') evet değildir: bir kez daha, açıkça sorulur; net bir 'evet' gelene kadar toplam üç deneme.",
+    "next_weekday": "Belgelerde asistan için 'gelecek cuma' benzeri bir anlam tanımlı değildir. Son ödeme tarihlerinin bir sonraki iş gününe kayması (hafta sonu ya da resmî tatil) bankanın hesaplamasıdır ve servis tarih alanlarında kaydırılmış olarak gelir.",
+    "after_deadline": "Belgelerde asistan için ayrı bir 'istenen hafta geçmişte kaldı' durumu tanımlı değildir. statement.week.decide istenen haftadaki ilk ekstre tarihini ve son ödeme tarihini döndürür ya da hata verir; statement.week.get / decide / change servislerinden herhangi birinde hata: 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (temsilciye aktarılır). Kartın zaten sahip olduğu haftayı istemek: değişiklik gerekmez ve o hafta için decide asla çağrılmaz - önizlenecek bir şey yoktur, hata alınır.",
     "date_semantics": "statementWeek is 1 to 4, the week of the month the statement is cut; statementDay is the day of the month; both come from statement.week.get. The weekday is never computed by the assistant: statement.week.decide, called with the chosen week and the card's current statementDay, returns the FIRST statement date (statementDate) and due date (statementDueDate) under the requested week, and the change applies from the next statement onwards (FAQ: 'The new date applies from your next statement onwards.'). These preview dates are the ones read to the caller in the confirmation ('Yeni hesap kesim haftanız her ayın 3. haftası olacak. Yeni hesap kesim tarihiniz [tarih], son ödeme tarihiniz [tarih] olacak. Onaylıyor musunuz?') and after the change - never the statement.week.change response ('the dates to tell the caller are the ones from 5.4'; 'Dates from the preview (the change call does not return them)').",
     "shared_statement": "relationType empty string = the card has its own statement; 'M' = this is the main card of a pair sharing one statement, 'C' = the card linked to it. 'Changing the week on either card moves the shared statement, i.e. both cards.' At the tell-and-ask step both cards are read (each card's last four and name, the payment week, the next closing date and next due date). Before the confirm question: main-card holder → 'Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.'; linked-card holder → 'Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.' (the customer has to know before they say yes - Elçin, 7 Oct session).",
     "limits": [
@@ -145,9 +150,17 @@
      "statement.week.change is called only after the preview and a clear 'evet' (hedged answers asked once more, plainly, three tries in all; a no at the confirm means no change and main menu)",
      "the change cannot be undone in the call ('If, after step 8, they want it undone: tell them the change has already gone through.')",
      "no automatic retry on statement.week.change (it has side effects) - Mert's suggestion in the contract §7"
-    ]
+    ],
+    "consumed_keys_source_en": {
+     "valid": "Only the weeks the assistant read out are valid choices - weeks 1-4 except the card's current week. 'A week or a date we didn't offer → only the offered weeks; read them again.' The current week is not a change: 'The current week → no change needed.' The concrete dates are always the ones statement.week.decide returned; the assistant never computes a date.",
+     "weekend_holiday": "The assistant never moves dates itself. Bank FAQ: 'If the due date falls on a weekend or public holiday, it moves to the next working day.' - the bank's computation, already applied in the dates the services return; the assistant reads exactly what it received.",
+     "vague": "'A week or a date we didn't offer → only the offered weeks; read them again.' Hedged confirmations ('Olabilir', 'sanırım', 'perhaps', 'I suppose') are not a yes: ask once more, plainly, three tries in all, until a clear 'evet'.",
+     "next_weekday": "The documents define no next-Friday-style semantics for the assistant. Due dates moving to the next working day (weekend or public holiday) is the bank's computation and arrives already moved in the service date fields.",
+     "after_deadline": "The documents define no separate 'requested week already past' case for the assistant. statement.week.decide returns the first statement date and due date under the requested week, or an error; any error on statement.week.get / decide / change → 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (agent). Asking for the week the card already has: no change needed, and never call decide for it - 'Asking for the week the card already has: there is nothing to preview, you'll get an error, so don't call it for that.'"
+    }
    },
-   "text": "Same as query.move_rule_text, verbatim: 'The card's statement cut-off is defined by a week of the month: statementWeek is 1 to 4, the week of the month the statement is cut, and statementDay the day of the month, both taken from statement.week.get (the assistant never computes weekdays or dates itself). The statement week can be moved once per calendar year (a calendar year runs January to December; 1 January resets the right; one change per year, per card). A caller who has already used this year's right is not offered the change; if they ask anyway, the assistant explains with \"Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.\" The customer may only pick one of the offered weeks - weeks 1-4 except the card's current week: \"Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?\" The chosen week is previewed with statement.week.decide using the card's current statementDay; the preview changes nothing and returns the first statement date (statementDate) and due date (statementDueDate) under the requested week - these exact preview dates are the ones read to the caller in the confirmation and after the change, never the change response. The new date applies from the next statement onwards (\"The new date applies from your next statement onwards.\"). statement.week.change is called only after the preview and a clear \"evet\" (hedged answers like \"Olabilir\", \"sanırım\" are asked once more, plainly, three tries in all; a no changes nothing). The change cannot be undone in the call; if asked from when it applies, the answer is the new closing date from the preview. Asking for the week the card already has: no change needed, and never call statement.week.decide for that week (it errors). A day of the month, a date, or an unoffered week: read the offered options again. Shared statements (relationType \"M\" main / \"C\" linked): changing the week on either card moves the shared statement, i.e. both cards; before the confirm question the caller hears \"Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.\" (linked-card holder hears \"Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.\"). Any of the three services failing: \"Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.\" (agent, never the main menu).' Sources: sources/emails/attachments/2026-10-08-statement-debt-analysis.md §7; sources/meetings/2026-10-07-analysis-session-transcript.txt (00:18:24-00:21:30); sources/documents/2026-10-01-service-contract.md §5.3-§5.5; sources/documents/2025-08-14-cards-faq.md."
+   "text": "Kartın ekstre kesim tarihi ayın bir haftasıyla tanımlanır: statementWeek 1-4 arasında, ekstrenin kesildiği ayın haftasıdır; statementDay ise ayın günüdür; ikisi de statement.week.get servisinden gelir (asistan hafta gününü ya da tarihi kendisi hesaplamaz). Ekstre haftası takvim yılında bir kez değiştirilebilir (takvim yılı Ocak-Aralık; 1 Ocak hakkı sıfırlar; kart başına yılda bir değişiklik). Bu yılki hakkını zaten kullanmış arayana değişiklik önerilmez; yine de sorarsa 'Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.' diye açıklanır. Müşteri yalnızca sunulan haftalardan birini seçebilir - kartın mevcut haftası dışındaki 1-4. haftalar: 'Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?' Seçilen hafta, kartın mevcut statementDay değeriyle statement.week.decide çağrılarak önizlenir; önizleme hiçbir şeyi değiştirmez ve istenen haftadaki ilk ekstre tarihini (statementDate) ve son ödeme tarihini (statementDueDate) döndürür - onayda ve değişiklikten sonra arayana okunan tarihler tam olarak bu önizleme tarihleridir, değişiklik yanıtındaki tarihler asla değil. Yeni tarih bir sonraki ekstreden itibaren geçerlidir. statement.week.change yalnızca önizlemeden ve net bir 'evet' yanıtından sonra çağrılır (olabilir/sanırım gibi kaçamak yanıtlar bir kez daha, açıkça sorulur; toplam üç deneme; hayır ise hiçbir şey değişmez). Değişiklik arama sırasında geri alınamaz; ne zaman geçerli olacağı sorulursa yanıt önizlemedeki yeni kesim tarihidir. Kartın zaten sahip olduğu haftayı istemek: değişiklik gerekmez ve o hafta için statement.week.decide asla çağrılmaz (hata verir). Ayın bir günü, bir tarih ya da sunulmayan bir hafta: sunulan seçenekler yeniden okunur. Ortak ekstreler (relationType 'M' ana / 'C' bağlı): iki karttan birinde haftayı değiştirmek ortak ekstreyi, yani iki kartı da taşır; onay sorusundan önce arayan 'Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.' cümlesini duyar (bağlı kart sahibi 'Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.' cümlesini duyar). Üç servisten herhangi biri hata verirse: 'Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.' (temsilciye aktarılır; asla ana menüye değil).",
+   "text_source_en": "Same as query.move_rule_text, verbatim: 'The card's statement cut-off is defined by a week of the month: statementWeek is 1 to 4, the week of the month the statement is cut, and statementDay the day of the month, both taken from statement.week.get (the assistant never computes weekdays or dates itself). The statement week can be moved once per calendar year (a calendar year runs January to December; 1 January resets the right; one change per year, per card). A caller who has already used this year's right is not offered the change; if they ask anyway, the assistant explains with \"Hesap kesim tarihinizi yılda bir kez değiştirebilirsiniz.\" The customer may only pick one of the offered weeks - weeks 1-4 except the card's current week: \"Hesap kesim tarihinizi ayın 1., 3. ya da 4. haftasına alabilirim. Hangisini tercih edersiniz?\" The chosen week is previewed with statement.week.decide using the card's current statementDay; the preview changes nothing and returns the first statement date (statementDate) and due date (statementDueDate) under the requested week - these exact preview dates are the ones read to the caller in the confirmation and after the change, never the change response. The new date applies from the next statement onwards (\"The new date applies from your next statement onwards.\"). statement.week.change is called only after the preview and a clear \"evet\" (hedged answers like \"Olabilir\", \"sanırım\" are asked once more, plainly, three tries in all; a no changes nothing). The change cannot be undone in the call; if asked from when it applies, the answer is the new closing date from the preview. Asking for the week the card already has: no change needed, and never call statement.week.decide for that week (it errors). A day of the month, a date, or an unoffered week: read the offered options again. Shared statements (relationType \"M\" main / \"C\" linked): changing the week on either card moves the shared statement, i.e. both cards; before the confirm question the caller hears \"Bu değişiklik kartınıza bağlı [bağlı kart adı] kartınızı da etkileyecek.\" (linked-card holder hears \"Bu değişiklik kartınızın bağlı olduğu [asıl kart adı] kartınızı da etkileyecek.\"). Any of the three services failing: \"Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.\" (agent, never the main menu).' Sources: sources/emails/attachments/2026-10-08-statement-debt-analysis.md §7; sources/meetings/2026-10-07-analysis-session-transcript.txt (00:18:24-00:21:30); sources/documents/2026-10-01-service-contract.md §5.3-§5.5; sources/documents/2025-08-14-cards-faq.md."
   },
   {
    "type": "email_rule",
@@ -216,144 +229,168 @@
       "reasons": [
        "No eligible card"
       ],
-      "when": "cards.list answers the no-valid-card warning (404 FB_IVR_CHANNEL_102)",
-      "text": "Ekstre borcunu sorgulayabileceğiniz uygun bir kredi kartınız bulunmuyor. Sizi ana menüye aktarıyorum."
+      "when": "cards.list 'geçerli kart yok' uyarısını döndürdüğünde (404 FB_IVR_CHANNEL_102)",
+      "text": "Ekstre borcunu sorgulayabileceğiniz uygun bir kredi kartınız bulunmuyor. Sizi ana menüye aktarıyorum.",
+      "when_source_en": "cards.list answers the no-valid-card warning (404 FB_IVR_CHANNEL_102)"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "Nothing else wanted"
       ],
-      "when": "caller says no / thanks / bye after the reading, or after an action finished",
-      "text": "Sizi ana menüye yönlendiriyorum."
+      "when": "müşteri okuma bittikten ya da bir işlem tamamlandıktan sonra hayır / teşekkürler / hoşça kal dediğinde",
+      "text": "Sizi ana menüye yönlendiriyorum.",
+      "when_source_en": "caller says no / thanks / bye after the reading, or after an action finished"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "Three tries used up"
       ],
-      "when": "third failed attempt on any question (not understood, refuses to answer); repeating information does not count",
-      "text": "Size şu anda yardımcı olamıyorum. Sizi ana menüye aktarıyorum."
+      "when": "herhangi bir soruda üçüncü başarısız denemede (anlamadı ya da cevap vermeyi reddetti); bilgiyi tekrarlamak sayılmaz",
+      "text": "Size şu anda yardımcı olamıyorum. Sizi ana menüye aktarıyorum.",
+      "when_source_en": "third failed attempt on any question (not understood, refuses to answer); repeating information does not count"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "Wants another transaction mid-flow"
       ],
-      "when": "caller switches to another transaction partway through (their limit, say)",
-      "text": "Sizi ana menüye yönlendiriyorum."
+      "when": "müşteri akış ortasında başka bir işleme geçtiğinde (örn. limiti)",
+      "text": "Sizi ana menüye yönlendiriyorum.",
+      "when_source_en": "caller switches to another transaction partway through (their limit, say)"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "Question outside this step, caller agrees to go"
       ],
-      "when": "after asking 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' and the caller says yes (8 Oct §8.4 also allows 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye yönlendiriyorum.')",
-      "text": "Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?"
+      "when": "'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' diye sorulduktan sonra müşteri evet dediğinde (8 Ekim §8.4 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye yönlendiriyorum.' cümlesine de izin verir)",
+      "text": "Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?",
+      "when_source_en": "after asking 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' and the caller says yes (8 Oct §8.4 also allows 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye yönlendiriyorum.')"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "Not speaking Turkish"
       ],
-      "when": "caller speaks another language",
-      "text": "Sizi ana menüye aktarıyorum."
+      "when": "müşteri başka bir dil konuştuğunda",
+      "text": "Sizi ana menüye aktarıyorum.",
+      "when_source_en": "caller speaks another language"
      },
      {
       "outcome": "Main menu",
       "reasons": [
        "E-mail sent / declined, statement week changed / declined"
       ],
-      "when": "end of either action",
-      "text": "Sizi ana menüye yönlendiriyorum."
+      "when": "iki işlemden birinin sonunda (e-posta gönderildi ya da reddedildi; ekstre haftası değişti ya da reddedildi)",
+      "text": "Sizi ana menüye yönlendiriyorum.",
+      "when_source_en": "end of either action"
      },
      {
       "outcome": "Call closed",
       "reasons": [
        "Third silence"
       ],
-      "when": "caller silent three times; first two get a short repeat of the question; no main menu in this case",
-      "text": "Sesinizi alamadığım için görüşmeyi sonlandırıyorum."
+      "when": "müşteri üç kez sessiz kaldığında; ilk ikisinde soru kısaca tekrarlanır; bu durumda ana menü yok",
+      "text": "Sesinizi alamadığım için görüşmeyi sonlandırıyorum.",
+      "when_source_en": "caller silent three times; first two get a short repeat of the question; no main menu in this case"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Wants to pay / asks how or where to pay"
       ],
-      "when": "any time",
-      "text": "Borç ödeme işleminiz için sizi müşteri temsilcimize aktarıyorum."
+      "when": "her an",
+      "text": "Borç ödeme işleminiz için sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "any time"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Asks for an agent"
       ],
-      "when": "any step, first request, no persuading",
-      "text": "Sizi müşteri temsilcimize aktarıyorum."
+      "when": "her adımda, ilk istekte, ikna etmeye çalışılmadan",
+      "text": "Sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "any step, first request, no persuading"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Dispute / payment not showing"
       ],
-      "when": "any time",
-      "text": "Bu konuda size müşteri temsilcimiz yardımcı olacak, sizi aktarıyorum."
+      "when": "her an",
+      "text": "Bu konuda size müşteri temsilcimiz yardımcı olacak, sizi aktarıyorum.",
+      "when_source_en": "any time"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Still complaining after three calming replies"
       ],
-      "when": "angry or insulting caller; insults never answered",
-      "text": "Sizi müşteri temsilcimize aktarıyorum."
+      "when": "sinirli ya da hakaret eden arayan; hakaretlere asla cevap verilmez",
+      "text": "Sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "angry or insulting caller; insults never answered"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Card list or balance service fails"
       ],
-      "when": "error or timeout on cards.list (500) or cards.balance (incl. 404 'card not found'); the cards.list no-valid-card warning is NOT this",
-      "text": "Şu anda işleminizi gerçekleştiremiyorum, sizi müşteri temsilcimize aktarıyorum."
+      "when": "cards.list (500) ya da cards.balance (404 'kart bulunamadı' dahil) hata verirse ya da zaman aşımına uğrarsa; cards.list 'geçerli kart yok' uyarısı bu değildir",
+      "text": "Şu anda işleminizi gerçekleştiremiyorum, sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "error or timeout on cards.list (500) or cards.balance (incl. 404 'card not found'); the cards.list no-valid-card warning is NOT this"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "E-mail services fail"
       ],
-      "when": "contact.email.get or statement.pdf.send error, timeout, 'document not found'",
-      "text": "Şu anda işleminizi gerçekleştiremiyorum, sizi müşteri temsilcimize aktarıyorum."
+      "when": "contact.email.get ya da statement.pdf.send hata verirse, zaman aşımına uğrarsa ya da 'belge bulunamadı' dönerse",
+      "text": "Şu anda işleminizi gerçekleştiremiyorum, sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "contact.email.get or statement.pdf.send error, timeout, 'document not found'"
      },
      {
       "outcome": "Agent",
       "reasons": [
        "Statement week services fail"
       ],
-      "when": "statement.week.get / decide / change error or timeout",
-      "text": "Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum."
+      "when": "statement.week.get / decide / change hata verirse ya da zaman aşımına uğrarsa",
+      "text": "Şu anda hesap kesim tarihinizi değiştiremiyorum, sizi müşteri temsilcimize aktarıyorum.",
+      "when_source_en": "statement.week.get / decide / change error or timeout"
      },
      {
       "outcome": "IVR login step",
       "reasons": [
        "Asking about someone else's card"
       ],
-      "when": "third party (spouse, parent, etc.) asks about a card that isn't theirs; no information at all is given, not even whether a card exists",
-      "text": "(security, §8.6 - the assistant tells them that for security reasons it can only help with their own cards, and the call goes back to the IVR for the login step)"
+      "when": "üçüncü kişi (eş, ebeveyn vb.) kendisine ait olmayan bir kartı sorduğunda; hiçbir bilgi verilmez, kartın var olup olmadığı bile söylenmez",
+      "text": "(security, §8.6 - the assistant tells them that for security reasons it can only help with their own cards, and the call goes back to the IVR for the login step)",
+      "when_source_en": "third party (spouse, parent, etc.) asks about a card that isn't theirs; no information at all is given, not even whether a card exists"
      }
     ],
     "closing_lines": [
-     "When the caller is done / nothing else wanted / goodbye or thank-you after the reading: 'Sizi ana menüye yönlendiriyorum.'",
-     "After the e-mail is sent or declined, or the statement week is changed or declined: 'Sizi ana menüye yönlendiriyorum.'",
-     "Out-of-scope question and the caller agrees: 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' then the transfer to the main menu",
-     "8 Oct §8.4: 'The sentence for now: \"Sizi ana menüye yönlendiriyorum.\" Burcu wants to look at it again once the call routing piece is live. Until then \"Sizi ana menüye aktarıyorum.\" and \"Başka hangi konuda yardımcı olabilirim?\" are also fine where they appear.'"
+     "Arayan işini bitirdiğinde / başka isteği olmadığında / okumadan sonra teşekkür ya da hoşça kal dediğinde: 'Sizi ana menüye yönlendiriyorum.'",
+     "E-posta gönderildikten ya da reddedildikten sonra, ekstre haftası değiştikten ya da reddedildikten sonra: 'Sizi ana menüye yönlendiriyorum.'",
+     "Kapsam dışı soru ve arayan menüye dönmeyi kabul ettiğinde: 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' ve ardından ana menüye aktarım.",
+     "8 Ekim §8.4: şimdilik cümle: 'Sizi ana menüye yönlendiriyorum.' Burcu, çağrı yönlendirme parçası canlıya alınınca cümleye yeniden bakmak istiyor. O zamana kadar geçtiği yerlerde 'Sizi ana menüye aktarıyorum.' ve 'Başka hangi konuda yardımcı olabilirim?' de uygundur."
     ],
-    "no_input_text": "First two silences: ask the question again, shorter. Third silence: 'Sesinizi alamadığım için görüşmeyi sonlandırıyorum.' and the call is closed. No main menu in this case (changed 7 Oct; IVR hangs up after the third no-input in sub-menus).",
-    "goodbye_text": "'A goodbye or a thank-you after the reading means \"nothing else\": \"Sizi ana menüye yönlendiriyorum.\"'",
+    "no_input_text": "İlk iki sessizlikte soru daha kısa biçimde yeniden sorulur. Üçüncü sessizlikte 'Sesinizi alamadığım için görüşmeyi sonlandırıyorum.' denir ve arama kapatılır. Bu durumda ana menü yok (7 Ekim'de değişti; IVR alt menülerde üçüncü sessizlikten sonra kapatır).",
+    "goodbye_text": "Okumadan sonra bir hoşça kal ya da teşekkür 'başka istek yok' demektir: 'Sizi ana menüye yönlendiriyorum.'",
     "outcome_vocabulary": [
      "Main menu",
      "Call closed",
      "Agent",
      "IVR login step"
-    ]
+    ],
+    "closing_lines_source_en": [
+     "When the caller is done / nothing else wanted / goodbye or thank-you after the reading: 'Sizi ana menüye yönlendiriyorum.'",
+     "After the e-mail is sent or declined, or the statement week is changed or declined: 'Sizi ana menüye yönlendiriyorum.'",
+     "Out-of-scope question and the caller agrees: 'Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?' then the transfer to the main menu",
+     "8 Oct §8.4: 'The sentence for now: \"Sizi ana menüye yönlendiriyorum.\" Burcu wants to look at it again once the call routing piece is live. Until then \"Sizi ana menüye aktarıyorum.\" and \"Başka hangi konuda yardımcı olabilirim?\" are also fine where they appear.'"
+    ],
+    "no_input_text_source_en": "First two silences: ask the question again, shorter. Third silence: 'Sesinizi alamadığım için görüşmeyi sonlandırıyorum.' and the call is closed. No main menu in this case (changed 7 Oct; IVR hangs up after the third no-input in sub-menus).",
+    "goodbye_text_source_en": "'A goodbye or a thank-you after the reading means \"nothing else\": \"Sizi ana menüye yönlendiriyorum.\"'"
    },
    "text": "From sources/emails/attachments/2026-10-08-statement-debt-analysis.md §10 ('Where the call ends') - the table above with these exact sentences; §8.2: 'First and second silence: ask the question again, shorter. Third silence: \"Sesinizi alamadığım için görüşmeyi sonlandırıyorum.\" and the call is closed. No main menu here.' From sources/emails/2026-10-09-decisions-recap.txt: '1. Silence. If the caller says nothing, the assistant asks the question again, shortly, the first two times. On the third silence it says \"Sesinizi alamadığım için görüşmeyi sonlandırıyorum.\" and ends the call. No main menu in this case. 2. Questions outside the flow… it first asks \"Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz?\" Yes -> main menu. If they'd rather go on, we pick the flow back up where it was. If the answer isn't clear, ask again, three tries. 3. Three tries used up at any question: \"Size şu anda yardımcı olamıyorum. Sizi ana menüye aktarıyorum.\" then main menu. Asking us to repeat something we just read doesn't count as a try.' From sources/meetings/2026-10-07-analysis-session-transcript.txt: Burcu on the failure sentence - 'The IVR says \"aktarıyorum\". Not \"yönlendiriyorum\".' / 'Fine for me, as long as the failure one says \"aktarıyorum\".'"
   },

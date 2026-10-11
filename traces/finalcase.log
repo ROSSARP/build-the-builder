@@ -1,0 +1,13 @@
+start: 2026-10-11 21:15:54 UTC, brief finalcase
+case mode: input finalcase/, mock_url https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1
+case skipped: cloudflare-mock/example/worker.js (unrecognised format .js file, 1791 bytes)
+case skipped: cloudflare-mock/example/wrangler.toml (unrecognised format .toml file, 75 bytes)
+case: 18 files, 870438 chars, 2 skipped
+case: tool API from extracted services contract
+case: tool API /home/f/Downloads/build-the-builder-v3/build-the-builder/tests/final_contract.json, server URL https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1
+case: spec reused from tests/final_spec.json
+domain: statement query (gen_query)
+freya: workflow_id d659b17f-78c8-4fd1-8002-46755b07d54a, agent_id 34b38ddd-7429-4f04-aca2-4b5d8861c2e6, nodes 7, version 4
+export: /home/f/Downloads/build-the-builder-v3/build-the-builder/submission/finalcase.workflow.json
+end: 2026-10-11 21:15:58 UTC, 5 s
+final submission: /home/f/Downloads/build-the-builder-v3/build-the-builder/submission/final-submission.json

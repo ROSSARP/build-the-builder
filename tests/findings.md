@@ -709,3 +709,63 @@ Failures:
 - Bug fixes made today: (1) seedFor stripped the -sN suffix with .exec()[1] on a no-capture-group regex → session ids fell through to derived hash identities (every identity check failed); (2) session counter was per-isolate memory → two isolates issued the same session id and overwrote each other's KV state (counter now read/incremented through KV); (3) loadState read memory before KV → stale in-memory state shadowed newer state from another isolate (reads are KV-first now). All three fixed in mock_gen.py (template + WORKER_PROMPT req 7/8b + validator check) and in the generated test worker.
 - deploy.sh: the module multipart part now carries filename=worker.js (Cloudflare error 10021 "No such module" otherwise).
 - Judgement: deploy path is proven; at the final window regenerate the worker with the fixed mock_gen.py and deploy with --with-kv (KV permission on the token is confirmed working).
+## 2026-10-11 21:00 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 3 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:04 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 9 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:11 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:12 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:15 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 7 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:15 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 4 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)

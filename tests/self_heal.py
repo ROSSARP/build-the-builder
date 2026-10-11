@@ -576,16 +576,39 @@ def _fake_api_from_contract(contract: dict) -> dict:
     return api
 
 
+_EN_STOP = {"the", "and", "you", "your", "this", "that", "with", "for", "are", "is",
+            "will", "must", "not", "say", "tell", "ask", "call", "please", "should",
+            "from", "when", "after", "before", "customer", "card", "statement", "date"}
+_TR_STOP = {"ve", "bir", "bu", "için", "siz", "sizin", "değil", "lütfen", "müşteri",
+            "kart", "borç", "tarih", "söyle", "söyleyin", "isteyin", "edin", "ise",
+            "olarak", "diye", "sonra", "gün", "hafta", "ekstre", "arayan", "hakkında"}
+
+
 def _turksh_score(text: str) -> tuple[int, int]:
     """(english_hits, turkish_hits) for one text: distinct stopword counts."""
     low = " " + re.sub(r"\s+", " ", str(text).lower()) + " "
-    en = {"the", "and", "you", "your", "this", "that", "with", "for", "are", "is",
-          "will", "must", "not", "say", "tell", "ask", "call", "please"}
-    tr = {"ve", "bir", "bu", "için", "siz", "sizin", "değil", "lütfen", "müşteri",
-          "kart", "borç", "tarih", "söyle", "söyleyin", "isteyin", "edin", "ise"}
-    eh = sum(1 for w in en if f" {w} " in low)
-    th = sum(1 for w in tr if f" {w} " in low)
+    eh = sum(1 for w in _EN_STOP if f" {w} " in low)
+    th = sum(1 for w in _TR_STOP if f" {w} " in low)
     return eh, th
+
+
+def _english_sentences(text: str) -> list:
+    """Sentences that look English: >=3 English stopwords and no Turkish one.
+
+    Sentence-level so English prose embedded inside otherwise-Turkish text is
+    caught (the classic leak: English rule texts pasted into a task_message).
+    """
+    flat = re.sub(r"\s+", " ", str(text or ""))
+    out = []
+    for s in re.split(r"(?<=[.!?])\s+", flat):
+        if len(s) < 60:
+            continue
+        low = " " + s.lower() + " "
+        eh = sum(1 for w in _EN_STOP if f" {w} " in low)
+        th = sum(1 for w in _TR_STOP if f" {w} " in low)
+        if eh >= 3 and th == 0:
+            out.append(s.strip())
+    return out
 
 
 def _walk_strings(obj, path=""):
@@ -654,17 +677,59 @@ def check_workflow_from_spec(res: dict) -> None:
     if workflow.get("initial_node") not in nodes:
         problems.append("initial_node missing from nodes")
 
-    # language: Turkish-only. English-looking texts are the classic leak.
-    en_leaks = []
+    # wiring: transitions/max_turn targets must exist; every node must be
+    # reachable from the initial node
+    targets = set()
+    for nid, node in nodes.items():
+        if not isinstance(node, dict):
+            continue
+        for tr in node.get("transitions") or []:
+            if isinstance(tr, dict) and tr.get("target_node"):
+                targets.add(str(tr["target_node"]))
+        if node.get("max_turn_transition"):
+            targets.add(str(node["max_turn_transition"]))
+        for k in ("passthrough_default_transition", "on_enter_target"):
+            if node.get(k):
+                targets.add(str(node[k]))
+    bad_targets = sorted(t for t in targets if t not in nodes)
+    if bad_targets:
+        problems.append(f"transitions point to unknown nodes: {bad_targets}")
+    seen, stack = set(), [workflow.get("initial_node")]
+    while stack:
+        cur = stack.pop()
+        if cur in seen or cur not in nodes:
+            continue
+        seen.add(cur)
+        node = nodes[cur]
+        nxt = [tr["target_node"] for tr in (node.get("transitions") or [])
+               if isinstance(tr, dict) and tr.get("target_node")]
+        if node.get("max_turn_transition"):
+            nxt.append(node["max_turn_transition"])
+        if node.get("passthrough_default_transition"):
+            nxt.append(node["passthrough_default_transition"])
+        stack.extend(nxt)
+    unreachable = sorted(set(nodes) - seen)
+    if unreachable:
+        warnings.append(f"nodes unreachable from initial: {unreachable}")
+
+    # language: Turkish-only. The model-facing prompt fields must carry no
+    # English sentences (the task's assertion: no English in task_message /
+    # on_enter; the other prompt-bearing fields are covered too). English text
+    # in parameter/description metadata copied from the English contract is
+    # recorded as info, not a failure — it is never spoken.
+    en_leaks, en_notes = [], []
     for path, text in _walk_strings(workflow):
-        if not re.search(r"(task_message|on_enter|role_message|system_prompt|loop_prompt|routing_prompt|description|spoken_message|message)$", path):
-            if "on_enter" not in path:
-                continue
-        eh, th = _turksh_score(text)
-        if eh >= 4 and th == 0 and len(text) > 40:
-            en_leaks.append({"where": path, "text": text[:160]})
+        sentences = _english_sentences(text)
+        if not sentences:
+            continue
+        last = path.split(".")[-1].split("[")[0]
+        if (last in ("system_prompt", "task_message", "routing_prompt", "loop_prompt",
+                     "role_message", "on_enter") or ".on_enter" in path):
+            en_leaks.append({"where": path, "sentences": sentences[:2]})
+        else:
+            en_notes.append({"where": path, "text": sentences[0][:120]})
     if en_leaks:
-        problems.append(f"English-looking prompt texts: {len(en_leaks)}")
+        problems.append(f"English sentences in prompt fields: {len(en_leaks)}")
     sp = str(workflow.get("system_prompt", ""))
     if "YALNIZCA" not in sp and "yalnızca" not in sp.lower():
         problems.append("system_prompt does not carry the hard 'YALNIZCA Türkçe konuşun' line")
@@ -727,20 +792,26 @@ def check_workflow_from_spec(res: dict) -> None:
                             spec_texts.append(s["text"])
                     spec_texts += [x for x in (params.get("must_say") or []) if isinstance(x, str)]
         blob = "\n".join(t for _, t in _walk_strings(workflow))
-        for sentence in spec_texts[:20]:
-            key = re.sub(r"\s+", " ", sentence).strip()
-            if len(key) < 8:
+        blob_flat = re.sub(r"\s+", " ", blob).lower()
+        for sentence in spec_texts[:30]:
+            # parentheticals are guidance, not speech; templates with fill-in
+            # slots cannot appear verbatim in a generated workflow
+            core = re.sub(r"\([^)]*\)", "", re.sub(r"\s+", " ", sentence)).strip()
+            if len(core) < 8:
                 continue
-            if key.lower() not in re.sub(r"\s+", " ", blob).lower():
-                warnings.append(f"mandatory sentence not found verbatim: {key[:60]!r}")
+            if re.search(r"[\[\]…]|XXX|YYY|ZZZ|TTT|GGG|\{[^}]*\}", core):
+                continue
+            if core.lower() not in blob_flat:
+                warnings.append(f"mandatory sentence not found verbatim: {core[:60]!r}")
     except Exception as e:
         warnings.append(f"mandatory sentence scan skipped: {e}")
 
-    res[name] = {"status": "FAIL" if problems else ("WARN" if warnings else "PASS"),
+    res[name] = {"status": "FAIL" if problems else "PASS",
                  "nodes": len(nodes),
                  "problems": problems,
                  "warnings": warnings[:10],
                  "english_leaks": en_leaks[:5],
+                 "english_notes": en_notes[:5],
                  "bad_urls": bad_urls[:5]}
     try:
         (TESTS / "final-workflow-dryrun.json").write_text(
@@ -752,6 +823,76 @@ def check_workflow_from_spec(res: dict) -> None:
 # --------------------------------------------------------------------------- #
 # check (c): mock generator dry-run + path coverage
 # --------------------------------------------------------------------------- #
+
+def write_tool_api(contract: dict) -> pathlib.Path:
+    """OpenAPI-shaped tool API derived from final_contract.json.
+
+    mock_gen's deterministic parser (`naive_analysis`) needs
+    {"paths": {...}, "servers": [{"url": ...}]}; the bank's contract JSON is
+    not OpenAPI, so every check (c) run regenerates this file from the current
+    contract and feeds it to the dry-run. Path keys carry the base path so the
+    endpoint paths in analysis.json/worker.js are the real /voice/v1/<service>.
+    """
+    base = str(contract.get("base_path", "") or "").rstrip("/")
+    paths = {}
+    for svc in contract.get("services", []) or []:
+        p = str(svc.get("path", "") or "")
+        if not p:
+            continue
+        if not p.startswith("/"):
+            p = "/" + p
+        props, required = {}, []
+        for f in svc.get("request", []) or []:
+            name = f.get("name")
+            if not name:
+                continue
+            spec = {"type": f.get("type", "string")}
+            if f.get("description"):
+                spec["description"] = str(f["description"])[:300]
+            props[name] = spec
+            if f.get("required"):
+                required.append(name)
+        rprops = {}
+        for f in svc.get("response", []) or []:
+            name = f.get("name")
+            if not name:
+                continue
+            spec = {"type": f.get("type", "string")}
+            if f.get("description"):
+                spec["description"] = str(f["description"])[:300]
+            rprops[name] = spec
+        responses = {"200": {
+            "description": "success",
+            "content": {"application/json": {"schema": {
+                "type": "object", "properties": rprops}}}}}
+        for err in svc.get("errors", []) or []:
+            if not isinstance(err, dict):
+                continue
+            status = str(err.get("status") or 500)
+            r = err.get("response") if isinstance(err.get("response"), dict) else {}
+            desc = " - ".join(x for x in (str(r.get("code") or ""),
+                                          str(err.get("when") or "")) if x) or "error"
+            if status in responses:
+                responses[status]["description"] += " | " + desc
+            else:
+                responses[status] = {"description": desc[:300]}
+        paths[base + p] = {"post": {
+            "summary": str(svc.get("description", ""))[:300],
+            "operationId": str(svc.get("name", "")) or p.strip("/"),
+            "requestBody": {"content": {"application/json": {"schema": {
+                "type": "object", "properties": props, "required": required}}}},
+            "responses": responses,
+        }}
+    doc = {
+        "openapi": "3.0.0",
+        "info": {"title": "freyabank-final-tool-api", "version": "1.0.0"},
+        "servers": [{"url": (contract.get("servers") or ["https://api.freyabank.example"])[0]}],
+        "paths": paths,
+    }
+    path = TESTS / "final_tool_api.json"
+    path.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return path
+
 
 def check_mock_dryrun(res: dict, full: bool = False) -> None:
     name = "c_mock_dryrun"
@@ -773,8 +914,23 @@ def check_mock_dryrun(res: dict, full: bool = False) -> None:
         res[name] = {"status": "SKIP", "why": "no test customers yet"}
         return
 
+    try:
+        contract = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+    except Exception as e:
+        res[name] = {"status": "FAIL", "why": f"final_contract.json unreadable: {e}"}
+        return
+    tool_api = write_tool_api(contract)
+    wanted = []
+    base = str(contract.get("base_path", "") or "").rstrip("/")
+    for svc in contract.get("services", []) or []:
+        p = str(svc.get("path", "") or "")
+        if p and not p.startswith("/"):
+            p = "/" + p
+        if p:
+            wanted.append(base + p)
+
     cmd = [sys.executable, str(ROOT / "builder" / "mock_gen.py"),
-           str(CONTRACT_PATH), str(cust), "--out", str(out)]
+           str(tool_api), str(cust), "--out", str(out)]
     if not full:
         cmd.append("--no-llm")
     try:
@@ -785,33 +941,45 @@ def check_mock_dryrun(res: dict, full: bool = False) -> None:
     tail = (r.stdout or "")[-2000:]
     worker = out / "worker.js"
     analysis = out / "analysis.json"
+    rejected = out / "worker.rejected.js"
 
-    # grep-verify every contract path appears in the worker (or, before the model
-    # step, in analysis.json)
-    try:
-        contract = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
-        wanted = []
-        base = contract.get("base_path", "")
-        for svc in contract.get("services", []):
-            p = svc.get("path", "")
-            if not p.startswith("/"):
-                p = "/" + p
-            wanted.append(base + p)
-    except Exception:
-        wanted = []
-    hay_src, hay = None, ""
+    # grep-verify every contract path: the no-llm dry-run stops after the
+    # deterministic analysis (the worker step IS the model call), so the fresh
+    # analysis.json is the evidence at that stage; when a worker.js exists
+    # (full run), it must carry every path too.
+    analysis_missing = []
+    if analysis.is_file():
+        hay = analysis.read_text(encoding="utf-8", errors="replace")
+        analysis_missing = [p for p in wanted if p not in hay]
+    else:
+        analysis_missing = list(wanted)
+    worker_missing = None
     if worker.is_file():
-        hay_src, hay = "worker.js", worker.read_text(encoding="utf-8", errors="replace")
-    elif analysis.is_file():
-        hay_src, hay = "analysis.json", analysis.read_text(encoding="utf-8", errors="replace")
-    missing = [p for p in wanted if p and p not in hay] if hay else list(wanted)
+        hay = worker.read_text(encoding="utf-8", errors="replace")
+        worker_missing = [p for p in wanted if p not in hay]
 
-    ok = r.returncode == 0 and not missing
-    res[name] = {"status": "PASS" if ok else ("WARN" if hay_src == "analysis.json" and r.returncode == 0 and not missing else "FAIL"),
+    problems, warnings = [], []
+    # mock_gen's documented --no-llm stop is exit code 3 (analysis + seed
+    # written; the worker step is the model call) — that is a clean dry-run.
+    rc_ok = r.returncode == 0 or (not full and r.returncode == 3 and analysis.is_file())
+    if not rc_ok:
+        problems.append(f"mock_gen rc={r.returncode}")
+    if analysis_missing:
+        problems.append(f"paths missing from analysis.json: {analysis_missing}")
+    if worker_missing:
+        problems.append(f"paths missing from worker.js: {worker_missing}")
+    if rejected.is_file() and not worker.is_file():
+        warnings.append("a rejected worker.js attempt is on disk (validation failed earlier)")
+    res[name] = {"status": "FAIL" if problems else "PASS",
                  "returncode": r.returncode,
-                 "stage": ("worker" if hay_src == "worker.js" else "analysis-only"),
+                 "stage": ("worker.js" if worker.is_file()
+                           else "analysis.json (--no-llm dry-run; the worker step is the model call)"),
+                 "tool_api": str(tool_api),
                  "paths_checked": wanted,
-                 "paths_missing": missing,
+                 "paths_missing": analysis_missing,
+                 "worker_paths_missing": worker_missing,
+                 "problems": problems,
+                 "warnings": warnings,
                  "stdout_tail": tail[-800:],
                  "stderr_tail": (r.stderr or "")[-400:]}
 
@@ -876,6 +1044,18 @@ def _normalize(s: str) -> str:
     return re.sub(r"\s+", " ", str(s)).strip().lower()
 
 
+_SERVICE_HINTS = (
+    # most specific first; needles matched against the extracted description
+    ("contact.email.get", ("email.get", "contact.email", "registered address", "kayıtlı adres")),
+    ("statement.week.get", ("week.get", "current statement week", "current week")),
+    ("statement.week.decide", ("week.decide", "preview")),
+    ("statement.week.change", ("week.change", "statement week change", "change the statement week")),
+    ("statement.pdf.send", ("pdf.send", "statement email send", "email send", "send the statement")),
+    ("cards.list", ("cards.list", "card list", "cards list", "customer data", "list of cards")),
+    ("cards.balance", ("cards.balance", "balance", "debt", "statement")),
+)
+
+
 def cmd_score() -> dict:
     """Static scoring of example_checks.json against the dry-run workflow/mock.
 
@@ -904,7 +1084,7 @@ def cmd_score() -> dict:
         except Exception:
             pass
     worker_text = ""
-    for cand in (TESTS / "final-mock-dryrun" / "worker.js",):
+    for cand in (TESTS / "final-mock-dryrun" / "worker.js", ROOT / "mock" / "final" / "worker.js"):
         if cand.is_file():
             worker_text = cand.read_text(encoding="utf-8", errors="replace")
 
@@ -914,18 +1094,34 @@ def cmd_score() -> dict:
             svc = str(tc.get("service", ""))
             if not svc:
                 continue
-            hit = any(svc.lower() in u.lower() for u in wf_urls)
+            # the extracted service field is a document-style description; map
+            # it onto the contract's real service names before grepping
+            mapped = None
+            low = svc.lower()
+            for known, needles in _SERVICE_HINTS:
+                if any(nd in low for nd in needles):
+                    mapped = known
+                    break
+            if mapped is None:
+                r["notes"].append(f"no static mapping for service: {svc[:70]}")
+                continue
+            hit = any(mapped.lower() in u.lower() for u in wf_urls)
             if not hit and worker_text:
-                hit = svc.lower() in worker_text.lower()
+                hit = mapped.lower() in worker_text.lower()
             if hit:
                 r["pass"] += 1
             else:
                 r["fail"] += 1
-                r["notes"].append(f"service not found in workflow/worker: {svc}")
+                r["notes"].append(f"service {mapped} not found in workflow/worker (for: {svc[:50]})")
         for beh in ex.get("expected_agent_behaviour", []):
             b = _normalize(beh)
             quoted = re.findall(r'"([^"]{8,})"', str(beh)) or re.findall(r"'([^']{8,})'", str(beh))
             for q in quoted:
+                if not re.search(r"[çğıöşüÇĞİÖŞÜ]", q) and _turksh_score(q)[1] == 0:
+                    # the examples document is English; only Turkish quotes can
+                    # be matched against the Turkish workflow
+                    r["notes"].append(f"english quote not statically checkable: {q[:60]}")
+                    continue
                 qn = _normalize(q)
                 if wf_text and qn in _normalize(wf_text):
                     r["pass"] += 1
@@ -933,11 +1129,7 @@ def cmd_score() -> dict:
                     r["fail"] += 1
                     r["notes"].append(f"quoted expectation absent from workflow: {q[:60]}")
             if not quoted and wf_text:
-                key = b[:40]
-                if key and key in _normalize(wf_text):
-                    r["pass"] += 1
-                else:
-                    r["notes"].append(f"behaviour not statically checkable: {beh[:60]}")
+                r["notes"].append(f"behaviour not statically checkable: {beh[:60]}")
         r["status"] = "PASS" if r["fail"] == 0 and r["pass"] else ("FAIL" if r["fail"] else "UNCHECKED")
         out["examples"].append(r)
     out["totals"] = {

@@ -33,7 +33,7 @@ TODO:
 - Wait for orchestrator's rebuild + re-smoke; then local 6-example validation (self_heal score) — offer help.
 - Mock URL: https://final-case-mock-bank.fcodefcode3.workers.dev (unchanged) · Workflow: d659b17f-78c8-4fd1-8002-46755b07d54a (pre-fix smoke) · Time left: ~1h40m.
 
-## 21:40 (18:40 UTC) — watcher restart + 20:57 transcript rule deltas
+## 21:25 (18:25 UTC) — watcher restart + 20:57 transcript rule deltas
 DONE:
 - Drive watcher was DEAD (user asked). Ran sync --once: 0 new, 0 changed (mirror current); restarted poll loop + Monitor (30 min, re-arm).
 - Analysed finalcase/sources/meetings/2026-10-10-follow-up-session-transcript.txt (landed 20:57, AFTER spec extraction 20:51). 4 rule deltas: (1) multi-card: ask "Başka bir kartınızın borcunu öğrenmek ister misiniz?" BEFORE week-change offer (also for no-debt cards); (2) currency full names only (Türk Lirası/Dolar/Euro/İngiliz Sterlini); (3) no-statement-cut-yet card: "henüz kesilmiş bir ekstresi olmadığı için..." + first cut date from answer, NEVER invent dates; (4) cut day: "Hesap kesim tarihiniz bugün..." then totalDebt per currency.
@@ -41,4 +41,4 @@ DONE:
 - Workflow d659b17f has NONE of the 4 phrases (built 21:00 from stale spec + pre-21:03 gen_query) — rebuild needed (orchestrator already planned it).
 TODO:
 - Relay rule 3 + field naming to orchestrator (git-relay ACK-REQ): add no-statement rule to final_spec.json before rebuild.
-- Re-arm Drive Monitor at expiry (~22:10 Istanbul).
+- Re-arm Drive Monitor at expiry (~21:50 Istanbul).

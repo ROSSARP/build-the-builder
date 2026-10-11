@@ -20,3 +20,17 @@ TODO:
 - Replay 6 examples locally (self_heal.py score) → fix → repeat
 - submission.json + commit + email to yavuz@freyavoice.ai before 20:00 UTC (23:00 Istanbul)
 NEXT: mock builder (builder/mock_final.py)
+
+## 22:05 (19:05 UTC)
+LIVE: orchestrator — orchestrator.md
+OWN: builder/gen_query.py@cf-mock-session — Turkish prompts, week_get tool, mandatory sentences
+OWN: builder/build.py@cf-mock-session — case wiring (spec reuse, api from services, gen_query dispatch)
+DONE:
+- Mock LIVE: final-case-mock-bank.fcodefcode3.workers.dev (34 customers, 7 services + close/transfer, smoke PASS)
+- build.py wired: reuses tests/final_spec.json + builds api from final_contract.json services; gen_query dispatch
+- BUILDER RUN: workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6 (7 nodes), exported submission/finalcase.workflow.json + trace
+- Platform smoke: Turkish greeting OK; BUG: opening quoted the card-selection mandatory sentence (was in system_prompt) + fixed example names (Yıldız Premium/Pratik) not the caller's own
+TODO:
+- Fix: mandatory sentences -> statement node task (not system_prompt); strip fixed example names in _tr_spoken_only
+- Rebuild + re-smoke; then self_heal score (static example checks)
+- Fill submission.json (NEED team name + member name/email from user) + git commit + email to yavuz@freyavoice.ai before 20:00 UTC

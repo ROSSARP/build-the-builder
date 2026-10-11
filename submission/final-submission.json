@@ -1,0 +1,10 @@
+{
+ "team": "YOUR-TEAM-NAME",
+ "members": [],
+ "repo": "https://github.com/YOU/your-builder",
+ "commit": "COMMIT-HASH-TO-FILL",
+ "run_command": "python3 builder/build.py {case_folder} {mock_url}",
+ "workflow": "submission/finalcase.workflow.json",
+ "trace": "traces/finalcase.log",
+ "mock_url": "https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1"
+}

@@ -1,0 +1,18 @@
+{
+ "worker_name": "final-case-mock-bank",
+ "get_probes": [
+  {
+   "path": "/health",
+   "probe_of": "/health"
+  }
+ ],
+ "services": [
+  "/voice/v1/cards.list",
+  "/voice/v1/cards.balance",
+  "/voice/v1/statement.week.get",
+  "/voice/v1/statement.week.decide",
+  "/voice/v1/statement.week.change",
+  "/voice/v1/contact.email.get",
+  "/voice/v1/statement.pdf.send"
+ ]
+}

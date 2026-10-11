@@ -552,6 +552,8 @@ def render_history(messages):
             out.append(f"[tool call] {text}")
         elif r == "tool_result":
             out.append(f"[tool result] {text}")
+        elif r == "system":
+            out.append(f"[system] {text}")
     return "\n".join(out)
 
 

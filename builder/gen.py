@@ -692,7 +692,11 @@ def build_workflow(spec, api):
             "\nBefore ending the call, CALL add_note for EVERY product that ended without a promise, "
             "with the reason the notes rules say.")
     sections.append("Ending the call: " + first_line(closing.get("goodbye_text", "")) +
-                    " Say goodbye ending with \"Have a good day.\" The close outcome is recorded automatically from the rules above.")
+                    " Say goodbye ending with \"Have a good day.\" The close outcome is recorded automatically from the rules above — "
+                    "you do NOT call close_call yourself, it is not available to you. "
+                    "A date or an amount the customer proposes is NEVER a refusal: respond to that value under the "
+                    "date and amount rules, and do not count it as one of your persuasion attempts. "
+                    "Before closing as refused, make sure the customer has had the chance to name their own amount or date.")
 
     collect_task = ("You are on a collection call. The customer's identity is verified.\n\n"
                     + "\n\n".join(s for s in sections if s.strip()))
@@ -709,7 +713,7 @@ def build_workflow(spec, api):
           "description": "The payment amount the customer agreed to, if any."},
          {"name": "claim", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "paid", "dispute", "hardship", "restructuring", "human", "scam", "dont_know", "dont_want"],
-          "description": "hardship ONLY when the customer mentions illness, a death in the family or job loss; a mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
+          "description": "hardship is ANY serious personal or financial trouble the customer mentions: illness, a death in the family, job loss, care-home or medical fees they cannot afford, a closed business, lost income, benefits problems, or similar — not only those exact words. A mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
          {"name": "confirmation", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the read-back confirmation."},
          {"name": "note_reason", "type": "string", "min_confidence": 0.7,
@@ -721,13 +725,30 @@ def build_workflow(spec, api):
           "description": "The payment amount the customer agreed to, if any."},
          {"name": "claim", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "paid", "dispute", "hardship", "restructuring", "human", "scam", "dont_know", "dont_want"],
-          "description": "hardship ONLY when the customer mentions illness, a death in the family or job loss; a mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
+          "description": "hardship is ANY serious personal or financial trouble the customer mentions: illness, a death in the family, job loss, care-home or medical fees they cannot afford, a closed business, lost income, benefits problems, or similar — not only those exact words. A mere refusal to pay is NOT hardship. paid ONLY when the customer says they ALREADY paid this past-due amount; a promise to pay is not paid. Otherwise what the customer is saying, if it is one of these."},
          {"name": "confirmation", "type": "string", "min_confidence": 0.7,
           "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the read-back confirmation."}],
         [{"target_node": "collect", "description": "Keep going", "condition": always()}])
 
+    # ---- hardship node: a real branch, not just prompt text. The collect
+    # extraction sets claim='hardship'; this node consumes it.
+    hardship_node = conv_node(
+        "hardship",
+        "The customer is going through hardship. Say exactly ONE short sentence of sympathy, then make NO "
+        "persuasion attempt at all. Offer the customer support team ONCE: if they accept, CALL "
+        "transfer_to_agent with the support queue and end the call; if they decline, end the call without "
+        "a promise. If the customer names a payment date or amount themselves, still record it under the "
+        "date and amount rules.\nTo end the call, say goodbye ending with \"Have a good day.\"",
+        [transfer, END_CALL_TOOL],
+        [{"name": "payment_date", "type": "date", "min_confidence": 0.85,
+          "extraction_prompt": EXTRACT_DATE_ANCHOR,
+          "description": "The payment date the CUSTOMER named in their own words, if any."},
+         {"name": "confirmation", "type": "string", "min_confidence": 0.7,
+          "enum_values": ["none", "yes", "no"], "description": "The customer's answer to the support-team offer."}],
+        [{"target_node": "hardship", "description": "Keep talking", "condition": always()}])
+
     nodes = {}
-    for node in (opening, third_party, identity, account, dates, fix_date, collect):
+    for node in (opening, third_party, identity, account, dates, fix_date, collect, hardship_node):
         nodes[node["name"]] = node
 
     # fill the self-transitions' targets and wire the routing ones
@@ -748,8 +769,13 @@ def build_workflow(spec, api):
         trans("identity", "Keep asking", always()),
     ]
     collect["transitions"] = [
+        trans("hardship", "The customer mentions hardship", cond("claim", "equals", "hardship")),
         trans("fix_date", "The customer named a payment date", cond_is_set("payment_date")),
         trans("collect", "Keep going", always()),
+    ]
+    hardship_node["transitions"] = [
+        trans("fix_date", "The customer named a payment date", cond_is_set("payment_date")),
+        trans("hardship", "Keep talking", always()),
     ]
 
     workflow = {

@@ -215,6 +215,8 @@ def main():
     TRACE = []
     t0 = time.time()
     slot = pathlib.Path(a.brief).stem
+    if slot == "brief":  # a brief file named just "brief.md": use its folder's name
+        slot = pathlib.Path(a.brief).parent.name
     trace_line(f"start: {time.strftime('%Y-%m-%d %H:%M:%S')} UTC, brief {slot}")
     for k in ("FREYA_API_KEY",):
         if not os.environ.get(k):
@@ -319,20 +321,25 @@ def main():
         passed = best_passed
 
     # persist the best across RUNS too: a later regeneration that scores lower
-    # must not replace a better workflow on the platform
+    # must not replace a better workflow on the platform. Only the standard
+    # practice set counts — custom/exam/reps scores use different scales and
+    # must not pollute this store.
     best_file = ROOT / "tests" / "best.json"
     best_store = json.loads(best_file.read_text()) if best_file.exists() else {}
     cur = best_store.get(slot, {})
-    if total and passed >= cur.get("score", -1):
+    comparable = not a.cases and a.reps == 1
+    if comparable and total and passed >= cur.get("score", -1):
         best_store[slot] = {"score": passed, "total": total, "workflow": workflow,
                             "at": time.strftime("%Y-%m-%d %H:%M:%S")}
         best_file.write_text(json.dumps(best_store, indent=1))
         log(f"stored best for {slot}: {passed}/{total}")
-    elif cur.get("workflow"):
+    elif comparable and cur.get("workflow"):
         log(f"re-publishing the stored best for {slot} ({cur.get('score')}/{cur.get('total')} passed)")
         state = save(slot, cur["workflow"])
         workflow = cur["workflow"]
         passed = cur["score"]
+    else:
+        log("skipping cross-run best for this non-standard run")
 
     # 5. export and finish
     export = ROOT / "submission" / f"{slot}.workflow.json"

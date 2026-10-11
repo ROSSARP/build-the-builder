@@ -7,38 +7,10 @@ The expected ledger records are computed from the brief's date/amount rules.
 """
 import copy, datetime, json, pathlib
 
+from case_math import (HOL, NOW, is_biz, add_biz, deadline_of, next_biz,
+                       floor_of, full_of, promise, expected_close)
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-HOL = ["2026-10-26", "2026-11-11", "2026-11-26", "2026-12-25", "2027-01-01"]
-NOW = datetime.date(2026, 10, 14)  # Wednesday, the fixed practice date
-
-def is_biz(d):
-    return d.weekday() < 5 and d.isoformat() not in HOL
-
-def add_biz(d, n):
-    d += datetime.timedelta(days=1)
-    while True:
-        if is_biz(d):
-            n -= 1
-            if n == 0:
-                return d
-        d += datetime.timedelta(days=1)
-
-def deadline_of(days_late):
-    """Per brief-a: 12th business day (1-7 days late), 7th (8-45)."""
-    band = 12 if 1 <= days_late <= 7 else 7
-    return add_biz(NOW, band)
-
-def next_biz(d):
-    return add_biz(d, 1)
-
-def floor_of(p):
-    return p.get("minimum_payment", p.get("instalment_amount"))
-
-def full_of(p):
-    return p["past_due"]
-
-def promise(pid, amount, date):
-    return {"product_id": pid, "amount": round(float(amount), 2), "date": date.isoformat() if isinstance(date, datetime.date) else date}
 
 def base_cases():
     return {c["id"]: c for c in json.loads((ROOT / "public-test-set.json").read_text())}

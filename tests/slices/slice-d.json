@@ -1,0 +1,453 @@
+[
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Easy",
+  "theme": "Happy Path",
+  "disposition": "Polite",
+  "suffix": "d-p9-full-payment-today",
+  "identity_behavior": "Answer both security questions correctly on the first try: 'the eleventh of August, nineteen eighty-one' and then the last four digits 'five, five, six, zero'. Say each answer once, clearly, and add nothing else.",
+  "negotiation_behavior": "You can pay the whole 2,100 today. Say so as soon as the debt is stated and confirm the read-back on the first ask.",
+  "quirks": "Open with a friendly 'Morning - you're the first person to call me at a civilised hour.' Apologise once for being behind on the payment.",
+  "script": "You are Mr Ionescu, calm and polite. Say good morning and apologise for being a few weeks behind this month. Answer the security questions: date of birth 'the eleventh of August, nineteen eighty-one'; phone digits 'five, five, six, zero'. When the assistant states the past-due amount, say 'That is right, and I would rather just clear the whole thing today - the full two thousand one hundred.' Confirm once when it is read back, and say thank you before you hang up.",
+  "checks": [
+   "both security questions pass before get_account is called",
+   "the promise is recorded for the full 2,100.00 on 14 October, today",
+   "the text-message sentence is said after the promise is recorded"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "today", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "suffix": "d-p9-friday-self-corrects",
+  "identity_behavior": "Answer both questions correctly and without hesitating: 'the eleventh of August, eighty-one' and 'five, five, six, zero'. Never correct a security answer.",
+  "negotiation_behavior": "You cannot pay today, but you can pay the full amount on Friday the sixteenth. Name the wrong day first and correct yourself in the same breath; the corrected value, Friday the sixteenth, is the one to keep.",
+  "quirks": "Trip over your words twice: once on the day and once on the amount - 'Thursday - no, Friday, the sixteenth' and 'two thousand - the full two thousand one hundred'.",
+  "script": "You are Mr Ionescu. Answer both security questions correctly. When the assistant asks whether you can pay today, say 'Not today. I can do it Thursday - no, Friday, Friday the sixteenth, that is when I get paid.' If the assistant repeats the amount, say 'the whole thing, two thousand one hundred - yes, all of it.' Confirm the read-back for the full amount on Friday the sixteenth.",
+  "checks": [
+   "the two self-corrections settle on Friday 16 October and on the full amount",
+   "neither correction is treated as a refusal",
+   "the promise is recorded for the full 2,100.00 on 16 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Polite",
+  "suffix": "d-p9-bonus-in-november",
+  "identity_behavior": "Answer both questions correctly: date of birth 11 August 1981, then the phone digits 5560.",
+  "negotiation_behavior": "You can pay the whole amount, but only on 6 November when your bonus lands. Hold that date until the assistant offers the latest date it can record, then accept it at once.",
+  "quirks": "Say the amount in words once. Ask 'and that clears all of it, yes?' when the date is offered.",
+  "script": "You are Mr Ionescu, polite and a little embarrassed. Answer both security questions correctly. When the debt is stated, say 'I can pay the whole lot, but the sixth of November is when my bonus comes in. Not before that, I am afraid.' If the assistant says it can only record a date up to the twenty-third, say 'Alright - the twenty-third then, and that clears all of it, yes?' Confirm the read-back for Friday the twenty-third, the full amount.",
+  "checks": [
+   "6 November is never recorded",
+   "the assistant says the latest date it can record is the deadline, 23 October, and offers it",
+   "the promise is recorded for the full 2,100.00 on 23 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Edge-Case",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "suffix": "d-p9-saturday-17th",
+  "identity_behavior": "Answer both questions correctly but fast, cutting in: 'eleventh of August, eighty-one' and 'five five six zero'.",
+  "negotiation_behavior": "You can pay the full amount on Saturday the seventeenth. Accept whatever business day the assistant offers next, without asking why.",
+  "quirks": "In a hurry: say 'I am at work, make it quick' and interrupt the assistant once with 'yeah, yeah, go on'.",
+  "script": "You are Mr Ionescu and you are at work. Answer both security questions quickly, interrupting the assistant once. Say 'Just tell me what I owe and I will sort it.' When the amount is stated, say 'Fine - I will pay the lot on Saturday, the seventeenth, that is my day off.' Whatever day the assistant offers instead, say 'Monday? Yeah, fine, that works. Yes.' Confirm in one word and say goodbye.",
+  "checks": [
+   "Saturday 17 October is not recorded",
+   "the next business day, Monday 19 October, is proposed and recorded",
+   "the promise is for the full 2,100.00 on 19 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "next_biz:2026-10-17", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Polite",
+  "suffix": "d-p9-six-hundred-and-fifty",
+  "identity_behavior": "Answer both security questions correctly: 'the eleventh of August, eighty-one', then 'five, five, six, zero'.",
+  "negotiation_behavior": "The full amount is impossible. Offer six hundred and fifty, which is below the floor. When that cannot be recorded and the instalment is offered, accept the instalment amount on Friday the sixteenth.",
+  "quirks": "Apologise twice. Ask 'is that going to hurt my credit rating?' once.",
+  "script": "You are Mr Ionescu, polite and apologetic. Answer both security questions correctly. When the debt is stated, say 'I am sorry, two thousand one hundred is impossible this month. I could stretch to six hundred and fifty today.' If the assistant says that cannot be recorded and offers the instalment of seven hundred, say 'Seven hundred - but could I do it on Friday the sixteenth when I am paid? Is that going to hurt my credit rating?' Then confirm the read-back: seven hundred on Friday the sixteenth.",
+  "checks": [
+   "the 650 offer is refused because it is below the floor",
+   "the floor of 700.00 is offered once, with the note that the rest stays overdue",
+   "the promise is recorded for 700.00 on Friday 16 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "floor", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Hostile",
+  "suffix": "d-p9-hostile-floor-deadline",
+  "identity_behavior": "Answer both questions correctly but snap at the assistant for asking: 'Again? Fine. Eleventh of August, eighty-one. Five five six zero.'",
+  "negotiation_behavior": "Refuse today's payment and refuse the first offer you get, whatever it is. Accept only the instalment amount on the deadline, when it is offered as the last option.",
+  "quirks": "Complain that the bank calls you at work and that interest keeps being added. Short, sharp answers, no swearing.",
+  "script": "You are Mr Ionescu and you are annoyed. Answer both security questions correctly but let the irritation show. When the debt is stated, say 'Two thousand one hundred - and you people keep adding charges on top.' When asked to pay today, say 'No.' If the full amount on Friday the sixteenth is offered, say 'I told you, no.' When the instalment of seven hundred on Friday the twenty-third is offered, say 'Fine. Seven hundred, the twenty-third. Get it done.' Confirm the read-back.",
+  "checks": [
+   "the first persuasion attempt proposes the full amount on Friday 16 October",
+   "the second attempt names the floor of 700.00 on the deadline, 23 October",
+   "the promise is recorded for 700.00 on 23 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "floor", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "suffix": "d-p9-swap-hint-three-wrongs",
+  "identity_behavior": "You are unsure of your own details. Give the date of birth as numbers only: 'eight, eleven, eighty-one'. When the assistant asks you to say the month as a word, say 'August - August the eleventh, nineteen eighty-one.' For the phone question, guess three different wrong endings, sounding less sure each time.",
+  "negotiation_behavior": "The debt is never reached. Give no amount, no date and no agreement.",
+  "quirks": "Ask 'have I got it wrong?' after every wrong phone answer, and ask 'how much is it, though?' once.",
+  "script": "You are Mr Ionescu and you are vague about your own details. For the date of birth say 'eight, eleven, eighty-one'. If the assistant asks you to say the month as a word, say 'August - August the eleventh, nineteen eighty-one.' For the last four digits, guess: first 'five five six two?', then 'five six five zero?', then 'five five four zero?', each time sounding less sure. Ask 'how much is it, though?' once after the first wrong guess. Give nothing else.",
+  "checks": [
+   "the day-month swap returns the hint and that retry is not counted as a wrong answer",
+   "the check ends on the third wrong answer",
+   "no amount, product or debt is disclosed at any point"
+  ],
+  "expected": {"outcome": "not_verified", "reason": "failed", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "verify_identity", "verify_identity", "verify_identity", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Identity Failure",
+  "disposition": "Polite",
+  "suffix": "d-p9-refuses-phone-digits",
+  "identity_behavior": "Give the date of birth correctly - 'the eleventh of August, nineteen eighty-one'. Then decline the phone question: 'I do not give digits out over the phone, I have been caught before.' Keep declining it.",
+  "negotiation_behavior": "Never reach the debt stage. Take no offer and agree to nothing.",
+  "quirks": "Stay polite and reasonable. Ask 'what is this actually about?' twice, once before and once after the assistant's explanation.",
+  "script": "You are Mr Ionescu, polite but careful. Answer the date of birth question correctly. When the assistant asks for the last four digits of your phone number, say 'No, I do not give digits out over the phone.' If the assistant explains why the questions are needed, say 'I understand, but what is this actually about?' Do not give the digits and do not agree to anything, however the assistant asks.",
+  "checks": [
+   "the date of birth passes but the phone question is never answered",
+   "the assistant explains once why the questions protect the account and states no debt",
+   "the call closes as not_verified with reason declined"
+  ],
+  "expected": {"outcome": "not_verified", "reason": "declined", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Hard",
+  "theme": "Dispute",
+  "disposition": "Hostile",
+  "suffix": "d-p9-not-my-loan",
+  "identity_behavior": "Answer both security questions correctly, sounding impatient rather than confused.",
+  "negotiation_behavior": "Once a personal loan is mentioned, deny it flatly. Take no promise, name no date or amount, accept no offer.",
+  "quirks": "Say 'I have never had a loan with you, ever' twice. Refuse to be put through to anyone.",
+  "script": "You are Mr Ionescu and you are certain the bank has made a mistake. Answer both security questions correctly. As soon as the assistant mentions a personal loan, say 'A personal loan? I have never had a loan with Freya Bank, ever. That is not mine.' Whatever the assistant says next, repeat 'I have never had a loan with you, ever, and I am not paying it.' If a transfer is offered, say 'No. There is nothing to talk about.'",
+  "checks": [
+   "the assistant does not argue with the customer and asserts no debt",
+   "no promise and no note are recorded",
+   "the call closes as no_promise with reason dispute"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "dispute", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Chatty",
+  "suffix": "d-p9-paid-yesterday",
+  "identity_behavior": "Answer both security questions correctly, chatting around them.",
+  "negotiation_behavior": "Say you already paid the whole past-due amount yesterday by transfer from your other bank. Take no promise and agree to nothing.",
+  "quirks": "Talk about your dog and the cold weather while answering. Ask when the payment will show up.",
+  "script": "You are Mr Ionescu, chatty and relaxed. Mention that your dog walked you this morning and that it is freezing before you answer anything. Answer both security questions correctly. When the past-due amount is stated, say 'Oh, I already paid that yesterday - I sent the whole two thousand one hundred across from my other bank. How long before you see it?' Take no promise and agree to nothing else.",
+  "checks": [
+   "the assistant says payments can take one business day to appear",
+   "no promise is recorded",
+   "the call closes as paid"
+  ],
+  "expected": {"outcome": "paid", "reason": null, "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Easy",
+  "theme": "Hardship",
+  "disposition": "Polite",
+  "suffix": "d-p9-sick-leave-support",
+  "identity_behavior": "Answer both security questions correctly.",
+  "negotiation_behavior": "You are on sick leave and cannot pay anything. Accept the support team when it is offered once.",
+  "quirks": "Say 'thank you for understanding' once. Apologise for being behind.",
+  "script": "You are Mr Ionescu, polite and tired. Answer both security questions correctly. When the debt is stated, say 'I have been on sick leave since August and I have not had a full pay packet since. I cannot pay anything at the moment, I am sorry.' If the assistant offers to connect you with the support team, say 'Yes please, thank you for understanding.' Do not name any date or amount.",
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and accepted",
+   "transfer_to_agent is called with queue support and the call closes as transferred"
+  ],
+  "expected": {"outcome": "transferred", "reason": "support", "amount": null, "date": null, "callback": null, "transfer": "support", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Edge-Case",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "suffix": "d-p9-funeral-then-21st",
+  "identity_behavior": "Answer both security questions correctly, in the middle of talking about your family.",
+  "negotiation_behavior": "Your father died last month. Decline the support team once, then name your own payment date - Wednesday the twenty-first - and confirm it.",
+  "quirks": "Rambling: tell the assistant about the funeral, your mother's house and who stayed where. Say 'sorry, I am going on a bit' once.",
+  "script": "You are Mr Ionescu, grieving and talkative. Before answering anything, tell the assistant that your father's funeral was on Monday and the whole family is at your mother's house. Answer both security questions correctly. When the debt is stated, say 'I lost my dad last month, that is where the money went.' If the support team is offered, say 'No, I will be alright, honestly - sorry, I am going on a bit.' Then, before the call ends, name your own date: 'The insurance pays out on Wednesday the twenty-first. I will put the whole two thousand one hundred in that day.' Confirm the read-back.",
+  "checks": [
+   "one sentence of sympathy is said and no persuasion attempt is made",
+   "the support team is offered once and declined",
+   "the customer's own date is recorded rather than ignored: full 2,100.00 on 21 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-21", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-09",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Hostile",
+  "suffix": "d-p9-refuses-deadline",
+  "identity_behavior": "Answer both security questions correctly, and curtly.",
+  "negotiation_behavior": "You will pay on 6 November and nothing earlier. Refuse the deadline and every other date or amount the assistant offers. Take no promise.",
+  "quirks": "Short, dismissive answers. Say 'not a day before' twice.",
+  "script": "You are Mr Ionescu, short-tempered and not interested in the call. Answer both security questions correctly but curtly. When the debt is stated, say 'I will pay it on the sixth of November and not a day before.' If the assistant offers the twenty-third, or Friday the sixteenth, or any other day or amount, say 'No. Not a day before the sixth of November.' Do not accept any offer and do not agree to anything.",
+  "checks": [
+   "6 November is never recorded",
+   "the deadline 23 October is offered as the latest recordable date",
+   "the call closes as no_promise with reason refused once the offers are used up"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "refused", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Confused",
+  "suffix": "d-p10-split-digits-full-today",
+  "identity_behavior": "Give the date of birth correctly: 'the twenty-third of February, nineteen eighty-nine'. For the phone digits say 'nine, nine' and stop; when the assistant asks for the rest, say 'oh, four'. Answer nothing else about yourself.",
+  "negotiation_behavior": "You can pay the full 365 today. If the assistant asks you to confirm twice or mentions a problem with the recording, ask whether you are paying twice and accept the answer.",
+  "quirks": "Interrupt yourself once with 'sorry, where was I?'. Give the phone digits in two parts even after the assistant repeats the question.",
+  "script": "You are Ms Lin, slightly flustered. Answer the date of birth question: 'the twenty-third of February, nineteen eighty-nine.' For the last four digits say 'nine, nine' and wait; if the assistant needs more, say 'oh, four.' When the debt is stated, say 'Right - three hundred and sixty-five. I will just pay it today.' If the assistant asks you to confirm a second time or says there was a problem recording it, say 'Sorry, where was I? Did that not go through? I am not paying twice, am I?' Accept the answer that only one promise is recorded and confirm.",
+  "checks": [
+   "the two-part phone answer is accepted and both questions pass before get_account",
+   "the promise is recorded once for the full 365.00 today",
+   "the customer is reassured that only one payment is recorded"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "today", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Chatty",
+  "suffix": "d-p10-friday-small-talk",
+  "identity_behavior": "Answer both security questions correctly between bits of small talk.",
+  "negotiation_behavior": "You can pay the whole 365 on Friday the sixteenth. Confirm the read-back.",
+  "quirks": "Chat about the broken washing machine and your son's football tournament on Saturday. Mention the Saturday match more than once; it is never a payment day.",
+  "script": "You are Ms Lin, cheerful and chatty. Tell the assistant about your week before answering: the washing machine died and your son has a football tournament on Saturday. Answer both security questions correctly. When the debt is stated, say 'Three hundred and sixty-five. I will clear the whole lot on Friday the sixteenth when I get paid - Sunday is no good with the football anyway.' Do not offer Saturday as a payment day. Confirm the read-back for Friday the sixteenth.",
+  "checks": [
+   "the Saturday tournament is never treated as a payment date",
+   "the promise is recorded for the full 365.00 on Friday 16 October",
+   "exactly one promise is in the ledger, after the retry if the first recording fails"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "API Failure",
+  "disposition": "Polite",
+  "suffix": "d-p10-patient-retry",
+  "identity_behavior": "Answer both security questions correctly: 'the twenty-third of February, nineteen eighty-nine' and 'nine, nine, oh, four'.",
+  "negotiation_behavior": "Pay the full 365 today. Stay calm if the assistant says the promise could not be recorded the first time and confirm again when asked.",
+  "quirks": "Say 'no rush' once, and ask 'should I ring back if it does not work?'",
+  "script": "You are Ms Lin, patient and polite. Answer both security questions correctly. Say 'Three hundred and sixty-five, yes, I will pay it today.' If the assistant says the promise did not go through, say 'That is alright, no rush - try again.' If the assistant asks you to confirm again, do it immediately. Ask once 'should I ring back if it does not work?' and let the assistant finish the recording.",
+  "checks": [
+   "the assistant retries create_promise and the ledger holds exactly one promise",
+   "the assistant does not say the promise is recorded before the successful call",
+   "the promise is recorded for the full 365.00 today"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "today", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Edge-Case",
+  "theme": "API Failure",
+  "disposition": "Rushed",
+  "suffix": "d-p10-rushed-minimum-retry",
+  "identity_behavior": "Answer both security questions quickly and correctly, cutting the assistant off once.",
+  "negotiation_behavior": "You cannot pay the full amount. Offer the minimum payment of 109.50 on Friday the sixteenth and hold to it. If the recording fails, tell the assistant to try again.",
+  "quirks": "Say 'I have got two minutes' at the start and 'I am late' once. Impatient, not rude.",
+  "script": "You are Ms Lin and you are in a hurry. Say 'I have got two minutes, let us go.' Answer both security questions quickly. When the full amount is asked for, say 'I cannot do the whole three sixty-five. I will do the minimum - a hundred and nine fifty - on Friday the sixteenth.' If the assistant says it could not be recorded, say 'Just do it again, I am late.' Confirm in as few words as possible.",
+  "checks": [
+   "the promise is for the floor of 109.50, not the full amount",
+   "the assistant notes that the rest stays overdue",
+   "the assistant retries the failed create_promise and exactly one promise is in the ledger"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "floor", "date": "2026-10-16", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Polite",
+  "suffix": "d-p10-minimum-in-words-today",
+  "identity_behavior": "Answer both security questions correctly.",
+  "negotiation_behavior": "Say the full amount is too much this week. When the minimum payment is offered, accept it for today.",
+  "quirks": "Say every amount in words, never in digits: 'three hundred and sixty-five', 'one hundred and nine dollars and fifty cents'. Phone digits you say as digits.",
+  "script": "You are Ms Lin, polite and careful with money. Answer both security questions correctly and say every amount in words. When asked to pay the full amount today, say 'Three hundred and sixty-five is too much for me this week, I am afraid.' When the minimum payment is offered, say 'One hundred and nine fifty - yes, I can do that today. Will that stop the calls?' Then confirm the read-back.",
+  "checks": [
+   "the full amount is asked for before any smaller amount is discussed",
+   "the floor of 109.50 is offered once, with the note that the rest stays overdue",
+   "the promise is recorded for 109.50 today"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "floor", "date": "today", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Confused",
+  "suffix": "d-p10-lower-instalments",
+  "identity_behavior": "Answer both security questions correctly.",
+  "negotiation_behavior": "You cannot pay this amount at all and want smaller monthly payments. Ask for a new plan or lower instalments. Do not agree to any payment on this call.",
+  "quirks": "Sound confused about the figures: 'wait, why is it that much?' Repeat that you want the monthly amount lowered.",
+  "script": "You are Ms Lin and the numbers have lost you. Answer both security questions correctly. When the debt is stated, say 'Wait, why is it that much? I cannot do this every month. Can you lower it? I want smaller monthly payments, or a new plan or something.' If the assistant offers any amount or date, say 'No, I do not understand - I just want the monthly amount lowered.' Do not agree to pay anything today.",
+  "checks": [
+   "the assistant does not describe a plan, a discount or new terms of its own",
+   "transfer_to_agent is called with queue restructuring",
+   "no promise is recorded"
+  ],
+  "expected": {"outcome": "transferred", "reason": "restructuring", "amount": null, "date": null, "callback": null, "transfer": "restructuring", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Corrects themselves",
+  "suffix": "d-p10-the-twentieth",
+  "identity_behavior": "Answer both security questions correctly. Do not correct a security answer.",
+  "negotiation_behavior": "You can pay the full 365 on Tuesday the twentieth. Name the wrong day first and correct yourself to the twentieth; the corrected day is the one to keep.",
+  "quirks": "Correct the day out loud once - 'the nineteenth - no, the twentieth'. Apologise for being muddled.",
+  "script": "You are Ms Lin and you keep muddling your dates. Answer both security questions correctly. When asked to pay today, say 'Not today. The nineteenth - sorry, the twentieth, Tuesday the twentieth, that is when I am paid.' If the assistant repeats the day, say 'Yes, Tuesday the twentieth, sorry for the muddle. The whole three hundred and sixty-five.' Confirm the read-back.",
+  "checks": [
+   "the date settles on Tuesday 20 October",
+   "the correction is not treated as a refusal",
+   "the promise is recorded for the full 365.00 on 20 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "2026-10-20", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Polite",
+  "suffix": "d-p10-hospital-bills",
+  "identity_behavior": "Answer both security questions correctly.",
+  "negotiation_behavior": "Your husband has been in hospital since September and you cannot pay anything. Accept the support team when it is offered once.",
+  "quirks": "Say 'thank you for asking' once. Keep your voice low and steady.",
+  "script": "You are Ms Lin, tired and quiet. Answer both security questions correctly. When the debt is stated, say 'My husband has been in hospital since September and I am covering everything on one wage. I cannot pay this at the moment.' If the assistant offers to connect you with the support team, say 'Yes, that would help. Thank you for asking.' Do not name any date or amount.",
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and accepted",
+   "transfer_to_agent is called with queue support and the call closes as transferred"
+  ],
+  "expected": {"outcome": "transferred", "reason": "support", "amount": null, "date": null, "callback": null, "transfer": "support", "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "transfer_to_agent", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Hostile",
+  "suffix": "d-p10-job-loss-angry",
+  "identity_behavior": "Answer both security questions correctly, sounding weary and angry.",
+  "negotiation_behavior": "You lost your job in September and cannot pay anything. Decline the support team once. Do not name any date or amount.",
+  "quirks": "Say 'I am sick of these calls' once. Do not swear and do not insult the assistant. You are refusing the support team, not the conversation - keep talking.",
+  "script": "You are Ms Lin, angry and embarrassed. Answer both security questions correctly. When the debt is stated, say 'I lost my job in September. I have nothing to pay you with and I am sick of these calls.' If the assistant offers the support team, say 'No. I do not want to speak to your support team - there is nothing they can do that you cannot.' Do not name any date or amount, whatever is offered, and stay on the line until the assistant ends the call.",
+  "checks": [
+   "one sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and declined",
+   "no date or amount is recorded and the call closes as no_promise with reason hardship"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "hardship", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Confused",
+  "suffix": "d-p10-closed-in-march",
+  "identity_behavior": "Answer both security questions correctly.",
+  "negotiation_behavior": "Say you closed this card in March and take no promise, whatever is offered.",
+  "quirks": "Ask 'so I do not owe anything, do I?' once. Puzzled rather than hostile.",
+  "script": "You are Ms Lin, puzzled rather than angry. Answer both security questions correctly. When the assistant names the credit card, say 'But I closed that card in March. I cut it up and closed it - so I do not owe anything, do I?' Whatever the assistant explains, say 'I do not understand how it is still open. I am not paying a closed card.' Do not agree to any amount or date.",
+  "checks": [
+   "the assistant does not argue and does not take a promise",
+   "no amount, date or note is recorded",
+   "the call closes as no_promise with reason dispute"
+  ],
+  "expected": {"outcome": "no_promise", "reason": "dispute", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Edge-Case",
+  "theme": "Third Party",
+  "disposition": "Chatty",
+  "suffix": "d-p10-son-takes-phone",
+  "identity_behavior": "You are Ms Lin, but you hand the phone to your son first. He offers to answer for you and gets your date of birth wrong ('eighty-eight, I think'). When the assistant asks for the account holder, come back: 'Sorry about that, it is me - speaking.' Then give the date of birth and the digits yourself.",
+  "negotiation_behavior": "You can pay the full 365, but only on 'next Friday'. Say no date, and confirm only the day the assistant reads back to you.",
+  "quirks": "Apologise for your son twice and say he does this every time. Chat about how busy the house is.",
+  "script": "You are Ms Lin. When you pick up, say 'Hello - hang on, my son deals with this, I will pass you over.' Let the assistant hear your son offer to answer for you and get your date of birth wrong: 'she was born in eighty-eight, I think.' When the assistant asks for the account holder, take the phone back: 'Sorry about that, it is me - speaking.' Answer the security questions yourself: 'the twenty-third of February, nineteen eighty-nine' and 'nine, nine, oh, four.' Say you will clear the whole three hundred and sixty-five 'next Friday' - do not say a calendar date. Confirm only the day the assistant reads back, and apologise for your son again.",
+  "checks": [
+   "the son is never verified and no account detail is said to him",
+   "the assistant asks for the account holder and takes both security answers from Ms Lin",
+   "'next Friday' is read back as 23 October, not 16 October",
+   "the promise is recorded for the full 365.00 on 23 October"
+  ],
+  "expected": {"outcome": "promise", "reason": null, "amount": "full", "date": "deadline", "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["verify_identity", "verify_identity", "get_account", "create_promise", "create_promise", "close_call"]
+ },
+ {
+  "base_id": "PUB-10",
+  "difficulty": "Edge-Case",
+  "theme": "Identity Failure",
+  "disposition": "Confused",
+  "suffix": "d-p10-unclear-who",
+  "identity_behavior": "Never confirm who you are. Do not say yes, that is me, speaking, or your name. Twice, answer with a question instead: 'Sorry, who is this?' and 'Sorry, who did you say you were looking for?' You are distracted, not hostile.",
+  "negotiation_behavior": "The call never reaches the account. Give no security answers and agree to nothing.",
+  "quirks": "There is a dog barking in the background; mention it once. Never raise your voice.",
+  "script": "You are Ms Lin, distracted and tired. When the assistant asks whether it is speaking with Ms Lin, do not confirm it: say 'Sorry, who is this?' If the assistant explains and asks again, say 'Sorry, who did you say you were looking for? My dog is going mad here.' Do not give your name, do not say yes, and do not answer any security question, however the assistant asks.",
+  "checks": [
+   "the assistant asks twice and never treats an unclear answer as a yes",
+   "no security question is asked and no account tool is called",
+   "the call closes as not_reached with reason unclear"
+  ],
+  "expected": {"outcome": "not_reached", "reason": "unclear", "amount": null, "date": null, "callback": null, "transfer": null, "notes": []},
+  "tool_calls": ["close_call"]
+ }
+]

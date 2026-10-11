@@ -442,3 +442,66 @@ Every test run of the builder is logged here, oldest first. The builder appends 
 
 - artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
 - judgement: (none noted)
+## 2026-10-11 09:50 — brief
+
+- command: python3 builder/build.py mock-exam/exam-1/brief.md mock-exam/exam-1/tools.openapi.json --fix 1
+- workflow 94a7c185-6bd4-4239-a8db-44a918323f0e, agent 9b6bcf3b-df11-4e48-9ef5-efddf980a4bc
+- no practice test run (test failed)
+- duration: 47 s
+
+
+- artifacts: results/brief.json, traces/brief.log, submission/brief.workflow.json
+- judgement: (none noted)
+## 2026-10-11 09:52 — exam-1
+
+- command: python3 builder/build.py mock-exam/exam-1/exam-1.md mock-exam/exam-1/tools.openapi.json --fix 1
+- workflow a81b678e-5c63-47d7-b63c-4813e0ba4da9, agent dd7dd14c-423e-4b0c-bcdf-489151693dfe
+- no practice test run (test failed)
+- duration: 60 s
+
+
+- artifacts: results/exam-1.json, traces/exam-1.log, submission/exam-1.workflow.json
+- judgement: (none noted)
+## 2026-10-11 09:54 — exam-2
+
+- command: python3 builder/build.py mock-exam/exam-2/exam-2.md mock-exam/exam-2/tools.openapi.json --fix 1
+- workflow b4320d8c-1fc8-4b66-a82b-65d323e36efd, agent 546eafe9-2d8d-4adc-a4b0-c97347bb4610
+- no practice test run (test failed)
+- duration: 52 s
+
+
+- artifacts: results/exam-2.json, traces/exam-2.log, submission/exam-2.workflow.json
+- judgement: (none noted)
+## 2026-10-11 09:55 — exam-3
+
+- command: python3 builder/build.py mock-exam/exam-3/exam-3.md mock-exam/exam-3/tools.openapi.json --fix 1
+- workflow 1eb70899-8ec7-49fe-a7a4-1f36b6eae14e, agent 7c0c06fd-e2c4-4306-ad5a-f6e2c4465bd5
+- no practice test run (test failed)
+- duration: 78 s
+
+
+- artifacts: results/exam-3.json, traces/exam-3.log, submission/exam-3.workflow.json
+- judgement: (none noted)
+## 2026-10-11 11:04 — mock exam exam-10
+
+- score: 9 / 10 passed
+
+| case | difficulty | theme | disposition | band | result |
+|---|---|---|---|---|---|
+| PUB-01 | Easy | Happy Path | Chatty | early | PASS |
+| PUB-02 | Edge-Case | Third Party | Hostile | late | PASS |
+| PUB-03 | Medium | Identity Failure | Confused | early | PASS |
+| PUB-04 | Hard | Date Negotiation | Corrects themselves | late | PASS |
+| PUB-05 | Medium | Hardship | Polite | late | PASS |
+| PUB-06 | Hard | Amount Negotiation | Polite | late | PASS |
+| PUB-07 | Hard | Date Negotiation | Rushed | early | PASS |
+| PUB-08 | Medium | Dispute | Confused | early | FAIL |
+| PUB-09 | Medium | Escalation | Rushed | late | PASS |
+| PUB-10 | Hard | API Failure | Hostile | late | PASS |
+
+Failures:
+
+- PUB-08 (Dispute): outcome ('no_promise', 'dispute'), expected ('paid', None); conversation: - The assistant correctly informed the user that payments can take one business day to appear (Message 8). - No promise was taken during the call, as the user claimed to have already paid. - The call did not close as 'paid'; s
+
+- judgement: First mock exam: 9/10. PUB-08 (already paid in words) failed: the agent said the one-business-day line correctly but closed dispute instead of paid — the recurring paid-vs-dispute weakness. Next: 100-case bulk exam with subagent-generated scenarios.
+

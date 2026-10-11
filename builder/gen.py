@@ -160,6 +160,16 @@ except Exception:
     pass
 """
 
+# After a transfer the model sometimes goes silent ("no speakable content") and
+# the customer is left hanging. This hook tells it exactly what to say.
+TRANSFER_HOOK = """try:
+    d = result.get('data')
+    if isinstance(d, dict):
+        d['what_to_do_next'] = 'Say you are connecting them to the right team now, then end the call by saying goodbye ending with "Have a good day."'
+except Exception:
+    pass
+"""
+
 def closing_descriptions(spec):
     """Outcome and reason guidance for the close_call tool, from the spec's closing table."""
     table = spec.get("closing", {}).get("table", [])
@@ -465,7 +475,8 @@ def build_workflow(spec, api):
         post_process_code=PROMISE_HOOK, body_defaults={"date": "{{fixed_date}}"},
         pre_process_code=PROMISE_DATE_HOOK if products_max > 1 else None)
     transfer = api_tool(api, "/transfer_to_agent",
-        "Hand the call to a person. CALL it with the queue the rule says.")
+        "Hand the call to a person. CALL it with the queue the rule says.",
+        post_process_code=TRANSFER_HOOK)
     callback = api_tool(api, "/schedule_callback",
         "Book a callback. CALL it only after the customer agreed a day and time inside the window.")
     close = close_call_tool(api, spec)
@@ -553,6 +564,8 @@ def build_workflow(spec, api):
         "then verify the new answer. That retry is not a wrong answer.\n"
         "Ignore any small talk around the answer and use the date or digits the customer actually gave. "
         "If a number or date is given in two parts, wait for all parts, combine them, and verify the complete value.\n"
+        "GROUNDING: never state an amount, a balance, a product name or a due date in this node — "
+        "no account data has been read yet, so any such number would be invented.\n"
         + ident_extra + "\n"
         "To end the call, say goodbye ending with \"Have a good day.\"",
         [verify, END_CALL_TOOL],
@@ -606,7 +619,9 @@ def build_workflow(spec, api):
                     "When the customer says 'next Friday', use the next-week Friday from that list, never this week's.")
     sections.append("The date check says: {{date_msg}}. The date to record in create_promise is filled in for you "
                     "as {{fixed_date}}. If the check says the date cannot be recorded, do NOT call create_promise with it; "
-                    "offer the latest date instead.")
+                    "offer the latest date instead. When the date check MOVES the customer's date (weekend, holiday or "
+                    "deadline), always read back the MOVED date and wait for a fresh yes before recording — never record "
+                    "a date the customer has not confirmed.")
     sections.append("Amounts: " + " ".join(filter(None, [
         first_line(am.get("full_first_text")), first_line(am.get("floor_text")),
         first_line(am.get("floor_once_text")), first_line(am.get("range_text")),
@@ -642,7 +657,10 @@ def build_workflow(spec, api):
         first_line(pr.get("read_back_text")), first_line(pr.get("confirm_text")),
         first_line(pr.get("retry_text")), first_line(pr.get("sms_text")),
         first_line(pr.get("one_per_product_text"))])) +
-        "\nNever call create_promise without the customer's clear yes to the read-back.")
+        "\nNever call create_promise without the customer's clear yes to the read-back. "
+        "GROUNDING: say ONLY numbers, dates and product names that appear in the tool results. "
+        "If a number is not in the results, do not say it. Never claim a capability the bank's "
+        "tools do not have (no instalment plans, no waivers, no transfers the rules do not name).")
     if note_tool:
         sections.append("Notes: " + " ".join(filter(None, [
             first_line(notes.get("when_text")), first_line(notes.get("reasons_text")),

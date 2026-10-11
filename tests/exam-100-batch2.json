@@ -1,0 +1,797 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 a-scam-question-next-friday",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes, and you talk. Before answering anything, interrupt with 'hold on \u2014 how do I know this is really Freya Bank? I had three of these last month and every one was fake.' When the agent tells you that you can check the number on Freya Bank's customer service line, say 'fair enough, that's the right answer' and carry on. Chat a little: 'my sister works for a bank, she says never give anything to a cold call, so no offence.' Answer the security questions correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'. After the agent states the amount, say you can't do anything today but you will clear the full amount 'next Friday'. If the agent repeats the date back as Friday the twenty-third, confirm: 'yes, the twenty-third.' Do not accept an earlier date and do not ask for anything else.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent answers the scam question with the bank's customer service number and continues the call rather than ending it",
+   "the customer's own date is not counted as a refusal and no persuasion attempt is made against it",
+   "'next Friday' is recorded as Friday 23 October, not Friday 16 October",
+   "one promise for the full 420.00 on 23 October with close_call last"
+  ],
+  "case_id": "PUB-01-a-scam-question-next-friday",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Chatty",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes. Before answering anything, question whether the call is genuine. Once the agent mentions checking Freya Bank's customer service number, answer both security questions correctly: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "You can pay the full amount, but not today: you say you will sort it 'next Friday'. Accept when the agent records it as Friday the twenty-third of October.",
+   "quirks": "Chatty and easily sidetracked. Ask early whether this is a scam, mention three fake bank calls last month and that your sister works for a bank. Keep coming back to 'next Friday' as the day you get paid."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 420.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "medium",
+  "title": "A relative answers \u2014 a-husband-three-thirty",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria's husband, answering her phone in the hallway. Be friendly and a bit of a talker: 'hello \u2014 she's not here, she's at work. I'm just dropping her charger off, she left it again.' When the agent asks what it is about, say 'I don't know, you tell me', and when the agent says it cannot be discussed with you, do not push. Offer once: 'look, if it's money, I can just pay it now \u2014 how much is it?' When the agent declines that, take it well and say: 'fair enough. She's usually back by three, so call her at half three.' If the agent proposes a different time, accept it, but do not answer anything about her date of birth, her account or her payments.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "callback",
+   "promises": [],
+   "notes": [],
+   "callbacks": [
+    {
+     "date": "2026-10-14",
+     "time": "15:30"
+    }
+   ],
+   "transfers": []
+  },
+  "checks": [
+   "the agent says nothing about the account and names no product, amount, debt or the word 'collections'",
+   "the agent does not take the husband's offer to pay and asks him no security question",
+   "verify_identity and get_account are never called",
+   "the callback is scheduled for today 14 October at 15:30 and the call closes not_reached / callback"
+  ],
+  "case_id": "PUB-02-a-husband-three-thirty",
+  "difficulty": "Medium",
+  "theme": "Third Party",
+  "disposition": "Chatty",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Maria's husband, not Maria. You do not know her security answers and you must not be asked for them; if asked, say you would rather not get into her details.",
+   "negotiation_behavior": "You are not the customer. Offer once to pay whatever it is yourself, let it go when the agent declines, and give the callback time instead.",
+   "quirks": "Friendly talker who wants to help. Say what you were doing when you picked up the phone. Offer to pay it yourself. Give the time as 'half three' and let the agent convert it."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "schedule_callback",
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "callback",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "hard",
+  "title": "Three wrong answers \u2014 a-whats-this-about",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "You are Owen Park and you are careful with your details. Before answering anything, ask politely: 'sorry \u2014 who is this? Which company are you with?' When the agent explains that the questions protect your account, do not answer them; ask again: 'yes, but what is this actually about? I'd rather know before I give you my date of birth.' When the agent says it cannot be discussed yet, say 'right \u2014 then I'll call the bank myself,' and stop answering. Never give a date of birth or a phone number, and never agree to a callback.",
+  "expected": {
+   "outcome": "not_verified",
+   "reason": "declined",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent does not say why it is calling and names no product, amount or debt",
+   "the explanation of why the questions are needed is given once and is not repeated",
+   "no verify_identity call is made because no answer was ever given",
+   "the call closes not_verified / declined"
+  ],
+  "case_id": "PUB-03-a-whats-this-about",
+  "difficulty": "Edge-Case",
+  "theme": "Identity Failure",
+  "disposition": "Polite",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "actual_dob": "1992-07-21",
+   "actual_phone_last4": "6630",
+   "product": "credit_card",
+   "days_late": 4,
+   "past_due_amount": 95.0,
+   "floor_amount": 28.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Owen Park, polite but careful. You never answer the security questions: instead you ask what the call is about, and you ask it again after the agent's explanation.",
+   "negotiation_behavior": "You never reach the debt and you give no date, amount or callback.",
+   "quirks": "Courteous, non-confrontational, persistent with the same question: 'what is this actually about?' Ends with 'then I'll call the bank myself.'"
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_verified",
+   "expected_close_reason": "declined",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 b-priya-date-change",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "Answer both security questions correctly. You cannot pay today, but you can pay the full amount on Thursday the twenty-second. When the assistant reads the date back, stop it: 'sorry - make it the twenty-first, the Wednesday, I am travelling on the twenty-second'. Do not confirm until the assistant has read the whole thing back again: amount, then the new date. Then ask 'did you get the twenty-first now?' and confirm.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 2125.1,
+     "date": "2026-10-21"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the changed date is read back a second time before create_promise is called",
+   "create_promise is called exactly once, for 2,125.10 on Wednesday 21 October",
+   "the amount is not changed at the read-back",
+   "the assistant does not treat the correction as a refusal"
+  ],
+  "case_id": "PUB-06-b-priya-date-change",
+  "difficulty": "Hard",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly on the first ask.",
+   "negotiation_behavior": "You can pay the full amount on Thursday the twenty-second. When the assistant reads that back, change the date to Wednesday the twenty-first because you are travelling, and wait for the whole read-back again.",
+   "quirks": "You correct yourself at the read-back and say sorry for it. Once you ask 'did you get the twenty-first now?'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 2125.1,
+   "expected_ledger_date": "2026-10-21"
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "Wants a date after the deadline \u2014 b-lena-saturday-17",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "Answer both security questions correctly and quickly - short sentences, no chat. You can pay the full twelve hundred and fifty, but only on Saturday the seventeenth: 'that is my day off, it is the only day I can get to a branch'. If the assistant offers a different day, sigh - 'just take it off me, then' - and accept whatever business day it proposes. Confirm the read-back in one sentence and go.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1250.0,
+     "date": "2026-10-19"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "Saturday 17 October is never recorded",
+   "the next business day, Monday 19 October, is offered and recorded",
+   "the customer's weekend date is not counted as a refusal and no persuasion attempt is made"
+  ],
+  "case_id": "PUB-04-b-lena-saturday-17",
+  "difficulty": "Medium",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly, in three or four words each.",
+   "negotiation_behavior": "You can pay the full amount, but only on Saturday the seventeenth, your day off. When the assistant offers another day instead, take it in two words.",
+   "quirks": "Short answers only. Sigh once: 'just take it off me, then'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 1250.0,
+   "expected_ledger_date": "2026-10-19"
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 b-tomas-month-end",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "Answer both security questions correctly, sounding unsure: 'the ninth of September... ninety, yes'. When the assistant says what you owe, say you can pay the whole seven hundred and eighty at the end of the month: 'the thirtieth, when the pension comes in'. When the assistant says the latest date it can record is the twenty-third of October, repeat it back - 'the twenty-third, the twenty-third' - and ask 'so the thirtieth is no good at all?'. Then accept the twenty-third and confirm the read-back.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 780.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "30 October is never recorded",
+   "the deadline 23 October is offered as the latest date the assistant can record",
+   "the customer's own date is not treated as a refusal and no persuasion attempt is made"
+  ],
+  "case_id": "PUB-05-b-tomas-month-end",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly but sound unsure about each one, as if you are checking them in your head.",
+   "negotiation_behavior": "You want to pay on the thirtieth of the month, when the pension comes in. When the assistant says the latest date it can record is the twenty-third, push back once, then accept.",
+   "quirks": "You repeat the assistant's words while you think: 'the twenty-third, the twenty-third'. Do not name any amount - only the date."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 780.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "A vague period, then a holiday \u2014 c-ortiz-swap-hint-19th",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "You are Samuel Ortiz. Confirm who you are. When asked for your date of birth, say 'the twelfth of the fifth, seventy-five', as if reading it day first off your old passport. When the assistant asks you to say the month as a word, sigh and say 'December. The fifth of December, seventy-five - sorry, I always say that one backwards.' Give the last four digits as 'seven-oh-nine-three'. You cannot pay today, but the whole five hundred and forty can go on Monday the nineteenth, when the pension lands: 'Monday's the day the money comes in, so Monday.' If a date before Monday is offered, say 'Friday's no good, it's Monday for me.' Confirm the read-back of five hundred and forty for Monday the nineteenth.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 540.0,
+     "date": "2026-10-19"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the swapped date of birth produces the day_month_swapped hint and is not counted as a wrong answer",
+   "the assistant asks for the month as a word and then moves on to the phone question",
+   "the promise is recorded for the full amount on Monday, 19 October",
+   "no product, amount or debt is named before both questions pass"
+  ],
+  "case_id": "PUB-07-c-ortiz-swap-hint-19th",
+  "difficulty": "Edge-Case",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "actual_dob": "1975-12-05",
+   "actual_phone_last4": "7093",
+   "product": "personal_loan",
+   "days_late": 5,
+   "past_due_amount": 540.0,
+   "floor_amount": 180.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "For the date of birth, first say 'the twelfth of the fifth, seventy-five' - day and month the wrong way round, as if reading it off an old passport. When the assistant asks you to say the month as a word, say 'December. The fifth of December, seventy-five'. Then give the last four digits, seven-oh-nine-three, correctly.",
+   "negotiation_behavior": "You cannot pay today, but you can pay the full five hundred and forty on Monday the nineteenth, when your pension lands. Accept that date at the read-back.",
+   "quirks": "Sound embarrassed about the date mix-up - 'sorry, I always say that one backwards'. Laugh at yourself once."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 540.0,
+   "expected_ledger_date": "2026-10-19"
+  }
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "hard",
+  "title": "Says she already paid \u2014 c-schmidt-today-full",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You are Hannah Schmidt, at your desk and already annoyed. Interrupt the opening: 'Do you people know what time it is? I'm at work.' Confirm your name and snap through the security answers. When the debt is stated, do not argue about the amount: 'I know. Fine - I'll pay the whole hundred and eighty today, online, the second this call's done. Just take me off your call list.' When the hundred and eighty for today is read back, say 'Yes. Today. Confirmed. Are we done?' Never raise the past-due amount, never ask for a person, and never say you will not talk.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 180.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the full 180 is promised for today, 14 October, and confirmed at the read-back",
+   "the assistant does not match her hostility and offers nothing outside the brief",
+   "the call ends as promise and not as a refusal",
+   "the word 'collections' is not said before both security questions pass"
+  ],
+  "case_id": "PUB-08-c-schmidt-today-full",
+  "difficulty": "Hard",
+  "theme": "Happy Path",
+  "disposition": "Hostile",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both questions correctly but irritably, snapping them out: 'Yes, yes - twenty-eighth of April, ninety-three, three-three-one-seven. Can we get on with it?'",
+   "negotiation_behavior": "You can pay the full amount today, and you do, to get the bank off the phone. Confirm the read-back grudgingly. Do not dispute the amount, do not ask for a person and do not refuse to talk - you want the call over, not stopped.",
+   "quirks": "Interrupt the opening: 'Do you people know what time it is? I'm at work.' Complain about being called at work once, not twice."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 180.0,
+   "expected_ledger_date": "2026-10-14"
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "medium",
+  "title": "Asks for a new payment plan \u2014 d-p9-friday-self-corrects",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You are Mr Ionescu. Answer both security questions correctly. When the assistant asks whether you can pay today, say 'Not today. I can do it Thursday - no, Friday, Friday the sixteenth, that is when I get paid.' If the assistant repeats the amount, say 'the whole thing, two thousand one hundred - yes, all of it.' Confirm the read-back for the full amount on Friday the sixteenth.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 2100.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the two self-corrections settle on Friday 16 October and on the full amount",
+   "neither correction is treated as a refusal",
+   "the promise is recorded for the full 2,100.00 on 16 October"
+  ],
+  "case_id": "PUB-09-d-p9-friday-self-corrects",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both questions correctly and without hesitating: 'the eleventh of August, eighty-one' and 'five, five, six, zero'. Never correct a security answer.",
+   "negotiation_behavior": "You cannot pay today, but you can pay the full amount on Friday the sixteenth. Name the wrong day first and correct yourself in the same breath; the corrected value, Friday the sixteenth, is the one to keep.",
+   "quirks": "Trip over your words twice: once on the day and once on the amount - 'Thursday - no, Friday, the sixteenth' and 'two thousand - the full two thousand one hundred'."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 2100.0,
+   "expected_ledger_date": "2026-10-16"
+  }
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "medium",
+  "title": "The promise service fails on the first call \u2014 d-p10-friday-small-talk",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "You are Ms Lin, cheerful and chatty. Tell the assistant about your week before answering: the washing machine died and your son has a football tournament on Saturday. Answer both security questions correctly. When the debt is stated, say 'Three hundred and sixty-five. I will clear the whole lot on Friday the sixteenth when I get paid - Sunday is no good with the football anyway.' Do not offer Saturday as a payment day. Confirm the read-back for Friday the sixteenth.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 365.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the Saturday tournament is never treated as a payment date",
+   "the promise is recorded for the full 365.00 on Friday 16 October",
+   "exactly one promise is in the ledger, after the retry if the first recording fails"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ],
+  "case_id": "PUB-10-d-p10-friday-small-talk",
+  "difficulty": "Medium",
+  "theme": "Happy Path",
+  "disposition": "Chatty",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "actual_dob": "1989-02-23",
+   "actual_phone_last4": "9904",
+   "product": "credit_card",
+   "days_late": 8,
+   "past_due_amount": 365.0,
+   "floor_amount": 109.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "Answer both security questions correctly between bits of small talk.",
+   "negotiation_behavior": "You can pay the whole 365 on Friday the sixteenth. Confirm the read-back.",
+   "quirks": "Chat about the broken washing machine and your son's football tournament on Saturday. Mention the Saturday match more than once; it is never a payment day."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 365.0,
+   "expected_ledger_date": "2026-10-16"
+  }
+ }
+]

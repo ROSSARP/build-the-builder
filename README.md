@@ -25,9 +25,31 @@ workflow in place (one workflow per brief name, so the workspace does not fill u
 
 ## Requirements
 
-- **Python 3.10 or newer.** The builder and all our tooling use the standard library only —
-  nothing to `pip install`. (The kit's optional `examples/agent_builder.py` needs
-  `claude-agent-sdk`; we do not use it.)
+- **Python 3.10 or newer.** The builder and all our tooling use the standard library only,
+  apart from the three optional document readers of the new case-folder form (below).
+- **Two CLI forms, one entry point** — the first argument decides the mode (a directory or a
+  path ending in `.zip` is a case folder; anything else is a brief):
+
+  ```bash
+  # new final form: the case folder (or its .zip) + the base URL of our Cloudflare Workers mock
+  python3 builder/build.py {case_folder} {mock_url}
+
+  # old form, unchanged: brief + tool API (a sibling *.openapi.json, else tools/openapi.json)
+  python3 builder/build.py {brief_path} {tool_api_path}
+  ```
+
+  A case run unzips into `case/` when given a `.zip`, reads every document in the package
+  via `builder/read_case.py`, points the generated tools at `{mock_url}`, and also writes
+  `submission/final-submission.json` (`members` left `[]` for the team to fill in) beside
+  the exported workflow.
+- **Document readers for the case-folder form.** Word, PDF and Excel files need three
+  optional libraries; every import is lazy, so a Markdown-only folder works without them
+  and a missing library only turns that one file into a "skipped" note in the run log:
+
+  ```bash
+  pip install python-docx openpyxl pypdf
+  ```
+  (The kit's optional `examples/agent_builder.py` needs `claude-agent-sdk`; we do not use it.)
 - **Freya API key.** `env.sh` ships the team's (`FREYA_API_KEY`, `FREYA_BANK_TEAM_KEY`,
   `FREYA_API_URL`); `env.example` is the placeholder-only template. Organisers can export
   their own keys instead — nothing in the builder is tied to ours.

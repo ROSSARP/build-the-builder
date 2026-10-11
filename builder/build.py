@@ -1,20 +1,93 @@
-"""The builder: brief + tool API in, a tested phone agent on Freya out.
+"""The builder: a case folder (or a brief) in, a tested phone agent on Freya out.
+
+New (final) form — a whole case folder, or the .zip of one, plus our mock's base URL:
+
+    python3 builder/build.py {case_folder} {mock_url} [--no-fix] [--fix N] [--reps N]
+
+Old (brief) form — unchanged, byte for byte:
 
     python3 builder/build.py briefs/brief-a.md [tools/openapi.json] [--no-fix] [--fix N] [--reps N]
 
-Steps: extract a spec from the brief (one LLM call), generate a workflow from it,
-save it on Freya, run the practice customers, fix what fails (LLM), export the
+Mode detection: when the first argument is a directory (or a path ending in
+`.zip`) the run is a case run; anything else is a brief run.  A case run unzips
+into the local `case/` directory when needed, reads the package with
+builder/read_case.py (Markdown, .docx, .pdf, .xlsx; Turkish), and feeds the
+combined document text into the same pipeline as the old form.  Its second
+argument is the base URL of OUR Cloudflare Workers mock: it is stored in
+MOCK_URL (module attribute + env variable — see the contract comment below) and
+set as the tool API server URL so generated tools post to that mock.  A case run
+also writes submission/final-submission.json.
+
+Steps: extract a spec from the documents (one LLM call), generate a workflow from
+it, save it on Freya, run the practice customers, fix what fails (LLM), export the
 workflow for submission and leave a plain-text trace.
 """
-import json, os, pathlib, subprocess, sys, time
+import json, os, pathlib, shutil, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 import freya
-from builder import gen, spec as spec_mod
+from builder import gen, read_case, spec as spec_mod
 
 BUILDER_MODEL = os.environ.get("BUILDER_MODEL", "claude-sonnet-5-5")
 TRACE = []  # set per-run in main(); a module default so helper imports work standalone
+
+# ---------------------------------------------------------------------------
+# MOCK_URL CONTRACT — consumed by builder/gen.py (updated in parallel).
+#
+# In the new CLI form `python3 builder/build.py {case_folder} {mock_url}` the
+# second argument is the base URL of OUR Cloudflare Workers mock, and every tool
+# the generated workflow calls must post there.  build.py reads that argument,
+# strips any trailing "/", and stores it in two places — either is fine for
+# gen.py to read:
+#
+#     builder.build.MOCK_URL          (module attribute; import and read it)
+#     os.environ["MOCK_URL"]          (env fallback, also visible to subprocesses)
+#
+# MOCK_URL is passed through verbatim, so pass the URL exactly as the mock
+# expects it in front of the endpoint paths (the case folder's service contract
+# defines those paths; appending the path prefix is gen.py's job).  In the old
+# brief+tool_api form MOCK_URL stays None, which means "keep the tool API file's
+# own servers[0].url".  As belt and braces build.py also writes MOCK_URL into the
+# tool API dict it hands to gen.build_workflow — as api["mock_url"] (the third
+# candidate gen.mock_base_url() reads) and as api["servers"][0]["url"] — so even
+# a generator that does not look at MOCK_URL builds tool URLs pointing at the
+# mock.  gen.mock_base_url() resolves in the order: module attr, env, api["mock_url"].
+# ---------------------------------------------------------------------------
+MOCK_URL = None
+
+def set_mock_url(url):
+    """Record the mock base URL for gen.py (module attribute + env), return it."""
+    global MOCK_URL
+    MOCK_URL = (url or "").strip().rstrip("/")
+    if MOCK_URL:
+        os.environ["MOCK_URL"] = MOCK_URL
+    return MOCK_URL
+
+def is_case_mode(arg):
+    """True when the first CLI argument is a case folder or a case .zip."""
+    return pathlib.Path(arg).is_dir() or str(arg).lower().endswith(".zip")
+
+def spec_prompt(name, **subs):
+    """Render a prompt template from builder/spec.py with __PLACEHOLDER__ values.
+
+    spec.py is reworked in parallel (Turkish support, a rule ledger), so this
+    tolerates both a plain template string with __NAME__ markers (the original
+    interface — rendering is byte-for-byte what it always was) and a callable
+    that takes the values as keyword arguments.
+    """
+    tpl = getattr(spec_mod, name, None)
+    if tpl is None:
+        raise SystemExit(f"builder/spec.py has no {name}: the prompt interface changed underneath us")
+    if callable(tpl):
+        try:
+            return tpl(**subs)
+        except TypeError as e:
+            raise SystemExit(f"builder/spec.py {name} is callable but did not accept the "
+                             f"{sorted(subs)} values: {e}")
+    for key, value in subs.items():
+        tpl = tpl.replace("__" + key + "__", value)
+    return tpl
 
 def log(msg):
     print(msg, flush=True)
@@ -91,6 +164,62 @@ def find_tool_api(brief_path, arg):
     for f in sorted(p.parent.glob("*.openapi.json")):
         return str(f)
     return str(ROOT / "tools" / "openapi.json")
+
+def case_tool_api_path(folder):
+    """The tool API for a case run: one inside the package when it is a full
+    replacement (it defines every path the bundled API defines), else the
+    bundled tools/openapi.json."""
+    base = ROOT / "tools" / "openapi.json"
+    try:
+        needed = set(json.loads(base.read_text()).get("paths", {}))
+    except Exception:
+        needed = set()
+    candidates = sorted(pathlib.Path(folder).rglob("*.openapi.json"))
+    candidates += [f for f in sorted(pathlib.Path(folder).rglob("openapi.json"))
+                   if f not in candidates]
+    for f in candidates:
+        try:
+            paths = set(json.loads(f.read_text()).get("paths", {}))
+        except Exception:
+            continue
+        if needed and paths >= needed:
+            return f
+    return base
+
+def read_case_input(arg, mock_url):
+    """Case mode: unzip when needed, read the folder, build the tool API.
+
+    Returns (api, combined_text).  The API is the case folder's own when it is a
+    full replacement, else the bundled one, with its server URL set to mock_url
+    so every generated tool posts to OUR mock (see the MOCK_URL contract above).
+    """
+    folder = pathlib.Path(arg)
+    if str(arg).lower().endswith(".zip"):
+        dest = ROOT / read_case.DEFAULT_CASE_DIR
+        log(f"== case: unzipping {folder} -> {dest} ==")
+        if dest.exists():
+            shutil.rmtree(dest, ignore_errors=True)  # stale package must not leak into this read
+        folder = read_case.unzip_case(folder, dest)
+    log(f"== case: reading {folder} ==")
+    case = read_case.read_case_folder(folder)
+    for s in case["skipped"]:
+        log(f"   skipped {s['name']}: {s['reason']}")
+        trace_line(f"case skipped: {s['name']} ({s['reason']})")
+    log(f"case: {len(case['files'])} files read, {len(case['combined'])} chars combined, "
+        f"{len(case['skipped'])} skipped")
+    trace_line(f"case: {len(case['files'])} files, {len(case['combined'])} chars, "
+               f"{len(case['skipped'])} skipped")
+    api_path = case_tool_api_path(folder)
+    api = load_tool_api(api_path)
+    servers = api.get("servers") if isinstance(api, dict) else None
+    if not isinstance(servers, list) or not servers:
+        servers = [{}]
+        api["servers"] = servers
+    servers[0]["url"] = mock_url
+    api["mock_url"] = mock_url  # third MOCK_URL candidate gen.mock_base_url() reads
+    log(f"case: tool API {api_path}, server URL {mock_url} (our mock)")
+    trace_line(f"case: tool API {api_path}, server URL {mock_url}")
+    return api, case["combined"]
 
 def save(slot, workflow):
     state = freya.save_workflow(slot, workflow)
@@ -201,9 +330,15 @@ def log_findings(slot, args, state, passed, total, t0):
 
 def main():
     import argparse
-    ap = argparse.ArgumentParser()
-    ap.add_argument("brief")
-    ap.add_argument("tool_api", nargs="?")
+    ap = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Build a Freya phone agent from a case folder (new final form) "
+                    "or from a brief plus tool API (old form).",
+        epilog="new form: python3 builder/build.py {case_folder} {mock_url}\n"
+               "old form: python3 builder/build.py {brief.md} [{tool_api.json}]  (unchanged)")
+    ap.add_argument("brief", help="case folder (or its .zip) — new form — or the brief .md — old form")
+    ap.add_argument("tool_api", nargs="?",
+                    help="base URL of OUR Cloudflare Workers mock — new form — or the tool API .json — old form")
     ap.add_argument("--no-fix", action="store_true")
     ap.add_argument("--fix", type=int, default=1)
     ap.add_argument("--reps", type=int, default=1)
@@ -211,6 +346,11 @@ def main():
     ap.add_argument("--fix-only", action="store_true",
                     help="skip extraction and generation: test and fix the currently published workflow")
     a = ap.parse_args()
+
+    case_mode = is_case_mode(a.brief)
+    if case_mode and not a.tool_api:
+        raise SystemExit("case-folder mode needs the mock URL: "
+                         "python3 builder/build.py {case_folder} {mock_url}")
 
     global TRACE
     TRACE = []
@@ -223,7 +363,14 @@ def main():
         if not os.environ.get(k):
             raise SystemExit("missing env key " + k + " - run: source env.sh")
 
-    briefs_text = load_briefs(a.brief)
+    mock_url = None
+    api = None
+    if case_mode:
+        mock_url = set_mock_url(a.tool_api)
+        trace_line(f"case mode: input {a.brief}, mock_url {mock_url}")
+        api, briefs_text = read_case_input(a.brief, mock_url)
+    else:
+        briefs_text = load_briefs(a.brief)
 
     if a.fix_only:
         # work on the currently published workflow: no extraction, no generation
@@ -233,16 +380,17 @@ def main():
         workflow = json.loads(export.read_text())["workflow"]
         log(f"== fix-only: loaded the published workflow from {export} ==")
     else:
-        api = load_tool_api(find_tool_api(a.brief, a.tool_api))
+        if api is None:
+            api = load_tool_api(find_tool_api(a.brief, a.tool_api))
 
         # 1. extract the spec
-        log("== extract: reading the brief ==")
+        log("== extract: reading the case ==" if case_mode else "== extract: reading the brief ==")
         spec = None
         for attempt in range(2):
             try:
-                spec = extract_json(llm(spec_mod.EXTRACT_PROMPT
-                    .replace("__BRIEFS__", briefs_text)
-                    .replace("__API__", json.dumps(api)[:20000]), "extract spec from brief"))
+                spec = extract_json(llm(spec_prompt("EXTRACT_PROMPT", BRIEFS=briefs_text,
+                                                    API=json.dumps(api)[:20000]),
+                                        "extract spec from " + ("case folder" if case_mode else "brief")))
                 errors = spec_mod.spec_validation_errors(spec)
                 if errors:
                     raise ValueError("; ".join(errors))
@@ -264,11 +412,10 @@ def main():
             freya.validate_workflow(slot, workflow)
         except RuntimeError as e:
             log(f"validation failed, asking the model to fix the workflow: {e}")
-            workflow = extract_json(llm(spec_mod.FIX_PROMPT
-                .replace("__BRIEFS__", briefs_text)
-                .replace("__WORKFLOW__", json.dumps(workflow))
-                .replace("__FAILURES__", str(e)[:800]),
-                "fix workflow rejected by the platform"))
+            workflow = extract_json(llm(spec_prompt("FIX_PROMPT", BRIEFS=briefs_text,
+                                                    WORKFLOW=json.dumps(workflow),
+                                                    FAILURES=str(e)[:800]),
+                                        "fix workflow rejected by the platform"))
             freya.validate_workflow(slot, workflow)
 
     # 3. save on Freya
@@ -287,8 +434,8 @@ def main():
                 break
             log(f"== fix pass {attempt + 1}: {passed}/{total} passed ==")
             try:
-                prompt = spec_mod.FIX_PATCH_PROMPT.replace("__BRIEFS__", briefs_text) \
-                    .replace("__WORKFLOW__", json.dumps(workflow)).replace("__FAILURES__", failures[:3000])
+                prompt = spec_prompt("FIX_PATCH_PROMPT", BRIEFS=briefs_text,
+                                     WORKFLOW=json.dumps(workflow), FAILURES=failures[:3000])
                 patch = None
                 for patch_attempt in range(2):
                     try:
@@ -353,6 +500,25 @@ def main():
 
     traces = ROOT / "traces"
     traces.mkdir(exist_ok=True)
+
+    # 6. case runs: submission metadata next to the exported workflow (members
+    #    stay [] for the user to fill in); before the trace file is written so
+    #    the trace line lands in traces/<slot>.log
+    if mock_url:
+        final_sub = ROOT / "submission" / "final-submission.json"
+        final_sub.write_text(json.dumps({
+            "team": "YOUR-TEAM-NAME",
+            "members": [],
+            "repo": "https://github.com/YOU/your-builder",
+            "commit": "COMMIT-HASH-TO-FILL",
+            "run_command": "python3 builder/build.py {case_folder} {mock_url}",
+            "workflow": f"submission/{slot}.workflow.json",
+            "trace": f"traces/{slot}.log",
+            "mock_url": mock_url,
+        }, indent=1) + "\n")
+        log(f"final submission metadata -> {final_sub}")
+        trace_line(f"final submission: {final_sub}")
+
     (traces / f"{slot}.log").write_text("\n".join(TRACE) + "\n")
     log_findings(slot, a, state, passed, total, t0)
 

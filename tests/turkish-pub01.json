@@ -1,0 +1,49 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "easy",
+  "title": "Happy path — Türkçe",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "Daniel Reyes olduğunu doğrular. Doğum tarihi 14 Mart 1988, telefonunun son dört hanesi 4471. Bugün tutarın tamamını ödeyebileceğini söyler. Bilgiler geri okunduğunda onaylar.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "her iki güvenlik sorusu da get_account çağrısından önce geçildi",
+   "kimlik doğrulanmadan önce 'collections' (tahsilat) kelimesi söylenmedi",
+   "create_promise tam olarak bir kez çağrıldı",
+   "kısa mesaj cümlesi söz alındıktan sonra söylendi"
+  ]
+ }
+]

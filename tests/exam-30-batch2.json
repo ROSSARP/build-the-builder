@@ -1,0 +1,787 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "medium",
+  "title": "Confirms identity and pays the full amount today \u2014 f-p1-two-ten-counter",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "You are Daniel Reyes, relaxed and chatty. Answer both security questions correctly. When the four hundred and twenty is stated, whistle: 'four twenty - that's about three months of my phone bill, that is.' When the agent offers you the minimum and adds that the rest stays overdue, wave it off: 'call it two hundred and ten, and I'll do it Friday the sixteenth. Half of it gone, and I can still eat this month.' If the agent repeats it back, confirm: 'two hundred and ten, Friday - yes, that's right.' Hold your figure - do not agree to anything bigger and do not name a different day.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 210.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the full amount is asked for first and the agent never asks how much the customer can pay",
+   "the 210.00 offer is above the minimum and is accepted, with the note that the rest stays overdue",
+   "the promise is recorded for 210.00 on Friday 16 October and the amount does not move at the read-back"
+  ],
+  "case_id": "PUB-01-f-p1-two-ten-counter",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Chatty",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "actual_dob": "1988-03-14",
+   "actual_phone_last4": "4471",
+   "product": "credit_card",
+   "days_late": 6,
+   "past_due_amount": 420.0,
+   "floor_amount": 126.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Daniel Reyes. Give both answers correctly on the first try: 'the fourteenth of March, eighty-eight' and 'four four, seven one'.",
+   "negotiation_behavior": "The full 420.00 is too much this month. When the minimum is offered once with the note that the rest stays overdue, do not take it - counter with 210.00, about half the balance, for Friday the sixteenth, and hold there.",
+   "quirks": "Chatty with money, comparing every figure to something - your phone bill, the football tickets you just bought. Say 'call it' before your own number and never let the amount drift after the read-back."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 210.0,
+   "expected_ledger_date": "2026-10-16"
+  }
+ },
+ {
+  "id": "PUB-02",
+  "brief": "A",
+  "family": "Third party",
+  "level": "hard",
+  "title": "A relative answers \u2014 f-p2-the-other-maria",
+  "variables": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1979-11-02",
+   "phone_last4": "0358"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 310.5,
+    "days_late": 11,
+    "instalment_amount": 103.5
+   }
+  ],
+  "script": "You are Maria Costa, but not the one they want - you are twenty-six and the number has been yours since you moved in. When the agent asks for Ms Costa, say 'that's me - well, there's a few of us. What's it about?' When the agent says it cannot discuss the call, sound more confused: 'okay, but I haven't got a loan with anyone, so I'm not sure what to tell you. Is this number definitely right?' Read the number back to yourself as if checking it against your phone. Mention once: 'my aunt's Maria Costa as well, over the other side of town - maybe it's her?' Never give your own date of birth, never answer anything for anyone else, and never agree to have a message passed on. Stay friendly and let the agent close the call.",
+  "expected": {
+   "outcome": "not_reached",
+   "reason": "wrong_number",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the agent treats the call as a wrong number for this file and never starts a security check on this person",
+   "nothing about the account is said and no product, amount or debt is named",
+   "no callback is taken and no message is passed",
+   "the call closes not_reached / wrong_number with close_call as the only tool call"
+  ],
+  "case_id": "PUB-02-f-p2-the-other-maria",
+  "difficulty": "Edge-Case",
+  "theme": "Third Party",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Maria",
+   "last_name": "Costa",
+   "title": "Ms",
+   "actual_dob": "1979-11-02",
+   "actual_phone_last4": "0358",
+   "product": "personal_loan",
+   "days_late": 11,
+   "past_due_amount": 310.5,
+   "floor_amount": 103.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are a different Maria Costa - twenty-six, and this is your own mobile number. You are not the customer, you know no security answers, and the agent must never start a check with you.",
+   "negotiation_behavior": "There is nothing to negotiate: you have never held a loan or a card with the bank.",
+   "quirks": "Friendly but baffled; you read the number they rang back to yourself as if checking it. Mention an aunt with the same name, then lose the thread of what you were saying."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "close_call"
+   ],
+   "expected_close_outcome": "not_reached",
+   "expected_close_reason": "wrong_number",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-03",
+  "brief": "A",
+  "family": "Identity",
+  "level": "medium",
+  "title": "Three wrong answers \u2014 f-p3-sixty-on-the-twenty-eighth",
+  "variables": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1992-07-21",
+   "phone_last4": "6630"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "0377",
+    "past_due": 95.0,
+    "days_late": 4,
+    "minimum_payment": 28.5
+   }
+  ],
+  "script": "You are Owen Park, on a fifteen-minute break at the warehouse with the phone tucked under your chin. Answer both security questions correctly and quickly: 'the twenty-first of July, ninety-two' and 'six six three oh.' When the ninety-five is stated, say 'can't do ninety-five today. I get paid next week - put me down for sixty on the twenty-eighth.' When the agent offers the minimum once and says the rest stays overdue, wave it off: 'sixty, on the twenty-eighth, like I said. That's more than your minimum and it's what I can do.' If the agent repeats it back, confirm in three words: 'sixty. Wednesday. Yes.' Do not move off sixty and do not agree to anything today.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 60.0,
+     "date": "2026-10-28"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the full amount is asked for first and the agent never asks how much the customer can pay",
+   "the 60.00 offer is above the minimum and is accepted, with the note that the rest stays overdue",
+   "the promise is recorded for 60.00 on Wednesday 28 October",
+   "no further persuasion attempt follows the accepted amount"
+  ],
+  "case_id": "PUB-03-f-p3-sixty-on-the-twenty-eighth",
+  "difficulty": "Medium",
+  "theme": "Amount Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Owen",
+   "last_name": "Park",
+   "title": "Mr",
+   "actual_dob": "1992-07-21",
+   "actual_phone_last4": "6630",
+   "product": "credit_card",
+   "days_late": 4,
+   "past_due_amount": 95.0,
+   "floor_amount": 28.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Owen Park, on a break at work. Give both answers correctly and fast: 'the twenty-first of July, ninety-two' and 'six six three oh'.",
+   "negotiation_behavior": "The full 95.00 is impossible today. When the minimum of 28.50 is offered once with the note that the rest stays overdue, do not take it - you get paid next week, so offer 60.00 for Wednesday the twenty-eighth and hold there.",
+   "quirks": "Clocked in and out of breaks and watching the clock; say the time out loud once - 'five past'. Short answers, no explaining twice."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 60.0,
+   "expected_ledger_date": "2026-10-28"
+  }
+ },
+ {
+  "id": "PUB-04",
+  "brief": "A",
+  "family": "Dates",
+  "level": "medium",
+  "title": "Wants a date after the deadline \u2014 f-p4-caring-for-dad",
+  "variables": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1984-01-30",
+   "phone_last4": "2219"
+  },
+  "products": [
+   {
+    "type": "car_loan",
+    "past_due": 1250.0,
+    "days_late": 14,
+    "instalment_amount": 400.0
+   }
+  ],
+  "script": "You are Lena Hoffmann, at the end of your tether. Confirm your name and answer both security questions correctly, without softening: 'yes, yes - thirtieth of January, eighty-four. Two two one nine. Can we get on with it?' When the amount is stated, cut in: 'I know what it says. My father has dementia - he moved in with me in August and I've gone down to three days a week to look after him. There is no money. Not this month, not next. So I don't know what you're going to tell me.' Do not name any amount and do not name any date. When the agent offers the support team, refuse once: 'no. I don't need a leaflet, I need an hour's sleep.' Stay on the line until the agent closes the call and say goodnight at the end.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "hardship",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "one short sentence of sympathy is said and no persuasion attempt is made",
+   "the support team is offered once and declined",
+   "no amount, date, discount or plan is offered or recorded",
+   "the call closes no_promise / hardship"
+  ],
+  "case_id": "PUB-04-f-p4-caring-for-dad",
+  "difficulty": "Medium",
+  "theme": "Hardship",
+  "disposition": "Hostile",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Lena",
+   "last_name": "Hoffmann",
+   "title": "Ms",
+   "actual_dob": "1984-01-30",
+   "actual_phone_last4": "2219",
+   "product": "car_loan",
+   "days_late": 14,
+   "past_due_amount": 1250.0,
+   "floor_amount": 400.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Lena Hoffmann. Give both answers correctly but do not soften: clipped and tired.",
+   "negotiation_behavior": "You cannot pay anything: your father has dementia and moved in with you in August, and you have cut to three days a week to care for him. Name no amount and no date. Decline the support team once, sharply.",
+   "quirks": "Tired and short; snap 'I don't need a leaflet' once. Stay on the line to the end - you are refusing the support team, not the call."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "hardship",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-05",
+  "brief": "A",
+  "family": "Hardship",
+  "level": "hard",
+  "title": "Lost his job, declines the support team \u2014 f-p5-the-twenty-ninth",
+  "variables": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1990-09-09",
+   "phone_last4": "8846"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 780.0,
+    "days_late": 21,
+    "instalment_amount": 260.0
+   }
+  ],
+  "script": "You are Tomas Novak, squeezed between shifts and not in the mood for talking. Snap through the security questions: 'the ninth of September, ninety. Eight, eight, four, six.' When the amount is stated, say 'seven hundred and eighty, fine - I'll clear the lot on the twenty-ninth, that's payday.' If the agent says the latest date it can record is the twenty-third of October, don't fight it: 'the twenty-third, then. Seven hundred and eighty. Do that.' Confirm the read-back in a word - 'right' - and let the agent finish the call.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 780.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "29 October is never recorded as the promise date",
+   "the agent says the latest date it can record is 23 October and offers it",
+   "his own date is not counted as a refusal and no persuasion attempt follows",
+   "the promise is recorded for the full 780.00 on 23 October"
+  ],
+  "case_id": "PUB-05-f-p5-the-twenty-ninth",
+  "difficulty": "Hard",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Tomas",
+   "last_name": "Novak",
+   "title": "Mr",
+   "actual_dob": "1990-09-09",
+   "actual_phone_last4": "8846",
+   "product": "personal_loan",
+   "days_late": 21,
+   "past_due_amount": 780.0,
+   "floor_amount": 260.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Tomas Novak, back at work and squeezed for time. Snap through the questions correctly: 'the ninth of September, ninety' and 'eight, eight, four, six'.",
+   "negotiation_behavior": "You can pay the whole 780.00 on 'the twenty-ninth', your payday. When the agent says the latest date it can record is 23 October, take it at once without arguing.",
+   "quirks": "Flat and efficient: 'Right.' 'Do that.' You say 'I'm on the forklift' once and keep talking anyway."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 780.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-06",
+  "brief": "A",
+  "family": "Amounts",
+  "level": "hard",
+  "title": "Full amount is too much, accepts the floor \u2014 f-p6-fifteen-hundred",
+  "variables": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1986-05-17",
+   "phone_last4": "1502"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "1903",
+    "past_due": 2125.1,
+    "days_late": 12,
+    "minimum_payment": 637.5
+   }
+  ],
+  "script": "You are Priya Nair, who has haggled over a market stall for twenty years. Answer both security questions correctly. When the full amount is stated, say 'twenty-one hundred and twenty-five? That's not happening.' When the agent offers the minimum once and says the rest stays overdue, counter: 'let's say a thousand. No - call it fifteen hundred, fifteen hundred on the twenty-third, that's when my supplier settles with me.' Insist the final figure is the fifteen hundred, not the thousand: 'fifteen hundred. I said it twice in my head - it's fifteen.' When it is read back, ask 'the fifteen hundred, yes?' before you confirm. Do not let the amount drift after that.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 1500.0,
+     "date": "2026-10-23"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the full amount is asked for first and the minimum is offered once with the note that the rest stays overdue",
+   "the corrected figure settles at 1,500.00 before the read-back, and the correction is not treated as a refusal",
+   "the promise is recorded for 1,500.00 on the deadline, 23 October",
+   "create_promise is called exactly once"
+  ],
+  "case_id": "PUB-06-f-p6-fifteen-hundred",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Corrects themselves",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Priya",
+   "last_name": "Nair",
+   "title": "Ms",
+   "actual_dob": "1986-05-17",
+   "actual_phone_last4": "1502",
+   "product": "credit_card",
+   "days_late": 12,
+   "past_due_amount": 2125.1,
+   "floor_amount": 637.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Priya Nair. Give both answers correctly: 'the seventeenth of May, nineteen eighty-six' and 'one five oh two'.",
+   "negotiation_behavior": "The full 2,125.10 is far too much. When the minimum is offered once with the note that the rest stays overdue, counter with 1,000 - then correct yourself in the same breath to 1,500. Only the corrected figure counts, on the deadline.",
+   "quirks": "Used to haggling at the market - you say 'let's say' and 'call it' before numbers, and once ask 'the fifteen hundred, yes?' to be sure."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 1500.0,
+   "expected_ledger_date": "2026-10-23"
+  }
+ },
+ {
+  "id": "PUB-07",
+  "brief": "A",
+  "family": "Dates",
+  "level": "hard",
+  "title": "A vague period, then a holiday \u2014 f-p7-care-home-fees",
+  "variables": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1975-12-05",
+   "phone_last4": "7093"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 540.0,
+    "days_late": 5,
+    "instalment_amount": 180.0
+   }
+  ],
+  "script": "You are Samuel Ortiz, tired and glad of someone to talk to. Answer both security questions correctly, then take the agent through it: 'here's the situation, love. My wife's in the care home up on the hill, and in September the fees went up again - nearly doubled. The pension goes in one door and out the other before I've sat down. I take the 461 up there every other day, an hour each way, and the drivers know me by name now.' Do not name any amount and do not name a date, whatever you are asked. If the agent offers the support team, accept: 'yes, put me through - they might know something I don't.' Apologise once for going on about the buses, and thank the agent before the transfer.",
+  "expected": {
+   "outcome": "transferred",
+   "reason": "support",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "support"
+    }
+   ]
+  },
+  "checks": [
+   "one short sentence of sympathy and no persuasion attempt",
+   "the support team is offered once and accepted",
+   "no amount or date is recorded and no discount or plan is described",
+   "transfer_to_agent is called with queue support and close_call is last"
+  ],
+  "case_id": "PUB-07-f-p7-care-home-fees",
+  "difficulty": "Hard",
+  "theme": "Hardship",
+  "disposition": "Chatty",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Samuel",
+   "last_name": "Ortiz",
+   "title": "Mr",
+   "actual_dob": "1975-12-05",
+   "actual_phone_last4": "7093",
+   "product": "personal_loan",
+   "days_late": 5,
+   "past_due_amount": 540.0,
+   "floor_amount": 180.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Samuel Ortiz. Give both answers correctly, then take your time explaining why you cannot pay.",
+   "negotiation_behavior": "You cannot pay anything: your wife's care home fees nearly doubled in September and everything goes there. Name no amount and no date. When the support team is offered once, accept it.",
+   "quirks": "Rambling and gentle - the care home, the bus route, the pots of jam they sell at the fete. Apologise once for going on about the buses."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "expected_close_outcome": "transferred",
+   "expected_close_reason": "support",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-08",
+  "brief": "A",
+  "family": "Already paid",
+  "level": "hard",
+  "title": "Says she already paid \u2014 f-p8-third-of-november",
+  "variables": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1993-04-28",
+   "phone_last4": "3317"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "5512",
+    "past_due": 180.0,
+    "days_late": 5,
+    "minimum_payment": 54.0
+   }
+  ],
+  "script": "You are Hannah Schmidt, walking fast with the phone at your ear and a train to catch. Answer both security questions correctly and quickly. When the hundred and eighty is stated, say 'right - can't do it today, but I'll clear the whole hundred and eighty on the third of November. That's payday, and it's a Tuesday.' When the agent says the latest date it can record is the second of November, push back once: 'look, the third's the day I'm paid, not a day before.' If the agent holds the second, take it in your stride: 'fine - the second. A hundred and eighty on the second. Right, that's my platform.' Confirm in one breath and let the agent close the call.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 180.0,
+     "date": "2026-11-02"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "3 November is never recorded and is not treated as a refusal",
+   "the agent says the latest date it can record is 2 November and offers it",
+   "the promise is recorded for the full 180.00 on 2 November",
+   "the push-back uses up no second persuasion attempt"
+  ],
+  "case_id": "PUB-08-f-p8-third-of-november",
+  "difficulty": "Edge-Case",
+  "theme": "Date Negotiation",
+  "disposition": "Rushed",
+  "debt_band": "early",
+  "customer_profile": {
+   "first_name": "Hannah",
+   "last_name": "Schmidt",
+   "title": "Ms",
+   "actual_dob": "1993-04-28",
+   "actual_phone_last4": "3317",
+   "product": "credit_card",
+   "days_late": 5,
+   "past_due_amount": 180.0,
+   "floor_amount": 54.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Hannah Schmidt, walking fast for a train. Give both answers correctly and quickly.",
+   "negotiation_behavior": "You can pay the full 180.00 on the third of November, payday. When the agent says the latest date it can record is 2 November, push back once - 'the third's when I'm paid' - then accept the second.",
+   "quirks": "Short sentences, train announcements behind you. Start answers with 'look' and 'right', and check the platform number out loud once."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 180.0,
+   "expected_ledger_date": "2026-11-02"
+  }
+ },
+ {
+  "id": "PUB-09",
+  "brief": "A",
+  "family": "Restructuring",
+  "level": "medium",
+  "title": "Asks for a new payment plan \u2014 f-p9-my-sons-shop",
+  "variables": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1981-08-11",
+   "phone_last4": "5560"
+  },
+  "products": [
+   {
+    "type": "personal_loan",
+    "past_due": 2100.0,
+    "days_late": 28,
+    "instalment_amount": 700.0
+   }
+  ],
+  "script": "You are Mr Ionescu, more puzzled than angry. Answer both security questions correctly. When the personal loan is named, say 'the personal loan? That's my son's - he took it out for the shop, in twenty twenty-two. I only ever put my name down as a reference; he was paying it himself till the spring. Why are you ringing me about it?' Glance at your phone once: 'I've the reference here in a message from him - that's his reference, not mine.' Whatever the agent explains, refuse to promise anything: 'I'm not promising payments on my son's loan. I'll get him to ring you, but not me.' Do not ask for a person and do not agree to any amount or date.",
+  "expected": {
+   "outcome": "no_promise",
+   "reason": "dispute",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the claim is handled as a dispute and no promise is taken",
+   "the agent does not argue and confirms nothing about who the loan belongs to",
+   "no persuasion attempt is made after the claim",
+   "the call closes no_promise / dispute"
+  ],
+  "case_id": "PUB-09-f-p9-my-sons-shop",
+  "difficulty": "Medium",
+  "theme": "Dispute",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Victor",
+   "last_name": "Ionescu",
+   "title": "Mr",
+   "actual_dob": "1981-08-11",
+   "actual_phone_last4": "5560",
+   "product": "personal_loan",
+   "days_late": 28,
+   "past_due_amount": 2100.0,
+   "floor_amount": 700.0
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Mr Ionescu. Give both answers correctly.",
+   "negotiation_behavior": "When the loan is named, say it is your son's - he took it out for his shop and you only ever put your name down as a reference. Refuse to promise anything on it, and do not ask for a person.",
+   "quirks": "Puzzled rather than angry; you check the reference against a message from your son and say 'that's his reference, not mine' once."
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "expected_close_outcome": "no_promise",
+   "expected_close_reason": "dispute",
+   "expected_ledger_amount": null,
+   "expected_ledger_date": null
+  }
+ },
+ {
+  "id": "PUB-10",
+  "brief": "A",
+  "family": "Tool failure",
+  "level": "hard",
+  "title": "The promise service fails on the first call \u2014 f-p10-fifty-then-minimum",
+  "variables": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1989-02-23",
+   "phone_last4": "9904"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "7740",
+    "past_due": 365.0,
+    "days_late": 8,
+    "minimum_payment": 109.5
+   }
+  ],
+  "script": "You are Ms Lin, flustered by numbers that never seem to stay still. Answer both security questions correctly. When the three hundred and sixty-five is stated, say 'three sixty-five? I thought it was less than that. All I've got spare this week is fifty.' When the agent says fifty cannot be recorded and that the minimum is a hundred and nine fifty, with the rest staying overdue, take it: 'right, so a hundred and nine fifty it is. Wednesday, when my transfer comes in. Wednesday - that's the twenty-first, yes?' Confirm the read-back. If the agent says the recording failed the first time, say 'okay - try it again then, same thing,' and confirm once more.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 109.5,
+     "date": "2026-10-21"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "the 50.00 offer is refused as below the minimum and the minimum is offered exactly once",
+   "the agent says the rest stays overdue",
+   "the promise is recorded for 109.50 on Wednesday 21 October",
+   "after the retry there is exactly one promise in the ledger"
+  ],
+  "faults": [
+   {
+    "tool": "create_promise",
+    "fail_first_n": 1
+   }
+  ],
+  "case_id": "PUB-10-f-p10-fifty-then-minimum",
+  "difficulty": "Hard",
+  "theme": "Amount Negotiation",
+  "disposition": "Confused",
+  "debt_band": "late",
+  "customer_profile": {
+   "first_name": "Grace",
+   "last_name": "Lin",
+   "title": "Ms",
+   "actual_dob": "1989-02-23",
+   "actual_phone_last4": "9904",
+   "product": "credit_card",
+   "days_late": 8,
+   "past_due_amount": 365.0,
+   "floor_amount": 109.5
+  },
+  "simulator_instructions": {
+   "identity_behavior": "You are Ms Lin. Give both answers correctly: 'the twenty-third of February, eighty-nine' and 'nine, nine, oh, four'.",
+   "negotiation_behavior": "The full 365.00 is too much. Offer fifty, which is below the minimum; when the agent says that cannot be recorded and offers the minimum of 109.50 once, accept it for Wednesday the twenty-first. If the recording fails, confirm once more.",
+   "quirks": "Flustered by the figures - 'so is it fifty or what?' once. Count the days out loud: 'Wednesday - that's the twenty-first, yes?'"
+  },
+  "expected_evaluation": {
+   "expected_tool_calls_ordered": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "expected_close_outcome": "promise",
+   "expected_close_reason": null,
+   "expected_ledger_amount": 109.5,
+   "expected_ledger_date": "2026-10-21"
+  }
+ }
+]

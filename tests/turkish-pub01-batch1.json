@@ -1,0 +1,49 @@
+[
+ {
+  "id": "PUB-01",
+  "brief": "A",
+  "family": "Happy path",
+  "level": "easy",
+  "title": "Happy path \u2014 T\u00fcrk\u00e7e",
+  "variables": {
+   "first_name": "Daniel",
+   "last_name": "Reyes",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1988-03-14",
+   "phone_last4": "4471"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "4821",
+    "past_due": 420.0,
+    "days_late": 6,
+    "minimum_payment": 126.0
+   }
+  ],
+  "script": "Daniel Reyes oldu\u011funu do\u011frular. Do\u011fum tarihi 14 Mart 1988, telefonunun son d\u00f6rt hanesi 4471. Bug\u00fcn tutar\u0131n tamam\u0131n\u0131 \u00f6deyebilece\u011fini s\u00f6yler. Bilgiler geri okundu\u011funda onaylar.",
+  "expected": {
+   "outcome": "promise",
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 420.0,
+     "date": "2026-10-14"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": []
+  },
+  "checks": [
+   "her iki g\u00fcvenlik sorusu da get_account \u00e7a\u011fr\u0131s\u0131ndan \u00f6nce ge\u00e7ildi",
+   "kimlik do\u011frulanmadan \u00f6nce 'collections' (tahsilat) kelimesi s\u00f6ylenmedi",
+   "create_promise tam olarak bir kez \u00e7a\u011fr\u0131ld\u0131",
+   "k\u0131sa mesaj c\u00fcmlesi s\u00f6z al\u0131nd\u0131ktan sonra s\u00f6ylendi"
+  ]
+ }
+]

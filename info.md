@@ -16,11 +16,11 @@ You build an agent. It builds an agent. We test that agent.
 | Domain | Debt collection |
 | Conversations | Text |
 | Practice cases | 13 |
-| Hidden cases | 60 |
 | Metric | Pass rate |
 | Start | Saturday 10:00 UTC — kit and keys; build against the 13 practice cases |
-| Hidden briefs open | Sunday 17:00 UTC — run your builder |
-| Close | Sunday 20:00 UTC — submit |
+| Final case | One: Freya Bank's credit card statement-debt line, in Turkish |
+| Final opens | Sunday 17:00 UTC (20:00 Istanbul) — download the case folder |
+| Close | Sunday 20:00 UTC (23:00 Istanbul) — submit |
 | Results | After review |
 
 Register on YC. Your Freya account and the support channel arrive by email at the start.
@@ -69,24 +69,38 @@ One run. You write the orange box. Everything else is provided.
 2. You run the sample builder. It creates a phone agent on Freya in your workspace.
 3. You test that phone agent. Simulated customers talk to it in text. You see which ones it handled correctly and why the others failed.
 4. You write your own builder and repeat steps 2 and 3 as often as you like.
-5. On Sunday we publish briefs you have not seen. Same kind of call, different rules: other identity questions, other limits and deadlines, another outcome table, another calendar. The seven tool names stay the same. Their fields and allowed values can change.
-6. You run your builder once on each new brief and submit the phone agents it created, your code and the builder's trace.
-7. We test those phone agents on customers nobody has seen. The share they handle correctly is your score.
+5. Sunday 17:00 UTC: the final opens. One case: Freya Bank's credit card statement-debt line, in Turkish. You download one zip of the bank's documents. Read `BRIEF.md` first; `README.md` says what each document is.
+6. You write and host the bank's mock on Cloudflare Workers, from the service contract and the test customers. Deploy it before you run the builder, and keep it running until the results are out: the phone agent's tools call your mock, and a mock that is down or wrong fails the conversations that reach it.
+7. You run your builder on the folder and keep everything it prints. That printout is the trace. You may run it more than once, but you submit one phone agent, with the trace of the run that made it, and you never edit the agent after the run.
 
 ```
-Start, Sat 10:00 UTC        Hidden briefs open, Sun 17:00 UTC     Close, Sun 20:00 UTC
-kit and keys                run your builder                      submit
-build against the 13        ────────────────────────────────────
-practice cases              Results: after review
+We give the evidence.       The bank's documents: BRIEF.md, README.md, an analysis, a flow
+                            drawing, announcements, a service contract, test customers,
+                            Q&A, 6 example conversations.
+Your builder does the       Reads, builds, tests and fixes, against your own mock on
+construction.               Cloudflare Workers. Then it submits the workflow JSON and the
+                            trace.
+We run the evaluation.      Hidden simulated customers on the Freya LLM, in our workspace.
+                            Their tools call your mock. We review the workflow; the trace
+                            is read, not scored.
 ```
 
-The three hours in orange are for running the builder and fixing bugs, not for tuning it to the new briefs.
+```
+Start, Sat 10:00 UTC        Final opens, Sun 17:00 UTC            Close, Sun 20:00 UTC
+kit and keys                download the case folder              submit
+build against the 13        write and deploy the mock
+practice cases              run your builder
+                            ────────────────────────────────
+                            Results: after review
+```
+
+The three hours in orange are for running your builder on the final case and fixing bugs, not for tuning it to that case.
 
 ### What counts
 
-- The final briefs are hidden so that a builder tuned to the two public briefs does not win. It has to read a brief it has never seen.
-- After the hidden briefs open you may fix a bug in your builder. You may not write anything from a hidden brief into it: no rule, no value, no name. Fixing a crash on a table your parser did not expect is allowed. Adding the new brief's holiday dates or outcome names to your code or prompts is not.
-- Calls are in English. The phone agent gets the date and time of the call as a variable, `now`. Every date rule uses it.
+- The final is one case your builder has never seen, in Turkish. A builder tuned to the practice briefs does not win.
+- You may fix a bug in your builder during the three hours. You may not write anything from the final case into it: no rule, no value, no name. Fixing a crash on a table your parser did not expect is allowed. Adding the case's holiday dates or outcome names to your code or prompts is not.
+- The phone agent gets the date and time of the call as a variable, `now`. Every date rule uses it.
 - Every phone agent runs on the same Freya model. Your builder may use any model or coding agent you like.
 
 ## Inside a phone agent
@@ -159,20 +173,16 @@ Outcome is read from the bank's records. Policy and honesty are read from the tr
 
 A correct refusal counts. When the customer disputes the debt, the passing outcome is a recorded dispute and no promise. A phone agent that pushes for a promise anyway fails.
 
-### The final benchmark
+### The final
 
 | Item | Value |
 |---|---|
-| Hidden briefs | 2. One is a clean specification. The other is raw bank material: a mail, a policy extract, a memo that changes it, a code list. |
-| Customers per brief | 30, with one to three products, on several calendar days |
-| How customers talk | Like people: a number said in two parts ("463..." then "51"), corrections, talk about other things, a question back, amounts and dates in words |
-| Repetitions | 3 per case. The case passes only when all 3 runs pass. |
-| Score | cases passed / 60 |
-| First tie-break | Total promised amount recorded on the cases that passed |
-| Second tie-break | Shorter total build time, read from the builder's traces |
-| Third tie-break | Earlier submission time |
+| Case | One: Freya Bank's credit card statement-debt line, in Turkish |
+| Test customers | Hidden, and so are their success criteria and the weights |
+| Example conversations | 6, in the zip. They show the kind of call |
+| Scored | Outcome from the bank's records, policy and honesty from the transcript. No partial credit |
 
-Only the phone agents are scored; your rank comes from their score. We rerun the builders of the top entries to verify them.
+Only the phone agent is scored; your rank comes from its result. We rerun the builders of the top entries to verify them.
 
 ### Score yourself
 
@@ -194,72 +204,69 @@ A ten-case run takes 3 to 11 minutes. One simulation runs at a time per workspac
 
 ## Submission
 
-Two phone agents, one commit and the builder's trace.
+One phone agent, one commit and the builder's trace.
 
-On Sunday at 17:00 UTC we send two hidden briefs to every team. Each comes with its own tool API file.
-
-Run your builder on each brief and keep everything it prints. You may run it more than once. Submit one phone agent per brief, with the trace of the run that made it. Do not edit a phone agent after the run.
-
-Export each phone agent to a file with `freya.export_workflow` and commit the files. We load them into our own workspace, so what you export is what we score.
-
-Before 20:00 UTC, send the form below to the address in your kit email.
+1. Download the case folder and read `BRIEF.md` first.
+2. Write the bank's mock from the service contract and the test customers, and deploy it on Cloudflare Workers.
+3. Run your builder on the folder and keep everything it prints. That is the trace. You may run it more than once.
+4. Export the phone agent with `freya.export_workflow` and commit the file with the trace. Submit one phone agent, the one that run made, and do not edit it after the run.
+5. Before 20:00 UTC, send the form below to the address in the kit email.
 
 ```
-$ python3 builder/build.py briefs/hidden-1.md briefs/hidden-1.openapi.json 2>&1 | tee traces/hidden-1.log
+$ python3 builder/build.py FreyaBank-Ekstre-Borc/ https://your-mock.your-subdomain.workers.dev 2>&1 | tee traces/final.log
+
 {
   "team": "your-team-name",
+  "members": [{"name": "your-name", "email": "you@example.com"}],
   "repo": "https://github.com/you/your-builder",
   "commit": "9f2c1ab",
-  "run_command": "python3 builder/build.py {brief_path} {tool_api_path}",
-  "workflows": {
-    "hidden-1": "submission/hidden-1.workflow.json",
-    "hidden-2": "submission/hidden-2.workflow.json"
-  },
-  "traces": {
-    "hidden-1": "traces/hidden-1.log",
-    "hidden-2": "traces/hidden-2.log"
-  }
+  "run_command": "python3 builder/build.py {case_folder} {mock_url}",
+  "workflow": "submission/final.workflow.json",
+  "trace": "traces/final.log",
+  "mock_url": "https://your-mock.your-subdomain.workers.dev"
 }
 ```
 
+A solo team lists one member.
+
 ### The builder's trace
 
-A trace is the record of one builder run: what it read, what it decided and what it created. We ask for one per hidden brief. Commit the files to your repository.
+A trace is the record of one builder run: what it read, what it decided and what it created. One trace, from the run that made the phone agent you submit. Commit it with the workflow.
 
 | In the trace | Why |
 |---|---|
-| Start and end time of the run | Build time breaks ties between equal scores. |
+| Start and end time of the run | Shows the run happened, and when. |
 | Every model call the builder made: which model, and what it was asked for in one line | Shows how the builder works, not only what it produced. |
 | What it created on Freya: workflow id, agent id, number of steps and tools | Ties the phone agent you submit to this run. |
 | Any test it ran on its own phone agent, with the result | A builder that checks its own work is the point of the exercise. |
 
-Plain text is fine. There is no required format. Remove API keys before you commit.
+The trace is not scored. Plain text is fine. There is no required format. Remove API keys before you commit.
 
 If you built your builder with a coding agent such as Claude Code or Codex, you may also share those session logs. This is optional. The top three teams talk their approach through with us, and a log is the easiest way to show it.
 
 ### How we verify
 
-We test the phone agents you submitted. For the top ten teams we also clone the repository at that commit, run the builder ourselves on the same briefs and compare with your trace. Every trace is also read by a reviewer agent that checks it against the submitted code and the phone agent it claims to have created. If our run scores clearly below yours, the entry is removed. We do this to catch phone agents that were edited by hand.
+We run the phone agent you submitted on hidden simulated customers, in our workspace; their tools call your mock. A reviewer reads every trace against the commit and the submitted phone agent. The top entries may have their builder rerun; a run clearly worse than yours removes the entry. A hand-edited agent, or a builder with the final case written into it, is removed.
 
 ### Limits
 
 | Limit | Value |
 |---|---|
-| Builder run time | 30 minutes per brief, including any test the builder runs on its own phone agent |
+| Phone agents | One, and the trace of the run that made it |
+| Mock | On Cloudflare Workers, deployed before the builder run and running until the results are out |
 | Workflows per workspace | 200. Update one in place instead of creating a new one per run. |
 | Models the builder may use | Any. You pay for your builder's own model calls. |
-| Model the phone agent runs on | The Freya model set in `freya.py`. The same for every team. Do not change it. |
-| Practice simulations | 1 running at a time per workspace |
+| Model the phone agent runs on | The Freya LLM: the only model on staging, the one set in `freya.py`. The same for every team. |
 
 ## Rules
 
 1. Enter solo or as a team of two.
 2. You submit a builder. A hand-built phone agent on its own is not a valid entry.
-3. The phone agents for the hidden briefs must come out of the submitted commit with no manual edits.
-4. Submit one builder trace per hidden brief. An entry without traces is not ranked.
-5. The phone agent may call only the tool API from the kit. A call to any other service fails the case.
+3. The phone agent must come out of the submitted commit with no manual edits.
+4. Submit the trace of the run that made your phone agent. An entry without a trace is not ranked.
+5. The phone agent may call only your mock. A call to any other service fails the case.
 6. Do not probe or load-test the platform. One Freya key per team.
-7. You may fix your builder after the hidden briefs open. Nothing from a hidden brief may be written into it. A reviewer checks the commit for that.
+7. You may fix your builder during the three hours. Nothing from the final case may be written into it; a builder with the case written into it is removed. A reviewer checks the commit for that.
 8. All data is synthetic. Do not bring real customer data.
 
 ## FAQ
@@ -283,19 +290,19 @@ Your workspace has one practice customer for dashboard test calls. Answer as tha
 200. Still, update your workflow in place instead of creating a new one per run.
 
 **Can my builder open practice customers of its own?**
-No. The practice bank serves the 13 cases PUB-01 to PUB-13 only. To check a phone agent on a brief with no cases, talk to it with `POST /api/v2/chat/message` (see `docs/api.md`).
+No. The practice bank serves the 13 cases PUB-01 to PUB-13 only. To check a phone agent on a case with no practice customers, talk to it with `POST /api/v2/chat/message` (see `docs/api.md`).
 
-**Do the hidden briefs come with practice cases?**
-No. Each comes with its tool API file only.
+**Are there practice cases for the final?**
+No. The 6 example conversations in the zip show the kind of call; the customers we score with are hidden.
 
-**Is the raw-material brief one file?**
-Yes. Each hidden brief is one Markdown file, with its own tool API file next to it. `{brief_path}` is that one file.
+**May I take the mock down after I submit?**
+No. Leave it running until the results are out.
 
 **May I use code I wrote before the event?**
-Yes. Nothing from the hidden briefs may be in your builder, and the phone agents must come out of your builder with no edits by hand.
+Yes. Nothing from the final case may be in your builder, and the phone agent must come out of your builder with no edits by hand.
 
-**Is the score taken from the phone agent we submit, or from your rebuild?**
-From the phone agents you export and submit. We rebuild only the top entries, to check that the submitted phone agent really came out of your builder. Model output varies from run to run, so we do not expect an identical workflow. We look at its structure and its score.
+**Is the score taken from the phone agent we submit, or from your rerun?**
+From the phone agent you export and submit. We rerun the builders of the top entries only, to check that the submitted phone agent really came out of your builder. Model output varies from run to run, so we do not expect an identical workflow. We look at its structure and its score.
 
 **My score dropped and I changed nothing.**
 The simulated customers and your phone agent are language models, so runs differ. A run also suffers when the model is busy: `run_cases.py` prints the slowest agent turn per call. Run again, and use `--reps 3` before you trust a number.

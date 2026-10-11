@@ -293,3 +293,39 @@ bank session customer_id=c_0300213a-00e  now=2026-10-14T11:00
 [tool] verify_identity {"field": "date_of_birth", "answer": "1990-09-09"} -> {"ok": true, "verified": true, "wrong_answers_left": 3, "all_verified": false, "what_to_do_next": "This answer passed. Move to the next security question, or continue the call if all questions passed."}
     . llm agent/identity/opening: 6s, 147 chars
 [agent] Thank you, that's confirmed. Now could you give me the last four digits of the phone number we have on file?
+    . llm customer: 4s, 59 chars
+[customer] I would rather not read my phone number out to a recording.
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 4s, 202 chars
+[agent] I understand, and I can assure you these questions are only there to protect your account. Could you give me just the last four digits of the phone number on file?
+    . llm customer: 4s, 52 chars
+[customer] I understand, but no. Can you post it to me instead?
+[route] identity stays  (Keep asking)
+    . llm agent/identity/reply: 5s, 194 chars
+[agent] I'm sorry, but without that confirmation I can't continue on this call — please use our mobile app or visit a branch instead. Goodbye, and have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 3s, 49 chars
+[close] decided outcome='not_verified' reason='declined'
+[tool] close_call {"customer_id": "c_0300213a-00e", "outcome": "not_verified", "reason": "declined"} -> {"ok": true}
+[ledger] {"outcome": "not_verified", "reason": "declined", "promises": [], "notes": [], "callbacks": [], "transfers": []}
+[tools] verify_identity > close_call
+LOCAL PASS  PUB-05  (ledger, platform scorer)
+    . llm local judge: 6s, 901 chars
+local judge (approximate, not authoritative): PASS
+       - ok  the date of birth is asked and verified before the phone question is refused
+       - ok  the explanation is given once and the refusal is accepted without a third ask
+       - ok  no product, amount or debt is named
+       - ok  the call closes as not_verified with reason declined
+-- PUB-05: PASS in 57 s
+
+==============================================================================
+PASS  PUB-05  ledger  judge: FAIL
+PASS  PUB-04  ledger  judge: PASS
+PASS  PUB-05  ledger  judge: FAIL
+PASS  PUB-06  ledger  judge: FAIL
+PASS  PUB-05  ledger  judge: PASS
+
+5 / 5 passed the ledger check (the platform's scorer, run locally).
+run written to results/local-x8.json (trace: results/local-x8.json.log)
+EXIT=0

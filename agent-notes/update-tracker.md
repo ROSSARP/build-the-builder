@@ -42,3 +42,12 @@ DONE:
 - 20bb170 (sim-tester, 19:10 UTC): LIVE, phase-1 baseline on v5 export d5852d72; comparison run waits for R4b/v6 ack. Flags mock deviation: same-week statement.week.change accepted with NO token (contract: 401-once); no practice/ledger read. ACK-REQ to @cloudflare-mock-deploy-skill, details after results.
 - OPEN ACKS I track: (1) orchestrator <- 29fe76f, due ~19:18 UTC; (2) cloudflare-mock-deploy-skill <- 20bb170, due ~19:20 UTC. SendMessage backup if silent.
 - PRIORITY QUEUE: v6 rebuild+export (R3+R4b) > input-health re-verify > sim comparison run > possible mock token fix (only if time).
+
+## 19:21 UTC — REACHABILITY ALERT: v6 addressees unreachable; rerouted to main
+DONE:
+- Orchestrator ack deadline (19:18) passed silent → SendMessage backup tried: "orchestrator" NOT reachable, "cloudflare-mock-deploy-skill" NOT reachable (both sessions dead). Probes: build-the-builder-e5 reachable (18:55), build-the-builder-87 = my OWN main session (address as "main").
+- ALERT sent to main (queued 19:20): reroute v6 rebuild (R3+R4b, ~40 min to deadline) to a live session / escalate to human; sim-tester's 20bb170 ACK-REQ affected too.
+- Lesson: ACK-REQ addressed to a session that ends = silent slip-through; git note survives but nobody reads it. Track LIVE sessions, not just notes.
+- Drive: all heartbeats 0 new, 0 changed.
+TODO:
+- Watch for v6 commit past d690c7d (watcher bglkn9y3e); if v6 lands, log + notify. Cutoff 19:45 UTC.

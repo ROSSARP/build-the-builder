@@ -998,6 +998,9 @@ def run_case(case, workflow, opts):
                                        ledger_before.get("calls") or [])
     log(f"[close] decided outcome={outcome!r} reason={reason!r}")
     close_call(workflow, variables, outcome, reason)
+    # the judge reads ctx["history"]; make the close visible there too
+    ctx["history"].append({"role": "system",
+                           "text": f"[tool] close_call outcome={outcome!r} reason={reason!r} (recorded by the platform)"})
     ledger = bank("/v1/practice/ledger/" + customer_id)
     verdict = score_ledger(case, ledger)
     tools = [x["tool"] for x in ledger.get("calls") or []]

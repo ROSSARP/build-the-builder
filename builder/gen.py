@@ -645,6 +645,8 @@ def build_workflow(spec, api):
         first_line(am.get("floor_once_text")), first_line(am.get("range_text")),
         first_line(am.get("below_floor_text"))])) +
         "\nWhen you offer the floor, always say that the rest of the balance stays overdue. "
+        "Whenever the recorded amount is below the full amount — whether you offered it or the "
+        "customer proposed it — say that the rest of the balance stays overdue. "
         "Offer the floor AT MOST ONCE; if it is refused, treat it as a flat refusal. "
         "NEVER ask the customer how much they can pay: you propose every amount.")
     sections.append("Persuasion: " + " ".join(filter(None, [
@@ -740,6 +742,9 @@ def build_workflow(spec, api):
     identity["transitions"] = [
         trans("account", "Both security answers verified",
               bool_group("verify_identity_response.data.all_verified")),
+        trans("third_party", "The person now denies knowing the account or says it is a wrong number",
+              {"operator": "matches_intent",
+               "description": "The person denies having this account or loan, or says the number is wrong or belongs to someone else."}),
         trans("identity", "Keep asking", always()),
     ]
     collect["transitions"] = [

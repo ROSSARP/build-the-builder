@@ -1,3 +1,143 @@
+# Build the Builder — team submission
+
+Our entry to the **Build the Builder** hackathon (kit v3, 10–11 October 2026; domain: debt
+collection). This repository contains our **builder**: a program that reads a bank's brief
+plus the bank's tool API file and generates a Freya phone-agent workflow. It is a full
+pipeline — spec extraction, workflow generation, saving on Freya, testing against practice
+customers, prompt-level fixing, export for submission, and a plain-text trace of the run.
+
+No phone agent in `submission/` was edited by hand: each one is the output of a builder run,
+with that run's trace in `traces/`.
+
+`SUBMISSION.md` is the Sunday runbook (hidden briefs at 17:00 UTC, submit by 20:00 UTC).
+
+## Quick start
+
+```bash
+source env.sh                                            # team Freya key + bank team key (shipped configured)
+python3 builder/build.py briefs/brief-a.md tools/openapi.json
+```
+
+The run prints the per-case pass/fail table, writes the exported workflow to
+`submission/brief-a.workflow.json`, its builder trace to `traces/brief-a.log`, and appends a
+dated section to `tests/findings.md`. Re-running is safe: the builder updates the same
+workflow in place (one workflow per brief name, so the workspace does not fill up).
+
+## Requirements
+
+- **Python 3.10 or newer.** The builder and all our tooling use the standard library only —
+  nothing to `pip install`. (The kit's optional `examples/agent_builder.py` needs
+  `claude-agent-sdk`; we do not use it.)
+- **Freya API key.** `env.sh` ships the team's (`FREYA_API_KEY`, `FREYA_BANK_TEAM_KEY`,
+  `FREYA_API_URL`); `env.example` is the placeholder-only template. Organisers can export
+  their own keys instead — nothing in the builder is tied to ours.
+- **A working `claude` CLI.** `builder/build.py` makes its model calls by running
+  `claude -p <prompt> --output-format json --model <model>` as a subprocess, so it works
+  with either:
+  - a normal `claude` CLI login, or
+  - any Claude-compatible backend configured through the standard environment variables
+    `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN` (or `ANTHROPIC_API_KEY`) and
+    `ANTHROPIC_MODEL` — reviewers can point it at their own backend without any key from
+    us. Our environment points the CLI at a Claude-compatible gateway this way.
+
+  Model-selection details:
+  - The model the builder requests is `BUILDER_MODEL` (default `claude-sonnet-5-5`);
+    `tests/local_sim.py` requests `LOCAL_SIM_MODEL` (same default). The builder passes
+    `--model` explicitly, so a compatible gateway that ignores or remaps the requested
+    model name serves the call regardless; if a backend answers `unrecognized_model`, the
+    builder retries once without `--model` and the gateway/CLI default applies.
+  - Endpoint and auth variables (`ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`,
+    `ANTHROPIC_API_KEY`) pass through to the subprocess unchanged.
+  - Enclosing-session model overrides (`CLAUDE_MODEL*`, `ANTHROPIC_DEFAULT_*`,
+    `CLAUDE_CODE_SUBAGENT_MODEL`, `ANTHROPIC_MODEL`) are filtered out of the subprocess
+    environment, so a Claude Code session the builder runs inside cannot change the model
+    the builder asked for.
+
+## The exact run command
+
+```
+python3 builder/build.py {brief_path} {tool_api_path}
+```
+
+- `{brief_path}` — the brief `.md` to build from. Every sibling `*.md` in the same folder is
+  passed to the extractor; the named file is marked `(TARGET)`, siblings are context only
+  (used when the target brief says it builds on or extends another brief). The file's stem
+  is the run slot: `briefs/brief-a.md` → `submission/brief-a.workflow.json`,
+  `traces/brief-a.log`.
+- `{tool_api_path}` — optional. When omitted, a sibling `*.openapi.json` is used, else
+  `tools/openapi.json`.
+- Flags: `--no-fix`, `--fix N` (default 1), `--reps N`, `--cases FILE` (test on a custom
+  case file), `--fix-only` (test/fix the currently published workflow).
+- Hidden-brief style run (Sunday, keeping everything printed):
+  `python3 builder/build.py <brief_path> <tool_api_path> 2>&1 | tee traces/<name>.log` —
+  see `SUBMISSION.md`.
+
+## Artifacts
+
+| Path | What it holds |
+|---|---|
+| `submission/` | Exported phone-agent workflows (`freya.export_workflow`, one per run) and `form.json`. |
+| `traces/` | One plain-text builder trace per run: start/end UTC, every model call (model, purpose, sizes, seconds), Freya workflow/agent ids and published versions, test results, export path. |
+| `results/` | Per-run local test output written by `run_cases.py` (regenerated; not committed). |
+| `tests/findings.md` | Dated log of every builder run: command, ids, score, per-case failures, artifacts. |
+| `tests/best.json` | Best practice score per slot across runs; a later weaker run re-publishes the stored best instead of regressing. |
+
+## Architecture
+
+Pipeline in `builder/build.py`, LLM work in `builder/spec.py` (prompts, spec validation) and
+deterministic generation in `builder/gen.py`:
+
+1. **extract** — one LLM call reads all sibling briefs + the tool API and returns a
+   structured spec: identity questions, dates/holidays/bands, amounts, persuasion, notes,
+   products, closing table, with rule sentences copied from the brief. The spec is validated
+   before use and retried once if unusable.
+2. **generate** — code (no LLM) turns the spec + tool API into a workflow JSON: nodes,
+   tool wiring and response mappings, transitions with conditions, and code nodes. The
+   mechanism is fixed; every value that can change between briefs comes from the spec or
+   the API file.
+3. **save** — `freya.validate_workflow` (dry run), then `freya.save_workflow`: create once
+   per slot, update and publish in place afterwards (a plain update does not publish).
+4. **test / fix** — for practice briefs, `tools/run_cases.py` scores the saved agent. Each
+   fix pass sends the failures to the LLM and accepts **prompt-text-only patches**
+   (`task_message`, `routing_prompt`, `on_enter.text`); structure, tools and transitions
+   cannot change. Patches must fix rules, never bake in test-case values (no dates, amounts
+   or names from cases). The best-scoring version across passes — and across runs,
+   `tests/best.json` — is re-published and exported.
+5. **export / trace** — `freya.export_workflow` to `submission/<slot>.workflow.json`, a
+   plain-text trace to `traces/<slot>.log`, and a dated section appended to
+   `tests/findings.md`.
+
+**Deterministic date pipeline.** The LLM only extracts rule text and never does date
+arithmetic: relative expressions are anchored to the platform's call-time `{{now}}`
+variable, and all calendar work runs in code nodes generated by `builder/gen.py`
+(`dates_code`, `fix_date_code`) — business-day/holiday math, deadline bands, per-product
+deadline clamping, "one date for everything", weekend/holiday correction and the
+"date after the deadline" rejection. The same rules therefore apply identically on every
+call, on any calendar the brief defines.
+
+## Test tooling
+
+| Tool | What it does |
+|---|---|
+| `tools/run_cases.py` | Runs cases against an agent on Freya (`--brief A|B`, `--cases FILE`, `--reps N`, `--style ...`) and prints pass/fail with reasons; `tools/score.py` is the platform's ledger scorer. |
+| `tests/run_custom.py` | Runs large custom case files in id-safe batches (`tests/exam-*.json`, `tests/custom-30.json`, slices) with stuck-simulation cancellation. |
+| `tests/local_sim.py` | Local simulator, no Freya simulations: real bank mock, the platform's own `score_ledger` for exact ledger verdicts, LLM agent/customer/judge for approximate dialogue. Fast iteration and platform-outage fallback. |
+| `tests/platform_check.py` | Platform health, running/stuck simulations, cancel, outage signature. |
+| `tests/make_*.py`, `report_exam.py`, `validate_exam_cases.py`, `log_run.py`, `pull_calls.py`, `salvage.py`, `case_math.py` | Case generation/validation, run reporting, transcript pulling, result salvage. |
+| `.claude/skills/` | The agent-facing skills used to drive the work: `build-phone-agent`, `test-builder`, `platform-check`, and the mock-exam set (`mock-exam-generate`, `-run`, `-local`, `-report`, `-improve`). |
+
+Mock exams: `mock-exam/exam-1..3/` each hold a brief and its own tool API; run one with
+`python3 builder/build.py mock-exam/exam-N/exam-N.md mock-exam/exam-N/tools.openapi.json`.
+Every builder run is logged to `tests/findings.md`; the judgement lines (what changed, what
+to try next) come from the `test-builder` / `mock-exam-*` skills.
+
+---
+
+## Organiser kit README (unchanged, for reference)
+
+The text below is the kit's original `README.md`, kept here so nothing from the kit is
+lost. Our submission documentation is the part above this line.
+
 # Build the Builder
 
 **Kit version 3** (10 October 2026). The file `VERSION` holds the number. When we update the kit, the number goes up and the changes are listed here.

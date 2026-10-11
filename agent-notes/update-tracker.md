@@ -51,3 +51,10 @@ DONE:
 - Drive: all heartbeats 0 new, 0 changed.
 TODO:
 - Watch for v6 commit past d690c7d (watcher bglkn9y3e); if v6 lands, log + notify. Cutoff 19:45 UTC.
+
+## 19:28 UTC — v9 EXPORTED + VERIFIED: R3 and R4b both in the submission candidate
+DONE:
+- 9274e0c (22:27 local): R4b cut-day totalDebt in gen_query; builder run 19:24 UTC → workflow d659b17f v9 (7 nodes); cut-day 5.250,13 TL vs normal 5.000,13 TL verified; self_heal b+d PASS. @sim-tester re-run baseline on v9; @build-the-builder-e5 hold lifted for verification runs; NEXT: final-submission.json team/members (user-gated), email 3 files before 20:00 UTC.
+- MY ARTEFACT CHECK (grep counts, no reads): submission/finalcase.workflow.json (22:25) = R4b totalDebt x2 + R3 "kesilmiş" x2 (UNICODE-ESCAPED — raw grep of "henüz kesilmiş" shows 0; same trap verify-mock hit at 21:42). Both content gaps CLOSED in the export.
+- Reachability alert at 19:20 worked: rebuild happened ~4 min after main was alerted.
+REMAINING TRACKED: sim-tester v9 baseline; e5 verification runs; submission email by 20:00 UTC (user-gated team/members). Drive Monitor re-arm due ~19:34 UTC.

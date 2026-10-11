@@ -879,3 +879,8 @@ Failures:
 
 - artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
 - judgement: (none noted)
+
+## 2026-10-11 — FINAL DECISION (v11, submission candidate)
+- v11 = model-fetch balance (no pre_action balance), R3 verbatim rule, last4 disambiguation rule, move_date routing line. Core debt read PASS (s1), fail-safe paths PASS (s4/s5/s6 lineage), e-mail/week flows known-imperfect (s2/s3).
+- Mock: 2190/2190 matrix assertions PASS. Generator: deterministic, healthy. Platform: HEALTH OK.
+- Submission: workflow d659b17f, agent 34b38ddd, commit cec5c55, mock final-case-mock-bank (stays up).

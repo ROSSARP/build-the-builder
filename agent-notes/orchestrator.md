@@ -34,3 +34,13 @@ TODO:
 - Fix: mandatory sentences -> statement node task (not system_prompt); strip fixed example names in _tr_spoken_only
 - Rebuild + re-smoke; then self_heal score (static example checks)
 - Fill submission.json (NEED team name + member name/email from user) + git commit + email to yavuz@freyavoice.ai before 20:00 UTC
+
+## 23:15 (20:15 UTC)
+LIVE: stable-system-test-campaign — orchestrator.md (session: stable-system-test-campaign)
+OWN: tests/final_sim.py@stable-system-test-campaign — test harness fixes + sampling campaign
+OWN: tests/final-scenarios.json@stable-system-test-campaign — 8 scenarios
+DONE:
+- v5 published (R3 no-cut fallback verified in export); mock live; plan approved (Faz 1 test campaign, Faz 2 cycle pipeline)
+TODO:
+- Fix final_sim.py (mock __log URL + transcript extraction) → run 8 scenarios → collect data → report to user
+- Coordinate sim windows with e5 (one simulation at a time)

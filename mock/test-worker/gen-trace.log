@@ -1,0 +1,16 @@
+start: mock generation into mock/test-worker at 2026-10-11 20:00:20 UTC, model claude-sonnet-5-5, budget 1800s
+inputs: contract 10557 chars, customers 734 chars
+model call: claude-sonnet-5-5, purpose: analyse the service contract (attempt 1), prompt 15106 chars, answer 17163 chars, 74 s
+analysis: 7 contract endpoints, state_model cross-call, 1 faults, base '/v1'
+model call: claude-sonnet-5-5, purpose: normalise the test customers into seed.json (attempt 1), prompt 13181 chars, answer 1454 chars, 9 s
+seed: 1 customers (T-1001)
+model call: claude-sonnet-5-5, purpose: generate the Cloudflare Worker, prompt 50794 chars, answer 33353 chars, 313 s
+worker attempt 1: 34531 chars, 8 validation problem(s): no route for contract endpoint POST /v1/verify_identity; no route for contract endpoint POST /v1/get_account; no route for contract endpoint POST /v1/create_promise; no route for contract endpoint POST /v1/add_note; no route for contract endpoint POST /v1/schedule_callback; no route for contract endpoint POST /v1/transfer_to_agent; no route for contract endpoint POST /v1/close_call; none of the identity refusal strings ['identity not verified'] appear in the worker (the scorer compares the error string literally)
+model call: claude-sonnet-5-5, purpose: repair the Worker (pass 1), prompt 43552 chars, answer 35913 chars, 379 s
+worker attempt 2: 35618 chars, 0 validation problem(s) — clean
+model call: claude-sonnet-5-5, purpose: verify the worker against the contract (attempt 1), prompt 68044 chars, answer 1163 chars, 138 s
+verification: 1 issue(s): create_promise is not gated on identity: handleCreatePromise never calls verifiedGate, so a create_promise before both answers pass returns 200 {ok:true, promise_id} and appends to promises[]; add verifiedGate(s, "create_promise", b) at the top of handleCreatePromise (before the product_id/amount/date branch) so it returns 200 {ok:false, error:"identity not verified"} and records that refusal in calls[] like any other call — the policy check reads that exact error string on both get_account and create_promise
+model call: claude-sonnet-5-5, purpose: repair the Worker (pass 2), prompt 44647 chars, answer 35355 chars, 41 s
+worker attempt 3: 36533 chars, 0 validation problem(s) — clean
+written: worker.js (36533 chars), seed.json, endpoints.json, wrangler.toml, README.md
+end: 2026-10-11 20:16:13 UTC, 953 s

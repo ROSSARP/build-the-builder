@@ -702,3 +702,10 @@ Failures:
 
 - artifacts: results/brief-a.json, traces/brief-a.log, submission/brief-a.workflow.json
 - judgement: (none noted)
+
+## 2026-10-11 — cf-mock-deploy skill test (deploy pipeline end-to-end)
+- Deployed `freya-cf-test-mock.fcodefcode3.workers.dev` via REST + MOCK_KV binding: health 200, GET probes 2/2.
+- Smoke PASS: pre-identity refusals exact (`identity not verified`) on get_account AND create_promise; round trip verify×2 → get_account → create_promise → close_call; ledger outcome=promise, promises=[(p1,420,2026-10-14)], calls[-1]=close_call.
+- Bug fixes made today: (1) seedFor stripped the -sN suffix with .exec()[1] on a no-capture-group regex → session ids fell through to derived hash identities (every identity check failed); (2) session counter was per-isolate memory → two isolates issued the same session id and overwrote each other's KV state (counter now read/incremented through KV); (3) loadState read memory before KV → stale in-memory state shadowed newer state from another isolate (reads are KV-first now). All three fixed in mock_gen.py (template + WORKER_PROMPT req 7/8b + validator check) and in the generated test worker.
+- deploy.sh: the module multipart part now carries filename=worker.js (Cloudflare error 10021 "No such module" otherwise).
+- Judgement: deploy path is proven; at the final window regenerate the worker with the fixed mock_gen.py and deploy with --with-kv (KV permission on the token is confirmed working).

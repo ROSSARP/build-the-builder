@@ -302,14 +302,17 @@ if binding:
     metadata["bindings"] = [binding]
 
 boundary = "----mockdeploy" + uuid.uuid4().hex
-def part(field, content, ctype):
-    head = (f"--{boundary}\r\ncontent-disposition: form-data; name=\"{field}\"\r\n"
-            f"content-type: {ctype}\r\n\r\n").encode()
+def part(field, content, ctype, filename=None):
+    disp = f'content-disposition: form-data; name="{field}"'
+    if filename:
+        # Cloudflare treats a part as the module file only when it carries a filename
+        disp += f'; filename="{filename}"'
+    head = (f"--{boundary}\r\n{disp}\r\ncontent-type: {ctype}\r\n\r\n").encode()
     body = content if isinstance(content, bytes) else content.encode()
     return head + body + b"\r\n"
 
 multipart = (part("metadata", json.dumps(metadata), "application/json")
-             + part("worker.js", worker, "application/javascript+module")
+             + part("worker.js", worker, "application/javascript+module", filename="worker.js")
              + f"--{boundary}--\r\n".encode())
 
 print(f"   PUT /accounts/.../workers/scripts/{name} "

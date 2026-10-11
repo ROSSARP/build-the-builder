@@ -1,0 +1,99 @@
+{
+ "checked_utc": "2026-10-11T17:41:41Z",
+ "a_contract_vs_customers": {
+  "status": "PASS",
+  "records": 34,
+  "customer_field": "customerNo",
+  "request_fields": [
+   "aiFlow",
+   "cardNumber",
+   "currencyType",
+   "customerNo",
+   "emailAddress",
+   "intAddressInfoType",
+   "newStatementWeek",
+   "statementDate",
+   "statementDay"
+  ],
+  "fields_not_on_a_customer_record": [
+   "aiFlow",
+   "cardNumber",
+   "currencyType",
+   "emailAddress",
+   "intAddressInfoType",
+   "newStatementWeek",
+   "statementDate",
+   "statementDay"
+  ],
+  "problems": [],
+  "note": "fields_not_on_a_customer_record are reported, not failures: a request may legitimately carry parameters beyond the seed record"
+ },
+ "b_workflow_from_spec": {
+  "status": "FAIL",
+  "nodes": 7,
+  "problems": [
+   "English-looking prompt texts: 2"
+  ],
+  "warnings": [
+   "contract paths no tool posts to: ['/voice/v1/statement.week.get']",
+   "mandatory sentence not found verbatim: 'Sizi ana menüye aktarıyorum.'",
+   "mandatory sentence not found verbatim: 'Hangi kartınızın borcunu öğrenmek istersiniz? Örneğin, Yıldı'",
+   "mandatory sentence not found verbatim: '[kart adı] isimli birden fazla kartınız var. Kartınızın son '",
+   "mandatory sentence not found verbatim: 'Son dört hanesi 4253 olan birden fazla kartınız var. Kartını'",
+   "mandatory sentence not found verbatim: 'Son altı hanesi aynı olan birden fazla kartınız var. Kart nu'",
+   "mandatory sentence not found verbatim: 'Ekstre borcunu sorgulayabileceğiniz uygun bir kredi kartınız'",
+   "mandatory sentence not found verbatim: 'Sonu 4253 ile biten kartınıza ait … (when the product name c'",
+   "mandatory sentence not found verbatim: 'Sonu [son 4 hane] ile biten [kart adı] kartınıza ait [hesap '",
+   "mandatory sentence not found verbatim: 'Türk Lirası borcunuz XXX TL, ödenmesi gereken minimum tutar '"
+  ],
+  "english_leaks": [
+   {
+    "where": ".nodes.actions.tools[1].function.parameters.properties.body.properties.newStatementWeek.description",
+    "text": "1-4, number or string both fine. Asking for the week the card already has gives an error — there is nothing to preview, so don't call it for that."
+   },
+   {
+    "where": ".nodes.actions.tools[3].function.parameters.properties.body.properties.emailAddress.description",
+    "text": "The backend sends to whatever is in this field. It does not check it against the registered address."
+   }
+  ],
+  "bad_urls": []
+ },
+ "c_mock_dryrun": {
+  "status": "FAIL",
+  "returncode": 1,
+  "stage": "analysis-only",
+  "paths_checked": [
+   "/voice/v1/cards.list",
+   "/voice/v1/cards.balance",
+   "/voice/v1/statement.week.get",
+   "/voice/v1/statement.week.decide",
+   "/voice/v1/statement.week.change",
+   "/voice/v1/contact.email.get",
+   "/voice/v1/statement.pdf.send"
+  ],
+  "paths_missing": [
+   "/voice/v1/cards.list",
+   "/voice/v1/cards.balance",
+   "/voice/v1/statement.week.get",
+   "/voice/v1/statement.week.decide",
+   "/voice/v1/statement.week.change",
+   "/voice/v1/contact.email.get",
+   "/voice/v1/statement.pdf.send"
+  ],
+  "stdout_tail": "   contract:  /home/f/Downloads/build-the-builder-v3/build-the-builder/tests/final_contract.json (24457 chars, 3 HTTP verb mentions)\n   customers: /home/f/Downloads/build-the-builder-v3/build-the-builder/finalcase/test-environment/test-customers.json (706815 chars, JSON with 34 case(s))\n",
+  "stderr_tail": "stomers_text\"], a.out,\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/f/Downloads/build-the-builder-v3/build-the-builder/builder/mock_gen.py\", line 1641, in generate_mock\n    raise RuntimeError(\"the contract is not OpenAPI JSON and no model analysis is available\")\nRuntimeError: the contract is not OpenAPI JSON and no model analysis is available\n"
+ },
+ "d_example_checks": {
+  "status": "PASS",
+  "examples": 6,
+  "kinds": [
+   "ordinary",
+   "ordinary",
+   "edge",
+   "edge",
+   "adversarial",
+   "adversarial"
+  ],
+  "problems": []
+ }
+}

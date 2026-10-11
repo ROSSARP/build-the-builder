@@ -1,0 +1,207 @@
+{
+  "13xRbeVXpIfj2I9NfKJFKNwsuZVAVgAUD": {
+    "kind": "folder",
+    "name": "test-environment",
+    "path": "test-environment",
+    "size": null
+  },
+  "14mn8kRy1kDrsiWLLBM-joI-iJhCIk4J-": {
+    "downloaded_at": "2026-10-11T20:26:52",
+    "kind": "file",
+    "name": "test-customers.json",
+    "path": "test-environment/test-customers.json",
+    "size": 707267
+  },
+  "15QiN7Q9aAc_BU0JF8V0SMcHLnJlWeZk3": {
+    "downloaded_at": "2026-10-11T20:24:08",
+    "kind": "file",
+    "name": "2026-10-09-decisions-recap.txt",
+    "path": "sources/emails/2026-10-09-decisions-recap.txt",
+    "size": 4012
+  },
+  "16h4UbyUz8sR1ebWPG7SNMftRp2pke2Ev": {
+    "downloaded_at": "2026-10-11T20:26:54",
+    "kind": "file",
+    "name": "test-customers.md",
+    "path": "test-environment/test-customers.md",
+    "size": 7691
+  },
+  "185N7FVT8HMiS4nhCi3wKitrJ9dUX1bCS": {
+    "kind": "folder",
+    "name": "meetings",
+    "path": "sources/meetings",
+    "size": null
+  },
+  "18crBgsDCK0SYbpF4m2pzaXrIC4jT7T3s": {
+    "kind": "folder",
+    "name": "sources",
+    "path": "sources",
+    "size": null
+  },
+  "1D6yBhkznSY4VWR0c0uSUFIcQBbva_8PZ": {
+    "downloaded_at": "2026-10-11T20:30:12",
+    "kind": "file",
+    "name": "2026-10-08-statement-debt-analysis.md",
+    "path": "sources/emails/attachments/2026-10-08-statement-debt-analysis.md",
+    "size": 28973
+  },
+  "1DGP5OqYAqSWzFm3oHxL9MNWMtZTHUIPo": {
+    "downloaded_at": "2026-10-11T20:26:58",
+    "kind": "file",
+    "name": "BRIEF.md",
+    "path": "BRIEF.md",
+    "size": 4568
+  },
+  "1ELxfUDPmXF-sB77yfnoi209iELk1pMmq": {
+    "kind": "folder",
+    "name": "attachments",
+    "path": "sources/emails/attachments",
+    "size": null
+  },
+  "1GMMuL9JqNInLxel2rhpUzSmxj6Odi6Ga": {
+    "downloaded_at": "2026-10-11T20:26:31",
+    "kind": "file",
+    "name": "README.md",
+    "path": "cloudflare-mock/README.md",
+    "size": 3204
+  },
+  "1IVL0usTNVq1yJATnxd5cflr487lUb-JP": {
+    "downloaded_at": "2026-10-11T20:30:29",
+    "kind": "file",
+    "name": "README.md",
+    "path": "README.md",
+    "size": 1300
+  },
+  "1KWAKFpT8BwSXl3ruBQAkdXDBBeo_kD9Q": {
+    "downloaded_at": "2026-10-11T20:30:15",
+    "kind": "file",
+    "name": "2026-09-24-kickoff-questions.txt",
+    "path": "sources/emails/2026-09-24-kickoff-questions.txt",
+    "size": 8102
+  },
+  "1MjWyqara1J6WXynWM0o678tH7BHawhtU": {
+    "kind": "folder",
+    "name": "example",
+    "path": "cloudflare-mock/example",
+    "size": null
+  },
+  "1NA4-mde_kj7PTP5_kib9k3wQIvpST1kx": {
+    "downloaded_at": "2026-10-11T20:24:01",
+    "kind": "file",
+    "name": "2026-09-10-ivr-prompt-sheet.md",
+    "path": "sources/documents/2026-09-10-ivr-prompt-sheet.md",
+    "size": 8060
+  },
+  "1SzIrxWD_XOths33xb_tu0A4P0fZnD2vQ": {
+    "downloaded_at": "2026-10-11T20:18:41",
+    "kind": "file",
+    "name": "statement-debt-call-flow.pdf",
+    "path": "statement-debt-call-flow.pdf",
+    "size": 49629
+  },
+  "1c1n1hejsIm2BPyJPYyWSJhOzNi_DVJ0S": {
+    "downloaded_at": "2026-10-11T20:26:24",
+    "kind": "file",
+    "name": "example-response.json",
+    "path": "cloudflare-mock/example/example-response.json",
+    "size": 87
+  },
+  "1eSnE4dmI7IPn3euApzJK81PJ9LitQl2Z": {
+    "kind": "folder",
+    "name": "emails",
+    "path": "sources/emails",
+    "size": null
+  },
+  "1ff9CGVtdFFp4FZh5t9DuHi9BtjfgzKNJ": {
+    "downloaded_at": "2026-10-11T20:26:27",
+    "kind": "file",
+    "name": "worker.js",
+    "path": "cloudflare-mock/example/worker.js",
+    "size": 1791
+  },
+  "1hIj_As94ZOTV1nIFsP7IS1YPkpqfhwMT": {
+    "downloaded_at": "2026-10-11T20:24:04",
+    "kind": "file",
+    "name": "2026-09-02-statement-debt-analysis.md",
+    "path": "sources/emails/attachments/2026-09-02-statement-debt-analysis.md",
+    "size": 16393
+  },
+  "1i8DHdRFSrpQiOT8cJR29RLgFUU2n4UH2": {
+    "downloaded_at": "2026-10-11T20:30:27",
+    "kind": "file",
+    "name": "example-scenarios.md",
+    "path": "example-scenarios.md",
+    "size": 7005
+  },
+  "1nzRj5Kp0flzO4s8V8TjMrNtWaxZwLJjD": {
+    "downloaded_at": "2026-10-11T20:26:39",
+    "kind": "file",
+    "name": "2026-10-01-service-contract.md",
+    "path": "sources/documents/2026-10-01-service-contract.md",
+    "size": 19610
+  },
+  "1riuU3gY-VBsom2IL4ExQQDKU-8KUzf6S": {
+    "downloaded_at": "2026-10-11T20:26:29",
+    "kind": "file",
+    "name": "wrangler.toml",
+    "path": "cloudflare-mock/example/wrangler.toml",
+    "size": 75
+  },
+  "1sPqwrZvj02Q1tFsRop5_yLkHm3bqVsFk": {
+    "downloaded_at": "2026-10-11T20:24:00",
+    "kind": "file",
+    "name": "2025-08-14-cards-faq.md",
+    "path": "sources/documents/2025-08-14-cards-faq.md",
+    "size": 4843
+  },
+  "1t5uELuhO-UYNk6gGNlgGBqWlCyTo47PF": {
+    "kind": "folder",
+    "name": "cloudflare-mock",
+    "path": "cloudflare-mock",
+    "size": null
+  },
+  "1vRDtk5s5-o3RMcGh1ojPchqGAHatpRcY": {
+    "downloaded_at": "2026-10-11T20:24:10",
+    "kind": "file",
+    "name": "2026-10-07-analysis-session-transcript.txt",
+    "path": "sources/meetings/2026-10-07-analysis-session-transcript.txt",
+    "size": 31908
+  },
+  "1wVMQ-qdPuVp3hGtAb9Va1Hj-kdqFI4TD": {
+    "kind": "folder",
+    "name": "documents",
+    "path": "sources/documents",
+    "size": null
+  },
+  "__last_listing__": {
+    "at": "2026-10-11T20:43:38",
+    "ids": [
+      "13xRbeVXpIfj2I9NfKJFKNwsuZVAVgAUD",
+      "14mn8kRy1kDrsiWLLBM-joI-iJhCIk4J-",
+      "15QiN7Q9aAc_BU0JF8V0SMcHLnJlWeZk3",
+      "16h4UbyUz8sR1ebWPG7SNMftRp2pke2Ev",
+      "185N7FVT8HMiS4nhCi3wKitrJ9dUX1bCS",
+      "18crBgsDCK0SYbpF4m2pzaXrIC4jT7T3s",
+      "1D6yBhkznSY4VWR0c0uSUFIcQBbva_8PZ",
+      "1DGP5OqYAqSWzFm3oHxL9MNWMtZTHUIPo",
+      "1ELxfUDPmXF-sB77yfnoi209iELk1pMmq",
+      "1GMMuL9JqNInLxel2rhpUzSmxj6Odi6Ga",
+      "1IVL0usTNVq1yJATnxd5cflr487lUb-JP",
+      "1KWAKFpT8BwSXl3ruBQAkdXDBBeo_kD9Q",
+      "1MjWyqara1J6WXynWM0o678tH7BHawhtU",
+      "1NA4-mde_kj7PTP5_kib9k3wQIvpST1kx",
+      "1SzIrxWD_XOths33xb_tu0A4P0fZnD2vQ",
+      "1c1n1hejsIm2BPyJPYyWSJhOzNi_DVJ0S",
+      "1eSnE4dmI7IPn3euApzJK81PJ9LitQl2Z",
+      "1ff9CGVtdFFp4FZh5t9DuHi9BtjfgzKNJ",
+      "1hIj_As94ZOTV1nIFsP7IS1YPkpqfhwMT",
+      "1i8DHdRFSrpQiOT8cJR29RLgFUU2n4UH2",
+      "1nzRj5Kp0flzO4s8V8TjMrNtWaxZwLJjD",
+      "1riuU3gY-VBsom2IL4ExQQDKU-8KUzf6S",
+      "1sPqwrZvj02Q1tFsRop5_yLkHm3bqVsFk",
+      "1t5uELuhO-UYNk6gGNlgGBqWlCyTo47PF",
+      "1vRDtk5s5-o3RMcGh1ojPchqGAHatpRcY",
+      "1wVMQ-qdPuVp3hGtAb9Va1Hj-kdqFI4TD"
+    ]
+  }
+}

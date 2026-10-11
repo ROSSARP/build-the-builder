@@ -1,0 +1,663 @@
+{
+ "base_path": "/voice/v1",
+ "servers": [
+  "https://api.freyabank.example"
+ ],
+ "transport": "POST",
+ "content_type": "application/json",
+ "customer_number": {
+  "field": "customerNo",
+  "type": "string",
+  "digits": 8
+ },
+ "services": [
+  {
+   "name": "cards_list",
+   "path": "/cards.list",
+   "description": "Returns the customer's cards the assistant may talk about.",
+   "request": [
+    {
+     "name": "customerNo",
+     "type": "string",
+     "required": true,
+     "description": "8-digit customer number; may be sent as a string or as a number, both are accepted."
+    },
+    {
+     "name": "aiFlow",
+     "type": "string",
+     "required": true,
+     "description": "Which use case is asking; for this one \"CardOps\" (not validated in test)."
+    }
+   ],
+   "response": [
+    {
+     "name": "cards",
+     "type": "array",
+     "always_present": true,
+     "description": "Array of card objects, each with cardNumber (masked in the test environment, first 6 and last 4 digits visible, e.g. \"540000******1234\"), cardNumberLast4, productName (free text from the card system), status (only active cards come back: \"A\") and isMainCard (true/false; false for a card that isn't the customer's own main card, it's still in the list)."
+    },
+    {
+     "name": "validCardsCount",
+     "type": "number",
+     "always_present": true,
+     "description": "Number of valid cards in the list."
+    },
+    {
+     "name": "exitState",
+     "type": "string",
+     "always_present": true,
+     "description": "\"1_CARD\" or \"MULTI_CARD\"."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (message names the field).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 404,
+     "when": "Customer has no valid card.",
+     "response": {
+      "code": "FB_IVR_CHANNEL_102",
+      "type": "WARNING",
+      "message": "Müşteriye ait geçerli kart bilgisi bulunamadı."
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "cards_balance",
+   "path": "/cards.balance",
+   "description": "Returns statement and due dates and debt per currency for a card.",
+   "request": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "required": true,
+     "description": "Always send the cardNumber exactly as cards.list returned it; don't rebuild it from digits the caller says. In the test environment it comes back masked; build so it works with the masked form."
+    }
+   ],
+   "response": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "always_present": true,
+     "description": "Masked differently from the card list (first 4 + last 4, \"5400********1234\"); don't use it to match against the list."
+    },
+    {
+     "name": "cardNumberLast4",
+     "type": "string",
+     "always_present": true,
+     "description": "Last four digits; not unique across cards — don't assume uniqueness."
+    },
+    {
+     "name": "productName",
+     "type": "string",
+     "always_present": true,
+     "description": "Free text from the card system."
+    },
+    {
+     "name": "statementDate",
+     "type": "string",
+     "always_present": true,
+     "description": "The last issued statement date, dd.MM.yyyy."
+    },
+    {
+     "name": "lastPayDate",
+     "type": "string",
+     "always_present": true,
+     "description": "Due date of the last issued statement."
+    },
+    {
+     "name": "nextStatementDate",
+     "type": "string",
+     "always_present": true,
+     "description": "The coming statement date."
+    },
+    {
+     "name": "nextLastPayDate",
+     "type": "string",
+     "always_present": true,
+     "description": "The coming due date."
+    },
+    {
+     "name": "debtTL",
+     "type": "object",
+     "always_present": false,
+     "description": "TL debt block: statementPaymentStatus (\"HAS_DEBT\"/\"NO_DEBT\"), transferAmount (carried over from the previous period), statementDebt, minPayment, remainingDebt, remainingMinPayment (what is left after payments made since), currentPeriodExpense (spending after the statement), totalDebt (includes spending after the statement; can be negative = credit balance, status is NO_DEBT then), totalDebtPaymentStatus, remainAutomaticPaymentAmount (only meaningful when automaticPaymentFlag is \"Y\"). A block can be missing; missing is not the same as NO_DEBT, don't invent zeros for it."
+    },
+    {
+     "name": "debtUSD",
+     "type": "object",
+     "always_present": false,
+     "description": "USD debt block, same fields as debtTL; can be missing."
+    },
+    {
+     "name": "debtEUR",
+     "type": "object",
+     "always_present": false,
+     "description": "EUR debt block, same fields as debtTL; can be missing."
+    },
+    {
+     "name": "debtGBP",
+     "type": "object",
+     "always_present": false,
+     "description": "GBP debt block, same fields as debtTL; some cards have no GBP block at all."
+    },
+    {
+     "name": "statementPaymentStatus",
+     "type": "string",
+     "always_present": true,
+     "description": "Top level, for the card overall: \"HAS_DEBT\" or \"NO_DEBT\"."
+    },
+    {
+     "name": "totalDebtPaymentStatus",
+     "type": "string",
+     "always_present": true,
+     "description": "Top level: \"HAS_DEBT\" or \"NO_DEBT\"."
+    },
+    {
+     "name": "automaticPaymentFlag",
+     "type": "string",
+     "always_present": true,
+     "description": "\"Y\" / \"N\"."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (empty card number).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 404,
+     "when": "Card not found.",
+     "response": {
+      "code": "FB_IVR_CHANNEL_120",
+      "type": "WARNING",
+      "message": "Kart bakiye servisi hatası: kart bulunamadı"
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "statement_week_get",
+   "path": "/statement.week.get",
+   "description": "Returns the card's current statement week and day and joint statement info.",
+   "request": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "required": true,
+     "description": "Card number, exactly as cards.list returned it."
+    }
+   ],
+   "response": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "always_present": true,
+     "description": "The card number as sent."
+    },
+    {
+     "name": "cardNumberLast4",
+     "type": "string",
+     "always_present": true,
+     "description": "Last four digits."
+    },
+    {
+     "name": "productName",
+     "type": "string",
+     "always_present": true,
+     "description": "Product name from the card system."
+    },
+    {
+     "name": "statementWeek",
+     "type": "number",
+     "always_present": true,
+     "description": "1 to 4, the week of the month the statement is cut."
+    },
+    {
+     "name": "statementDay",
+     "type": "number",
+     "always_present": true,
+     "description": "Day of the month."
+    },
+    {
+     "name": "statementDate",
+     "type": "string",
+     "always_present": true,
+     "description": "Current statement date, dd.MM.yyyy."
+    },
+    {
+     "name": "lastPayDate",
+     "type": "string",
+     "always_present": true,
+     "description": "Current due date."
+    },
+    {
+     "name": "nextStatementDate",
+     "type": "string",
+     "always_present": true,
+     "description": "Coming statement date."
+    },
+    {
+     "name": "nextLastPayDate",
+     "type": "string",
+     "always_present": true,
+     "description": "Coming due date."
+    },
+    {
+     "name": "relationType",
+     "type": "string",
+     "always_present": true,
+     "description": "Empty string when the card has its own statement. \"M\" or \"C\" when two cards share one statement: \"M\" = this is the main card of the pair, \"C\" = this is the card linked to it."
+    },
+    {
+     "name": "relatedCardNumber",
+     "type": "string",
+     "always_present": true,
+     "description": "The other card of a shared statement; empty string when there is none."
+    },
+    {
+     "name": "relatedCardProductName",
+     "type": "string",
+     "always_present": true,
+     "description": "Product name of the other card; empty string when there is none."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (message names the field).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 404,
+     "when": "Card not found.",
+     "response": {
+      "code": "FB_IVR_CHANNEL_121",
+      "type": "WARNING"
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "statement_week_decide",
+   "path": "/statement.week.decide",
+   "description": "Preview only: returns what the statement and due dates would be with the requested week (does not change anything).",
+   "request": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "required": true,
+     "description": "Card number, exactly as cards.list returned it."
+    },
+    {
+     "name": "newStatementWeek",
+     "type": "number",
+     "required": true,
+     "description": "1-4, number or string both fine. Asking for the week the card already has gives an error — there is nothing to preview, so don't call it for that."
+    },
+    {
+     "name": "statementDay",
+     "type": "number",
+     "required": true,
+     "description": "The card's current statementDay from statement.week.get."
+    }
+   ],
+   "response": [
+    {
+     "name": "statementDate",
+     "type": "string",
+     "always_present": true,
+     "description": "The first statement date under the requested week, dd.MM.yyyy."
+    },
+    {
+     "name": "statementDueDate",
+     "type": "string",
+     "always_present": true,
+     "description": "The first due date under the requested week. Note the due date is statementDueDate here, not lastPayDate like elsewhere."
+    },
+    {
+     "name": "statementDay",
+     "type": "number",
+     "always_present": true,
+     "description": "The statement day under the requested week."
+    },
+    {
+     "name": "responseCode",
+     "type": "number",
+     "always_present": true,
+     "description": "0 = fine."
+    },
+    {
+     "name": "responseMessage",
+     "type": "string",
+     "always_present": true,
+     "description": "\"Success\"."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (message names the field).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "statement_week_change",
+   "path": "/statement.week.change",
+   "description": "Changes the card's statement week.",
+   "request": [
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "required": true,
+     "description": "Card number, exactly as cards.list returned it."
+    },
+    {
+     "name": "newStatementWeek",
+     "type": "number",
+     "required": true,
+     "description": "1-4, the requested week."
+    },
+    {
+     "name": "statementDay",
+     "type": "number",
+     "required": true,
+     "description": "Required by the request model even though the backend recalculates the day; send the current day."
+    }
+   ],
+   "response": [
+    {
+     "name": "responseCode",
+     "type": "number",
+     "always_present": true,
+     "description": "0 on success."
+    },
+    {
+     "name": "responseMessage",
+     "type": "string",
+     "always_present": true,
+     "description": "\"00\"."
+    },
+    {
+     "name": "statementWeek",
+     "type": "string",
+     "always_present": true,
+     "description": "Comes back as a string here (numbers everywhere else)."
+    },
+    {
+     "name": "statementDay",
+     "type": "string",
+     "always_present": true,
+     "description": "Comes back as a string here (numbers everywhere else); ignore it — the dates to tell the caller are the ones from statement.week.decide."
+    },
+    {
+     "name": "exitState",
+     "type": "string",
+     "always_present": true,
+     "description": "\"OK\". Success = exitState \"OK\" and responseCode 0."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (message names the field).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 401,
+     "when": "Token missing or expired. Get a new token and retry once.",
+     "response": {}
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "contact_email_get",
+   "path": "/contact.email.get",
+   "description": "Returns the customer's registered e-mail / phone.",
+   "request": [
+    {
+     "name": "customerNo",
+     "type": "number",
+     "required": true,
+     "description": "Customer number (example 90000001)."
+    },
+    {
+     "name": "intAddressInfoType",
+     "type": "string",
+     "required": true,
+     "description": "\"E\" e-mail, \"P\" phone, \"B\" both. Empty value gives a 400 (\"intAddressInfoType cannot be empty\"). The test environment returns the same answer whatever you ask for."
+    }
+   ],
+   "response": [
+    {
+     "name": "communicationType",
+     "type": "string",
+     "always_present": true,
+     "description": "\"Both\" when an e-mail is registered, \"Phone\" when only a phone is registered. Check ibanEmail, not only the type."
+    },
+    {
+     "name": "ibanCountryCode",
+     "type": "string",
+     "always_present": true,
+     "description": "The iban* prefix is historical, it has nothing to do with IBANs."
+    },
+    {
+     "name": "ibanAreaCode",
+     "type": "string",
+     "always_present": true,
+     "description": "Historical iban* field."
+    },
+    {
+     "name": "ibanPhoneNum",
+     "type": "string",
+     "always_present": true,
+     "description": "Historical iban* field."
+    },
+    {
+     "name": "ibanEmail",
+     "type": "string",
+     "always_present": true,
+     "description": "The registered e-mail; empty when there is none."
+    },
+    {
+     "name": "ttsEmail",
+     "type": "string",
+     "always_present": true,
+     "description": "The same address prepared for reading aloud (today identical in practice)."
+    },
+    {
+     "name": "commGramType",
+     "type": "string",
+     "always_present": true,
+     "description": "\"A\"."
+    },
+    {
+     "name": "exitState",
+     "type": "string",
+     "always_present": true,
+     "description": "\"Done\"."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "Empty intAddressInfoType (\"intAddressInfoType cannot be empty\").",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  },
+  {
+   "name": "statement_pdf_send",
+   "path": "/statement.pdf.send",
+   "description": "Sends the statement PDF by e-mail.",
+   "request": [
+    {
+     "name": "customerNo",
+     "type": "string",
+     "required": true,
+     "description": "Customer number (example \"90000001\")."
+    },
+    {
+     "name": "cardNumber",
+     "type": "string",
+     "required": true,
+     "description": "Card number, exactly as cards.list returned it."
+    },
+    {
+     "name": "currencyType",
+     "type": "string",
+     "required": true,
+     "description": "\"TL\", \"USD\", \"EUR\" or \"GBP\"."
+    },
+    {
+     "name": "statementDate",
+     "type": "string",
+     "required": true,
+     "description": "The statementDate from cards.balance (the issued statement), dd.MM.yyyy."
+    },
+    {
+     "name": "emailAddress",
+     "type": "string",
+     "required": true,
+     "description": "The backend sends to whatever is in this field. It does not check it against the registered address."
+    }
+   ],
+   "response": [
+    {
+     "name": "exitState",
+     "type": "string",
+     "always_present": true,
+     "description": "\"DONE\"."
+    }
+   ],
+   "errors": [
+    {
+     "status": 400,
+     "when": "A required field is missing or empty (message names the field).",
+     "response": {
+      "code": "INVALID_ARGUMENTS_ERROR",
+      "type": "ERROR"
+     }
+    },
+    {
+     "status": 404,
+     "when": "No statement document to send.",
+     "response": {
+      "code": "FB_IVR_CHANNEL_107",
+      "type": "WARNING",
+      "message": "Pdf dokümanı bulunamadı"
+     }
+    },
+    {
+     "status": 500,
+     "when": "Technical error on Freya's side.",
+     "response": {
+      "code": "FBE00099",
+      "type": "ERROR",
+      "message": "Teknik hata: ABORTED: "
+     }
+    }
+   ]
+  }
+ ],
+ "error_semantics": "Success is HTTP 200 with result.returnCode \"1\"; anything else is an error. Error answers have no data object, only result; returnCode and code always carry the same value, and so do messageText and message; type is \"ERROR\" or \"WARNING\". guid is Freya's trace id — give it when opening a ticket. messageText is for logs, please don't read it out to the caller; rootCause and errorOrigin are diagnostic strings — log them, don't branch on them. HTTP 400 INVALID_ARGUMENTS_ERROR means a required field is missing or empty and the message names the field. HTTP 404 with a WARNING means the requested thing does not exist (no valid card, card not found, no statement PDF) — this is different from a broken service and must be handled differently from a 500 FBE00099 technical error. HTTP 401 from the gateway means the token is missing or expired — get a new token and retry once. Timeouts are not agreed: most answers are well under a second, but under load an answer can take longer than ten seconds and still succeed.",
+ "notes": [
+  "Envelope: every request wraps the service fields in \"data\" plus a \"call\" object {\"ani\": \"<caller's number>\", \"lang\": \"tr\"}; every answer has a \"result\" object and only successful answers also have \"data\". \"call\" is metadata Freya logs, nothing in the contract depends on it, and the test environment ignores it.",
+  "Base address for all seven services is https://api.freyabank.example/voice/v1/ (so the card list is POST https://api.freyabank.example/voice/v1/cards.list, and so on).",
+  "Access token: POST https://api.freyabank.example/oauth2/token with grant_type=client_credentials and scope=voice.statement; the answer is {\"access_token\": \"<token>\", \"token_type\": \"Bearer\", \"expires_in\": 1800}. On every service call send Authorization: Bearer <token>, Content-Type: application/json and Accept: application/json. The token belongs to the integration (service account), not to the caller; cache it and get a fresh one when it runs out, don't fetch one per call. The test environment does not check the token and headers there — send them anyway so nothing changes when switching.",
+  "Dates are strings in dd.MM.yyyy (e.g. \"05.11.2026\"); amounts are JSON numbers with a dot as decimal separator (5000.13), never formatted strings; do not round them.",
+  "Turning numbers and dates into speech is the assistant's job; the services return raw values only, no sentences meant to be read to the caller.",
+  "Card number: always send the cardNumber exactly as cards.list returned it; don't rebuild it from digits the caller says. In the test environment cardNumber comes back masked (first 6 and last 4 digits visible, \"540000******1234\"); build so that it works with the masked form.",
+  "cards.list: only active cards come back (status \"A\"); isMainCard is false for a card that isn't the customer's own main card but it's still in the list; productName is free text from the card system; two cards can have the same product name and the same last four digits — don't assume cardNumberLast4 is unique.",
+  "cards.balance: statementDate / lastPayDate are the last issued statement and its due date, nextStatementDate / nextLastPayDate the coming ones. One block per currency (debtTL, debtUSD, debtEUR, debtGBP); a block can be missing entirely, and a missing block is not the same as a block with NO_DEBT — don't invent zeros for it. In each block statementDebt is the statement debt and minPayment the minimum payment on the statement; remainingDebt / remainingMinPayment are what is left of those after payments made since; totalDebt includes spending after the statement; currentPeriodExpense is that spending; transferAmount is carried over from the previous period. totalDebt can be negative (credit balance on that currency) and the status is NO_DEBT then. remainAutomaticPaymentAmount is only meaningful when automaticPaymentFlag is \"Y\".",
+  "The cardNumber in the cards.balance answer is masked differently from the card list (first 4 + last 4, \"5400********1234\"); don't use it to match against the list — use cardNumberLast4 or just keep the number you sent.",
+  "statement.week.get: statementWeek is 1 to 4 and statementDay is the day of the month, both numbers. relationType is an empty string when the card has its own statement, \"M\" or \"C\" when two cards share one statement (\"M\" = this is the main card of the pair, \"C\" = this is the card linked to it); relatedCardNumber / relatedCardProductName then name the other card, otherwise they are empty strings. Changing the week on either card moves the shared statement, i.e. both cards.",
+  "There is no field telling whether the customer can still change the statement week (yearly limit etc.); the rule lives in the card system and the change call either goes through or it doesn't.",
+  "statement.week.decide is preview only — it tells which statement date, due date and day the card would get with the requested week and does not change the card; don't call it for the week the card already has (nothing to preview, you get an error). Its due date field is statementDueDate, not lastPayDate like elsewhere.",
+  "statement.week.change changes the card; call it only after the caller has agreed to the dates from statement.week.decide. statementDay is required by the request model even though the backend recalculates the day — send the current day. statementWeek and statementDay come back as strings (numbers everywhere else); ignore statementDay in this answer — the dates to tell the caller are the ones from statement.week.decide. Success = exitState \"OK\" and responseCode 0.",
+  "No automatic retry on statement.week.change and statement.pdf.send (both have side effects).",
+  "contact.email.get: the registered e-mail is ibanEmail; ttsEmail is the same address prepared for reading aloud (today identical in practice). No registered e-mail = communicationType \"Phone\" and/or empty ibanEmail — check the field, not only the type. The iban* prefix is historical, it has nothing to do with IBANs.",
+  "statement.pdf.send: statementDate is the statementDate from cards.balance (the issued statement); currencyType is \"TL\", \"USD\", \"EUR\" or \"GBP\"; the backend sends to whatever is in emailAddress and does not check it against the registered address.",
+  "Test environment: same paths and shapes as above; the synthetic customers and every answer they get are in test-environment/test-customers.json. For a customer or card that isn't in the file, return the 404 for that service from the error table (for services without a 404 there, a 400 INVALID_ARGUMENTS_ERROR body). Only the data fields decide the answer in test; token, headers and call are not checked.",
+  "Open points: client timeout and retry policy not agreed; card number masking in production cards.list not confirmed; no flag for \"can still change the statement week this year\" yet; rate limits per client to come."
+ ],
+ "_extracted_utc": "2026-10-11T17:31:33Z"
+}

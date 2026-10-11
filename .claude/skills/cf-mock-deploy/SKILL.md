@@ -133,6 +133,9 @@ CID1=$(curl -sS -X POST "$MOCK_URL/practice/sessions" -H "content-type: applicat
 test -n "$CID1" || echo "SESSION ROUTE BROKEN"
 curl -sS -X POST "$MOCK_URL/get_account" -H "content-type: application/json" \
   -d "{\"customer_id\":\"$CID1\"}" | jq -e '.ok == false and .error == "identity not verified"'
+curl -sS -X POST "$MOCK_URL/create_promise" -H "content-type: application/json" \
+  -d "{\"customer_id\":\"$CID1\",\"product_id\":\"p1\",\"amount\":100,\"date\":\"2026-10-15\"}" \
+  | jq -e '.ok == false and .error == "identity not verified"'
 curl -sS -o /dev/null -w 'unknown-id get_account: %{http_code}\n' -X POST "$MOCK_URL/get_account" \
   -H "content-type: application/json" -d '{"customer_id":"UNKNOWN-999"}'     # 200, never 5xx
 ```
@@ -213,6 +216,18 @@ jq -r .url mock/final/deployed.json   # MUST equal $MOCK_BASE; if it changed, up
 ```
 
 Keep the worker running until results are out — no teardown, no delete. After submission, redeploy only the exact submitted source.
+
+## Failure table
+
+| Symptom | Meaning / action |
+|---|---|
+| verify fails / error 10000 | token not valid for the account → new token (Phase 0 box) |
+| PUT fails 403 / permission errors | token lacks Workers Scripts:Edit → fix token permissions |
+| `/health` never 200 | redeploy; read `mock/final/deployed.json`; still down → dashboard |
+| get_account before identity returns `ok: true` | worker identity gate broken → regenerate |
+| create_promise before identity returns `ok: true` | identity gate missing on promise too (known finding: the analysis step keeps missing it) → regenerate |
+| ledger last call ≠ `close_call` | smoke sequence skipped close_call or the worker did not record it |
+| deploy log leaks a key | scrub it from the log before commit (Rules, below) |
 
 ## Rules
 

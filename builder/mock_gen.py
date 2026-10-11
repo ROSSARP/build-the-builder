@@ -630,6 +630,12 @@ def validate_worker(js, analysis, seed):
                             f"(the scorer compares the error string literally)")
     if re.search(r"^\s*import\b", js_nc, re.M):
         problems.append("ES `import` statements are not allowed: one self-contained file, no bundles")
+    # SESSION_SUFFIX_RE has no capture group: stripping the base id from a "-sN" session
+    # id must be a .replace(), never .exec(...)[1] (undefined -> session customers fall
+    # through to derived hash identities and every identity check fails)
+    if re.search(r"SESSION_SUFFIX_RE\.exec", js_nc) and "replace(SESSION_SUFFIX_RE" not in js_nc:
+        problems.append("the session-suffix strip uses .exec()[1] on a regex without a capture "
+                        "group — use String(id).replace(SESSION_SUFFIX_RE, '') instead")
     for bad, label in ((r"\brequire\s*\(", "require()"), (r"\bprocess\.", "process."),
                        (r"\bBuffer\b", "Buffer"), (r"\b__dirname\b", "__dirname"),
                        (r"\bmodule\.exports\b", "module.exports")):
@@ -741,13 +747,15 @@ function freshState(seedCustomer, id) {
 
 async function loadState(env, id) {
   const key = String(id);
-  if (MEM.sessions[key]) return MEM.sessions[key];
+  // KV is authoritative on reads when bound: a stale in-memory copy from before an
+  // earlier tool call would otherwise shadow newer state written by another isolate.
   if (env && env.MOCK_KV) {
     try {
       const raw = await env.MOCK_KV.get("session:" + key);
       if (raw) { const s = JSON.parse(raw); MEM.sessions[key] = s; return s; }
     } catch (e) { /* KV is a mirror; memory still serves the request */ }
   }
+  if (MEM.sessions[key]) return MEM.sessions[key];
   const sc = findSeed(key) || derivedSeed(key);
   const s = freshState(sc, key);
   MEM.sessions[key] = s;
@@ -801,8 +809,19 @@ async function handleCreateSession(body, env, ctx) {
   const key = String((body && (body.case || body.case_id || body.customer_id || body.id)) || "");
   const sc = findSeed(key);
   if (!sc) return json({ ok: false, error: "unknown case", case: key }, 404);
-  MEM.counts[key] = (MEM.counts[key] || 0) + 1;
-  const id = String(sc.customer_id) + "-s" + MEM.counts[key];
+  // The counter is read/incremented through KV when bound, so two isolates never
+  // issue the same session id (a collision lets their states overwrite each other).
+  let n = (MEM.counts[key] || 0) + 1;
+  if (env && env.MOCK_KV) {
+    try {
+      const cur = await env.MOCK_KV.get("counter:" + key);
+      const prev = cur ? parseInt(cur, 10) : 0;
+      n = Math.max(n, prev + 1);
+      ctx.waitUntil(env.MOCK_KV.put("counter:" + key, String(n)));
+    } catch (e) { /* the memory counter still serves */ }
+  }
+  MEM.counts[key] = n;
+  const id = String(sc.customer_id) + "-s" + n;
   const s = freshState(sc, id);
   MEM.sessions[id] = s;
   saveState(env, ctx, s);
@@ -1051,8 +1070,9 @@ A single self-contained JavaScript file (ES module, Cloudflare Workers runtime).
 4. Error strings: copy the contract's exact strings, casing included. The identity refusal convention from the practice service is exactly "identity not verified". Record the exact response body you send.
 5. LEDGER: every call to any tool endpoint, success or failure, is appended exactly once to that customer's ledger as {seq (monotonic integer), at (ISO timestamp), customer_id, tool (endpoint name without prefix or leading slash), request (parsed body), result (the exact response body)}. Maintain the current state the endpoints write (promises, notes, callbacks, transfers, identity, outcome, reason, closed) in insertion order. Ledger reads must be deterministic: counters for ids, no Math.random, no timers.
 6. LEDGER READ ROUTES (this is how scoring works): GET <base>/practice/ledger/<customer_id> returns AT LEAST {customer_id, outcome, reason, promises[{product_id,amount,date}], notes[{product_id,reason}], callbacks[{date,time}], transfers[{queue}], identity{verified,wrong_answers,locked}, closed, calls[]}. Also GET <base>/practice/ledger (all live sessions, keyed by id) and GET <base>/practice/sessions. A read must accept the base customer id even after sessions appended "-sN".
-7. SESSIONS: POST <base>/practice/sessions with {"case": "<case or customer id>"} returns {"variables": {...}} containing every seed variable PLUS a fresh "customer_id" (seed id + "-s" + monotonic counter); each session starts clean. If the contract defines its own session/registration customer endpoint, implement that EXACTLY as well, creating state from its request body.
+7. SESSIONS: POST <base>/practice/sessions with {"case": "<case or customer id>"} returns {"variables": {...}} containing every seed variable PLUS a fresh "customer_id" (seed id + "-s" + monotonic counter); each session starts clean. The "-sN" counter must be read/incremented through KV (key "counter:<case>") when MOCK_KV is bound — two isolates must never issue the same session id, or their states overwrite each other in KV. If the contract defines its own session/registration customer endpoint, implement that EXACTLY as well, creating state from its request body.
 8. UNKNOWN CUSTOMER IDS must never 500: follow the contract's policy; otherwise use derivedSeed() and keep serving. Also support a POST <base>/practice/reset/<customer_id> that clears a session.
+8b. The "-sN" session suffix regex has NO capture group: to strip the base id from a session id, use String(id).replace(SESSION_SUFFIX_RE, ''). Never use .exec(...)[1] — it yields undefined and every session customer falls through to a derived hash identity, failing the real identity check.
 9. IDENTITY: enforce the contract's identity rules server-side (fields, order, wrong-answer counting, what is not counted as wrong, hints, lockout, which endpoints are gated). Until verified, gated endpoints return the contract's exact refusal and the refusal is recorded in the ledger.
 10. FAULTS: implement every failure injection from the analysis/seed/contract deterministically per session (e.g. the first call to a tool returns 500 once, then succeeds). Record the failed call with its exact error response. Never inject faults the contract does not describe.
 11. STATE: the in-memory Map is authoritative; when `env.MOCK_KV` is bound, mirror every mutation (`ctx.waitUntil(put)`) and hydrate a state miss from KV. Never require the binding; never throw when it is absent.

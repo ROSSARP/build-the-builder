@@ -1,0 +1,91 @@
+{
+ "service": "freya-collections",
+ "worker_name": "freya-cf-test-mock",
+ "base_path": "/v1",
+ "health_path": "/health",
+ "state_model": "cross-call",
+ "kv_optional": true,
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/v1/verify_identity",
+   "source": "contract",
+   "summary": "Check one security answer; three wrong answers in total end the check."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/get_account",
+   "source": "contract",
+   "summary": "The late products; refused until both security questions are passed."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/create_promise",
+   "source": "contract",
+   "summary": "Record a payment promise; one per product."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/add_note",
+   "source": "contract",
+   "summary": "Brief B: record why a product ended without a promise."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/schedule_callback",
+   "source": "contract",
+   "summary": "Book a callback."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/transfer_to_agent",
+   "source": "contract",
+   "summary": "Hand the call to a person."
+  },
+  {
+   "method": "POST",
+   "path": "/v1/close_call",
+   "source": "contract",
+   "summary": "End the call — always the last tool call; nothing is accepted after it."
+  },
+  {
+   "method": "GET",
+   "path": "/v1/practice/ledger/{customer_id}",
+   "source": "ledger",
+   "summary": "the ledger a scorer reads"
+  },
+  {
+   "method": "GET",
+   "path": "/v1/practice/ledger",
+   "source": "ledger",
+   "summary": "all customer ledgers, keyed by customer_id (proposed; the contract defines no read route)"
+  },
+  {
+   "method": "POST",
+   "path": "/v1/practice/sessions",
+   "source": "sessions",
+   "summary": "open a fresh session for a seed case"
+  },
+  {
+   "method": "GET",
+   "path": "/health",
+   "source": "health",
+   "summary": "liveness; must return 200"
+  }
+ ],
+ "get_probes": [
+  {
+   "path": "/health"
+  },
+  {
+   "path": "/v1/practice/ledger/T-1001",
+   "probe_of": "/v1/practice/ledger/{customer_id}",
+   "source": "ledger"
+  },
+  {
+   "path": "/v1/practice/ledger",
+   "probe_of": "/v1/practice/ledger",
+   "source": "ledger"
+  }
+ ]
+}

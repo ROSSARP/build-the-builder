@@ -1,0 +1,32 @@
+== deploy: worker 'freya-cf-test-mock' from /home/f/Downloads/build-the-builder-v3/build-the-builder/mock/test-worker (path: rest) ==
+   PUT /accounts/.../workers/scripts/freya-cf-test-mock (36565 bytes, compat 2026-10-11)
+   deployed: https://freya-cf-test-mock.fcodefcode3.workers.dev
+https://freya-cf-test-mock.fcodefcode3.workers.dev
+   deployed: https://freya-cf-test-mock.fcodefcode3.workers.dev
+   mock url: https://freya-cf-test-mock.fcodefcode3.workers.dev/v1
+== health check: https://freya-cf-test-mock.fcodefcode3.workers.dev ==
+   waiting for /health ... attempt 1/12: 404 error code: 1042
+
+   waiting for /health ... attempt 3/12: 404 error code: 1042
+
+   PASS /health -> 200 {"ok":true,"status":"healthy","service":"freya-collections","state_model":"cross-call","customers":1}
+   PASS GET /v1/practice/ledger/{customer_id} -> 200 {"customer_id":"T-1001","case_id":null,"derived":false,"identity":{"verified":false,"wrong_answers":0,"locked":false,"answers":{}},"outcome":null,"reason":null,
+   PASS GET /v1/practice/ledger -> 200 {"ok":true,"sessions":{}}
+   health: ok; get endpoints: 2/2 passed
+   wrote /home/f/Downloads/build-the-builder-v3/build-the-builder/mock/test-worker/deployed.json
+== deploy.sh done: https://freya-cf-test-mock.fcodefcode3.workers.dev ==
+== deploy: worker 'freya-cf-test-mock' from /home/f/Downloads/build-the-builder-v3/build-the-builder/mock/test-worker (path: rest) ==
+   created KV namespace freya-cf-test-mock-MOCK_KV: ad7425884ed14e0e8b797deef3ff6b0a
+   PUT /accounts/.../workers/scripts/freya-cf-test-mock (36673 bytes, compat 2026-10-11, +MOCK_KV binding)
+   deployed: https://freya-cf-test-mock.fcodefcode3.workers.dev
+https://freya-cf-test-mock.fcodefcode3.workers.dev
+   deployed: https://freya-cf-test-mock.fcodefcode3.workers.dev
+   mock url: https://freya-cf-test-mock.fcodefcode3.workers.dev/v1
+== health check: https://freya-cf-test-mock.fcodefcode3.workers.dev ==
+   PASS /health -> 200 {"ok":true,"status":"healthy","service":"freya-collections","state_model":"cross-call","customers":1}
+   PASS GET /v1/practice/ledger/{customer_id} -> 200 {"customer_id":"T-1001","case_id":null,"derived":false,"identity":{"verified":false,"wrong_answers":0,"locked":false,"answers":{}},"outcome":null,"reason":null,
+   PASS GET /v1/practice/ledger -> 200 {"ok":true,"sessions":{}}
+   health: ok; get endpoints: 2/2 passed
+   wrote /home/f/Downloads/build-the-builder-v3/build-the-builder/mock/test-worker/deployed.json
+== deploy.sh done: https://freya-cf-test-mock.fcodefcode3.workers.dev ==
+MOCK_URL=https://freya-cf-test-mock.fcodefcode3.workers.dev/v1 MOCK_HOST=https://freya-cf-test-mock.fcodefcode3.workers.dev NAME=freya-cf-test-mock 2026-10-11T17:28:56Z

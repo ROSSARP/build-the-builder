@@ -328,3 +328,16 @@ bank session customer_id=c_af689f11-6e8  now=2026-10-14T11:00
 [extract] callback_date = '2026-10-14'
 [extract] callback_time = '18:00'
 [route] third_party stays  (Keep talking)
+    . llm agent/third_party/reply: 5s, 152 chars
+[agent] That works, thank you. Let me book that for six this evening.
+[tool] schedule_callback {"date": "2026-10-14", "time": "18:00"} -> {"ok": true}
+    . llm agent/third_party/reply: 4s, 110 chars
+[agent] All set — we'll call back today at six in the evening. Have a good day.
+[call] the agent said goodbye
+[call] the agent ended the call
+    . llm close_call decision: 3s, 48 chars
+[close] decided outcome='not_reached' reason='callback'
+[tool] close_call {"customer_id": "c_af689f11-6e8", "outcome": "not_reached", "reason": "callback"} -> {"ok": true}
+[ledger] {"outcome": "not_reached", "reason": "callback", "promises": [], "notes": [], "callbacks": [{"date": "2026-10-14", "time": "18:00"}], "transfers": []}
+[tools] schedule_callback > close_call
+LOCAL PASS  PUB-02  (ledger, platform scorer)

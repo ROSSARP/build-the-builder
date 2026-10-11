@@ -189,3 +189,16 @@ bank session customer_id=c_80e95edd-cf0  now=2026-10-14T11:00
 [agent] I'm calling from the collections team about your credit card ending 5512, which is 180 past due and 5 days late. Can you make this payment today?
     . llm customer: 3s, 131 chars
 [customer] Right - can't do it today, but I'll clear the whole hundred and eighty on the third of November. That's payday, and it's a Tuesday.
+    . llm extract: 6s, 218 chars
+[extract] payment_date = '2026-11-03'
+[extract] payment_amount = 180.0
+[extract] claim = 'none'
+[extract] confirmation = 'none'
+[route] collect -> fix_date  (The customer named a payment date)
+[node] fix_date (code)
+[route] fix_date -> collect
+[node] collect (conversation)
+    . llm agent/collect/reply: 4s, 146 chars
+[agent] I'm sorry, the latest date I can record is the 2nd of November. Can you confirm the full 180 on 2026-11-02?
+    . llm customer: 3s, 53 chars
+[customer] Look, the third's the day I'm paid, not a day before.

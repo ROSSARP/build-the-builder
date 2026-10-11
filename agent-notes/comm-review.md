@@ -16,6 +16,13 @@ TODO:
 - Post-window: watcher tee (see entry below), lock-dir decision.
 - Mock URL: unchanged (see self-heal.md). Workflow id: none deployed for final case yet. Time left: ~1h50m.
 
+## 21:12 (18:12 UTC)
+DONE:
+- ACK status: build-the-builder-11 acked BY MESSAGE (read-only one-shot conformance-checker, produces no files — empty ack commit waived, correct call). Pending commit-acks: cloudflare-mock-deploy-skill, final-case-mock-bank, build-the-builder-e5. Monitor re-armed with subject-only filter (old one false-matched commit BODIES containing "ack: git-relay" — e.g. my own a32be13).
+OWN: agent-notes/comm-review.md@comm-review
+TODO:
+- 3 ack commits still expected; relay-note the stragglers after the monitor window.
+
 ## 21:02 (18:02 UTC)
 DONE:
 - Reviewed all 11 skills + live workspace state (5 claude procs, drive_watch poll owned by a LIVE session, mock_gen full run in background at self-heal).

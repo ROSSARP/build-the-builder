@@ -21,3 +21,6 @@ DONE:
 - ex6 completed its whole dialogue cleanly on v5 (log kept) but verdict wasn't reached; other v5 examples stopped at triage. v5 baseline evidence stands on: ex1 tool-data + structural grep + comm-review 29fe76f independent audit.
 TODO:
 - Report cutday/ncut/ex1 verdicts + append findings; relay @main the acceptance result.
+
+## 22:45 (19:45 UTC) — FINAL: stopped by user directive
+DONE: findings updated with partial verdicts (v9: cutday incomplete, ncut judge FAIL on card-selection stall, R3/R4b structural fixes verified; ex1-v9 not started). All background runners stopped. LIVE-END: sim-tester.

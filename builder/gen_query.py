@@ -691,15 +691,26 @@ def _bake_literal_defaults(tool):
 
 
 # The chain's balance call runs right after cards.list, before the dialogue
-# model picks a card: derive cardNumber from the card list's own response.
+# model picks a card: derive cardNumber from the card list's own response and
+# write it into the request body (config['body'], the corrector's mechanism).
 PRE_CARD_CODE = """try:
-    _cards = vars.get('voice_v1_cards_list_response', {}).get('data', {}).get('cards')
+    _cards = None
+    _src = vars.get('voice_v1_cards_list_response') or vars.get('cards_list_response') or {}
+    if isinstance(_src, dict):
+        _d = _src.get('data') if isinstance(_src.get('data'), dict) else _src
+        _cards = _d.get('cards')
     if not isinstance(_cards, list) or not _cards:
-        _cards = vars.get('cards_list_response', {}).get('data', {}).get('cards')
-    if isinstance(_cards, list) and _cards:
-        _c0 = _cards[0]
-        if isinstance(_c0, dict) and _c0.get('cardNumber'):
-            vars['cardNumber'] = str(_c0['cardNumber'])
+        _cards = vars.get('statement_cards')
+    _cn = ''
+    if isinstance(_cards, list) and _cards and isinstance(_cards[0], dict) and _cards[0].get('cardNumber'):
+        _cn = str(_cards[0]['cardNumber'])
+    if _cn:
+        vars['cardNumber'] = _cn
+        _b = config.get('body')
+        if not isinstance(_b, dict):
+            _b = {}
+            config['body'] = _b
+        _b['cardNumber'] = _cn
 except Exception:
     pass
 """
@@ -1328,6 +1339,8 @@ _DUE_WORDS = ["lastpaydate", "lastpaymentdate", "sonodemetarihi", "sonodeme", "s
 _CUT_WORDS = ["statementdate", "ekstretarihi", "ekstretarıh", "cutoffdate", "cutoff", "cut_off",
               "hesapkesim", "kesimtarihi", "kesimtarıh", "cutoffday", "kesimgunu", "kesimgünü",
               "donemkesim", "dönemkesim", "kesimgunu"]
+_NEXT_CUT_WORDS = ["nextstatementdate", "next_statement_date", "nextstatementtarihi",
+                   "nextcutoffdate", "ilkkesimtarihi", "ilkkesimtarıh"]
 _CARD_WORDS = ["productname", "cardname", "kartadi", "kartadı", "cardholder", "urunadi",
                "ürünadı", "card", "kart", "name", "adi", "adı"]
 _NO_CARD_WORDS = ["nocard", "kartyok", "kartıyok", "notfound", "bulunamadi", "bulunamadı",
@@ -1471,6 +1484,7 @@ LIST_TOOL_NAME = __LIST_TOOL_NAME__
 EMAIL_TOOL_NAME = __EMAIL_TOOL_NAME__
 DUE_WORDS = __DUE_WORDS__
 CUT_WORDS = __CUT_WORDS__
+NEXT_CUT_WORDS = __NEXT_CUT_WORDS__
 AUTO_FLAG_WORDS = __AUTO_FLAG_WORDS__
 AUTO_AMOUNT_WORDS = __AUTO_AMOUNT_WORDS__
 CARD_WORDS = __CARD_WORDS__
@@ -1760,6 +1774,8 @@ due_raw = _first(DUE_WORDS)
 cut_raw = _first(CUT_WORDS)
 due = _date_tr(due_raw)
 cut = _date_tr(cut_raw)
+next_cut_raw = _first(NEXT_CUT_WORDS)
+next_cut = _date_tr(next_cut_raw)
 
 def _cards_from(obj):
     out = []
@@ -1886,6 +1902,11 @@ for _c in sorted(amounts):
         ordered.append(_c)
 
 def _amt(code):
+    # 4.10 cut day: the number read is the TOTAL debt (totalDebt per
+    # currency, spending after the statement included) - never the last
+    # statement's debt on the day the statement is cut.
+    if globals().get('cut_today') and code in totals:
+        return _num(totals[code][1])
     return _num(amounts[code][1]) if code in amounts else None
 
 def _rem(code):
@@ -2064,13 +2085,14 @@ elif state == 'none':
             head += nm + ' '
         head += 'kartınızın '
         if cut:
-            head += cut + ' tarihli '
-        head += 'ekstresinden borcunuz bulunmamaktadır.'
+            head += cut + ' tarihli ekstresinden borcunuz bulunmamaktadır.'
+        else:
+            head += 'henüz kesilmiş bir ekstresi olmadığı için ekstre borcunuz bulunmamaktadır.'
     else:
         if cut:
             head = cut + ' tarihli ekstrenizden borcunuz bulunmamaktadır.'
         else:
-            head = 'Ekstrenizden borcunuz bulunmamaktadır.'
+            head = 'Henüz kesilmiş bir ekstreniz olmadığı için ekstre borcunuz bulunmamaktadır.'
     reading.append(head)
     tot = _num(totals[BASE][1]) if BASE in totals else None
     if tot is not None and tot > 0:
@@ -2080,6 +2102,8 @@ elif state == 'none':
         reading.append(auto_line)
     if due:
         reading.append('Son ödeme tarihiniz ' + due + ' olacaktır.')
+    elif not cut and next_cut:
+        reading.append('İlk hesap kesim tarihiniz ' + next_cut + ' olacaktır.')
 
 if state in ('has', 'none'):
     vars['statement_text'] = ' '.join(x for x in reading if x)
@@ -2331,6 +2355,7 @@ def _facts_code(spec, tool_name="", list_tool_name="", email_tool_name=""):
                          ("__CURRENCIES__", codes), ("__LABELS__", labels),
                          ("__FULL_NAMES__", full_names),
                          ("__DUE_WORDS__", _DUE_WORDS), ("__CUT_WORDS__", _CUT_WORDS),
+                         ("__NEXT_CUT_WORDS__", _NEXT_CUT_WORDS),
                          ("__AUTO_FLAG_WORDS__", _AUTO_FLAG_WORDS),
                          ("__AUTO_AMOUNT_WORDS__", _AUTO_AMOUNT_WORDS),
                          ("__CARD_WORDS__", _CARD_WORDS), ("__NO_CARD_WORDS__", _NO_CARD_WORDS),
@@ -2985,6 +3010,10 @@ def build_query_workflow(spec, api=None, mock_base=None):
             "söyleyin: \"Hesap kesim tarihiniz bugün, ekstreniz saat 00.00 itibarıyla "
             "kesilecek.\" Son ödeme tarihi geçmişse ({{statement_due_passed}} = yes) okumadan "
             "önce son ödeme tarihinin geçtiğini söyleyin.",
+            "Kesim gününde ({{statement_cut_today}} = yes) okunan tutarlar TOPLAM borçtur "
+            "(totalDebt - ekstre kesildikten sonraki harcamalar dahil). "
+            "{{statement_text}} içindeki tutarları aynen okuyun, son ekstre borcuna "
+            "çevirmeyin.",
             "Kayıtlarda hiç olmayan para birimleri ({{statement_missing}}) okuma metninde "
             "geçmez; onlardan söz etmeyin. Yalnızca müşteri o para birimini özellikle sorarsa "
             "kayıtlarda görünmediğini söyleyin.",
@@ -3004,6 +3033,14 @@ def build_query_workflow(spec, api=None, mock_base=None):
             "olamıyorum. Sizi ana menüye aktarmamı ister misiniz?\" deyin.",
             "Cevabınızı kısa tutun: bir ya da iki cümle. Her araç sonucundan sonra müşteriye "
             "bir şey söyleyin.",
+            "Aynı isimde birden fazla kart varsa bakiyeyi okumadan ÖNCE \"[kart adı] isimli "
+            "birden fazla kartınız var. Kartınızın son dört hanesini söyler misiniz?\" sorusunu "
+            "mutlaka sorun; kart netleşmeden bakiyeyi okumayın.",
+            "Müşteri yalnızca hesap kesim tarihini değiştirmek istiyorsa borç okumasında ısrar "
+            "etmeyin; doğrudan hafta seçeneklerine geçin (wants=move_date).",
+            "Hesap kesim tarihi boşsa (ekstre henüz kesilmemişse) AYNEN söyleyin: \"Kartınızın "
+            "henüz kesilmiş bir ekstresi olmadığı için ekstre borcunuz bulunmamaktadır.\" — bu "
+            "durumda \"ekstresinden borcunuz bulunmamaktadır\" demeyin.",
             "Aramayı bitirmeniz gerekirse \"İyi günler.\" diyerek kapatın.",
         ]
         if mandatory:
@@ -3063,6 +3100,8 @@ def build_query_workflow(spec, api=None, mock_base=None):
         actions_lines = [
             "İki iş yapabilirsiniz: ekstre kesim tarihini başka bir haftaya taşımak ve ekstreyi "
             "bankada kayıtlı e-posta adresine göndermek.",
+            "Müşteri hafta seçimini borç okumasından önce de yapabilir; bu adıma geldiyseniz "
+            "hafta seçeneklerini sunun, borç okumasında ısrar etmeyin.",
             "Ekstre tarihi kuralı: " + week_rule,
             "İsteğe bağlı olarak hafta sorusundan önce şunu söyleyebilirsiniz: \"Hesap kesim "
             "tarihinizi yılda bir kez değiştirebilirsiniz.\"",

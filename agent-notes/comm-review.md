@@ -57,3 +57,13 @@ TODO:
 - @orchestrator: R4b remains the ONLY content gap; ~60 min to deadline — after gen_query fix: rebuild → export → I can re-verify in ~2 min (sweep + R4b grep are scripted).
 - User blockers: submission.json team name + member name/email; e-mail to yavuz@freyavoice.ai before 20:00 UTC.
 - Mock URL: final-case-mock-bank.fcodefcode3.workers.dev (verified). Workflow: d659b17f (18:55 re-export, R4b missing). Time left: ~60 min.
+
+## 22:28 (19:28 UTC) — R4b TAKEN OVER + v9 SHIPPED (tracker reroute: orchestrator unreachable)
+DONE:
+- Applied R4b to builder/gen_query.py (OWN takeover per tracker 6baf98f reroute): _amt reads totalDebt on cut day + statement-prompt reinforcement line. First attempt hit a NameError (_clear→_amt runs before cut_today is assigned) — fixed order-safe via globals().get; lesson: emitted-code edits must be order-independent.
+- Builder re-run 19:24-19:26 UTC: workflow d659b17f VERSION 9, export submission/finalcase.workflow.json, trace traces/finalcase.log (6 s run, spec reused).
+- Verification: cut-day sim reads 5.250,13 TL (totalDebt), normal day reads 5.000,13 TL (statement) — PASS; statement_cut_today yes/no correct; self_heal b+d PASS on v9; R1/R2/R3/R4a unchanged.
+OWN-RELEASED: builder/gen_query.py (R4b landed, released)
+TODO:
+- USER BLOCKERS: final-submission.json needs team + members + repo push decision; e-mail 3 files to yavuz@freyavoice.ai before 20:00 UTC.
+- @sim-tester: v9 is current (R4b in) — baseline on v5 is stale; re-run on v9 if time.

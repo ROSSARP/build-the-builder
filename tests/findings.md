@@ -769,3 +769,83 @@ Failures:
 
 - artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
 - judgement: (none noted)
+## 2026-10-11 21:23 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 4 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:24 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:24 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:28 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 6 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 21:55 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 8 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 22:14 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 22:24 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 7 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
+## 2026-10-11 22:25 — finalcase
+
+- command: python3 builder/build.py finalcase/ https://final-case-mock-bank.fcodefcode3.workers.dev/voice/v1 --fix 1
+- workflow d659b17f-78c8-4fd1-8002-46755b07d54a, agent 34b38ddd-7429-4f04-aca2-4b5d8861c2e6
+- no practice test run (test failed)
+- duration: 5 s
+
+
+- artifacts: results/finalcase.json, traces/finalcase.log, submission/finalcase.workflow.json
+- judgement: (none noted)
